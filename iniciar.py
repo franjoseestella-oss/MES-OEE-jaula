@@ -53,7 +53,7 @@ URLS = {
     "Backend / API":  "http://localhost:8000",
     "API Docs":       "http://localhost:8000/docs",
     "Chatbot":        "http://localhost:8000",
-    "Grafana":        "http://localhost:3000",
+    "Grafana":        "http://localhost:3010",
 }
 
 HEALTH_URL     = "http://localhost:8000/health"
@@ -347,7 +347,7 @@ def ver_logs():
     if not servicios_corriendo():
         warn("No hay servicios corriendo. Inícielos primero (opción 1).")
         return
-    step("Mostrando logs en tiempo real (Ctrl+C para salir)…")
+    step("Mostrando logs en tiempo real (Ctrl+C para salir)...")
     try:
         subprocess.run(compose_cmd("logs", "-f", "--tail=80"), cwd=ROOT)
     except KeyboardInterrupt:
@@ -387,7 +387,7 @@ def mostrar_estado():
 
     # Comprobar Grafana
     try:
-        with urllib.request.urlopen("http://localhost:3000", timeout=3):
+        with urllib.request.urlopen("http://localhost:3010", timeout=3):
             print(f"    Grafana:    🟢 Respondiendo")
     except Exception:
         print(f"    Grafana:    🔴 No disponible")
