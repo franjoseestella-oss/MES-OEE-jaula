@@ -6,7 +6,7 @@
   "tags": ["mes", "log", "pruebas", "oee"],
   "timezone": "browser",
   "schemaVersion": 38,
-  "version": 2,
+  "version": 3,
   "refresh": "10s",
   "time": { "from": "now-30d", "to": "now" },
   "graphTooltip": 1,
@@ -286,7 +286,7 @@
     {
       "id": 14,
       "type": "bargauge",
-      "title": "MÁRGENES DE ELEVACIÓN (ÚLTIMA PRUEBA)",
+      "title": "MÁRGENES DE ELEVACIÓN — ${selected_id:text}",
       "gridPos": { "x": 0, "y": 16, "w": 12, "h": 6 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
@@ -332,7 +332,7 @@
         ]
       },
       "targets": [{
-        "rawSql": "SELECT TOP 1 TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elevación con Carga - Medido], TIEMPO_ELEVACION_MAX_CARGA AS [Elevación con Carga - Límite], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elevación sin Carga - Medido], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elevación sin Carga - Límite] FROM LOG_TABLA WHERE TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion DESC",
+        "rawSql": "SELECT TOP 1 TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elevación con Carga - Medido], TIEMPO_ELEVACION_MAX_CARGA AS [Elevación con Carga - Límite], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elevación sin Carga - Medido], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elevación sin Carga - Límite] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion DESC",
         "format": "table",
         "refId": "A"
       }]
@@ -340,7 +340,7 @@
     {
       "id": 15,
       "type": "gauge",
-      "title": "TIEMPOS DE ELEVACIÓN — DETALLE DE AGUJA (ÚLTIMA PRUEBA)",
+      "title": "TIEMPOS DE ELEVACIÓN — DETALLE DE AGUJA — ${selected_id:text}",
       "gridPos": { "x": 12, "y": 16, "w": 12, "h": 6 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
@@ -384,7 +384,7 @@
         ]
       },
       "targets": [{
-        "rawSql": "SELECT TOP 1 TIEMPO_ELEVACION_MEDIDO_CARGA AS [Medido Con Carga], TIEMPO_ELEVACION_MAX_CARGA AS [Límite Con Carga], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Medido Sin Carga], TIEMPO_ELEVACION_MAX_SINCARGA AS [Límite Sin Carga] FROM LOG_TABLA WHERE TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion DESC",
+        "rawSql": "SELECT TOP 1 TIEMPO_ELEVACION_MEDIDO_CARGA AS [Medido Con Carga], TIEMPO_ELEVACION_MAX_CARGA AS [Límite Con Carga], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Medido Sin Carga], TIEMPO_ELEVACION_MAX_SINCARGA AS [Límite Sin Carga] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion DESC",
         "format": "table",
         "refId": "A"
       }]
@@ -450,7 +450,23 @@
           "custom": { "align": "auto", "displayMode": "auto" }
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "Resultado" },
+          {
+            "matcher": { "id": "byName", "options": "ID" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Cargar en indicadores",
+                    "url": "/d/mes-log-v1?var-selected_id=${__value.raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Resultado" },
             "properties": [{
               "id": "mappings",
               "value": [
@@ -462,10 +478,30 @@
         ]
       },
       "targets": [{
-        "rawSql": "SELECT fecha_creacion AS [Fecha Creación], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elev Carga (s)], TIEMPO_DESCENSO_MEDIDO_CARGA AS [Desc Carga (s)], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elev Sin Carga (s)], DURACION_SEC AS [Duración], OK_NOK AS [Resultado] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() ORDER BY fecha_creacion DESC",
+        "rawSql": "SELECT id AS [ID], fecha_creacion AS [Fecha Creación], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elev Carga (s)], TIEMPO_DESCENSO_MEDIDO_CARGA AS [Desc Carga (s)], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elev Sin Carga (s)], DURACION_SEC AS [Duración], OK_NOK AS [Resultado] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() ORDER BY fecha_creacion DESC",
         "format": "table",
         "refId": "A"
       }]
     }
-  ]
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "value": "latest",
+          "text": "Último (Por defecto)"
+        },
+        "hide": 0,
+        "name": "selected_id",
+        "options": [],
+        "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "datasource": { "uid": "mes_sqlserver" },
+        "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "skipUrlSync": false,
+        "type": "query",
+        "label": "Filtro Prueba"
+      }
+    ]
+  }
 }
