@@ -1,14 +1,12 @@
 FROM python:3.11-slim
 
-# ODBC Driver 18 for SQL Server
+# Instalar dependencias necesarias para compilar/usar ODBC y librerías del sistema requeridas por el driver de MS SQL Server
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl gnupg unixodbc-dev \
+    unixodbc-dev libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Configurar repositorio oficial de Microsoft
-RUN curl -sSL -O https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
-    && dpkg -i packages-microsoft-prod.deb \
-    && rm packages-microsoft-prod.deb
+# Agregar el repositorio de Microsoft como origen de confianza directa (evita error de firma SHA1 de MS en Debian Trixie 2026)
+RUN echo "deb [arch=amd64,arm64,armhf trusted=yes] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/mssql-release.list
 
 # Instalar el driver MS ODBC 18
 RUN apt-get update \
