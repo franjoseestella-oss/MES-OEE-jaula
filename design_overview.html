@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOGISNEXT — MES/OEE — DISEÑO DEL SISTEMA</title>
+<style>
+:root {
+  --bg:      #0A0D14;
+  --card:    #141925;
+  --border:  #2A3040;
+  --text:    #FFFFFF;
+  --label:   #8B92A0;
+  --green:   #2FD06A;
+  --red:     #E32636;
+  --amber:   #F4A623;
+  --cyan:    #25C9D6;
+  --magenta: #FF2E92;
+  --orange:  #FF6A00;
+  --r: 8px;
+  --font: 'Segoe UI', 'Arial Narrow', Arial, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);padding:0 0 60px}
+
+/* ── HEADER ── */
+header{
+  background:rgba(10,13,20,0.97);
+  border-bottom:2px solid var(--cyan);
+  padding:18px 40px;
+  display:flex;align-items:center;gap:18px;
+  position:sticky;top:0;z-index:10;
+}
+.logo{width:44px;height:44px;border:2px solid var(--cyan);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:var(--cyan);letter-spacing:.05em;}
+h1{font-size:16px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+.sub{font-size:11px;color:var(--label);letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+.hsp{flex:1}
+.badge{font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;border:1px solid var(--green);color:var(--green);}
+
+/* ── LAYOUT ── */
+.page{max-width:1400px;margin:0 auto;padding:40px 32px 0}
+section{margin-bottom:48px}
+.sec-title{
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px}
+
+/* ── ARCH DIAGRAM ── */
+.arch{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0;padding:32px 20px}
+.arch-box{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 20px;min-width:130px;text-align:center;position:relative;
+}
+.arch-box .ab-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--label);margin-bottom:4px}
+.arch-box .ab-name{font-size:13px;font-weight:700}
+.arch-box .ab-tech{font-size:10px;color:var(--label);margin-top:3px}
+.arch-box .ab-port{font-size:9px;margin-top:2px;border-radius:10px;
+  display:inline-block;padding:1px 8px;border:1px solid;}
+
+.ab-app1{border-color:var(--magenta);} .ab-app1 .ab-name{color:var(--magenta)}
+.ab-mqtt{border-color:var(--amber);}  .ab-mqtt .ab-name{color:var(--amber)}
+.ab-back{border-color:var(--cyan);}   .ab-back .ab-name{color:var(--cyan)}
+.ab-sql {border-color:var(--green);}  .ab-sql  .ab-name{color:var(--green)}
+.ab-grf {border-color:#E040FB;}       .ab-grf  .ab-name{color:#E040FB}
+.ab-ai  {border-color:var(--amber);}  .ab-ai   .ab-name{color:var(--amber)}
+
+.arrow{
+  display:flex;align-items:center;padding:0 6px;
+  flex-direction:column;gap:2px;
+}
+.arrow-line{width:48px;height:2px;background:var(--border);position:relative}
+.arrow-line::after{
+  content:'▶';position:absolute;right:-6px;top:-7px;
+  font-size:10px;color:var(--border);
+}
+.arrow-label{font-size:9px;color:var(--label);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+
+.arrow.mqtt .arrow-line{background:var(--amber)} .arrow.mqtt .arrow-line::after{color:var(--amber)} .arrow.mqtt .arrow-label{color:var(--amber)}
+.arrow.sql  .arrow-line{background:var(--green)} .arrow.sql  .arrow-line::after{color:var(--green)} .arrow.sql  .arrow-label{color:var(--green)}
+.arrow.api  .arrow-line{background:var(--cyan)}  .arrow.api  .arrow-line::after{color:var(--cyan)}  .arrow.api  .arrow-label{color:var(--cyan)}
+.arrow.ai   .arrow-line{background:var(--amber)} .arrow.ai   .arrow-line::after{color:var(--amber)} .arrow.ai   .arrow-label{color:var(--amber)}
+
+.arch-col{display:flex;flex-direction:column;gap:12px;align-items:center}
+.arch-split{display:flex;align-items:center;gap:0}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:rgba(37,201,214,.1);border:1px solid var(--border);
+   padding:8px 14px;text-align:left;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+td{border:1px solid var(--border);padding:8px 14px;color:var(--text)}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+
+/* ── STATES TIMELINE ── */
+.state-track{display:flex;gap:4px;height:54px;align-items:stretch;margin:8px 0 4px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.state-seg{display:flex;align-items:center;justify-content:center;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:var(--bg);flex:1;cursor:default;transition:opacity .15s}
+.state-seg:hover{opacity:.8}
+.state-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.sl{display:flex;align-items:center;gap:7px;font-size:11px}
+.sl-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+/* ── OEE CARDS ── */
+.oee-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+.oee-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px}
+.oee-card .oc-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--label);margin-bottom:8px}
+.oee-card .oc-formula{font-size:12px;line-height:1.6}
+.oee-card .oc-num{color:var(--cyan);font-weight:700}
+.oee-card .oc-den{color:var(--label)}
+.oee-card .oc-accent{color:var(--amber);font-weight:700}
+.oee-result{text-align:center;padding:22px;border:1px solid var(--cyan);border-radius:var(--r);background:rgba(37,201,214,.05)}
+.oee-result .big{font-size:18px;font-weight:800;color:var(--cyan);letter-spacing:.05em}
+
+/* ── FILE TREE ── */
+.tree{font-family:'Consolas','Courier New',monospace;font-size:12px;line-height:1.9}
+.tree-dir{color:var(--cyan)}
+.tree-file{color:var(--text)}
+.tree-desc{color:var(--label);font-style:italic}
+.tree-key{color:var(--amber)}
+
+/* ── ENDPOINTS ── */
+.method{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;
+  padding:2px 8px;border-radius:4px;min-width:44px;text-align:center}
+.m-get{background:rgba(37,201,214,.15);color:var(--cyan);border:1px solid rgba(37,201,214,.3)}
+.m-post{background:rgba(47,208,106,.15);color:var(--green);border:1px solid rgba(47,208,106,.3)}
+
+/* ── PALETTE ── */
+.palette{display:flex;flex-wrap:wrap;gap:14px}
+.swatch{border-radius:var(--r);overflow:hidden;width:140px;border:1px solid var(--border)}
+.sw-color{height:56px}
+.sw-info{padding:8px 10px;background:var(--card)}
+.sw-name{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--label)}
+.sw-hex{font-size:13px;font-weight:700;font-family:'Consolas',monospace;margin-top:2px}
+
+/* ── MQTT ── */
+.topic-box{background:rgba(37,201,214,.06);border:1px solid rgba(37,201,214,.25);border-radius:var(--r);padding:14px 18px;margin-bottom:12px}
+.topic-path{font-family:'Consolas',monospace;font-size:13px;color:var(--amber);margin-bottom:8px}
+pre{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:6px;
+    padding:14px 16px;font-family:'Consolas',monospace;font-size:12px;
+    overflow-x:auto;line-height:1.7}
+.json-key{color:var(--cyan)}
+.json-str{color:var(--green)}
+.json-num{color:var(--amber)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">LN</div>
+  <div>
+    <div class="h1" style="font-size:16px;font-weight:700;letter-spacing:.18em;text-transform:uppercase">Logisnext</div>
+    <div class="sub">MES / OEE — Diseño del Sistema</div>
+  </div>
+  <div class="hsp"></div>
+  <div class="badge">App 2 · v1.0</div>
+</header>
+
+<div class="page">
+
+<!-- ── 1. ARQUITECTURA ── -->
+<section>
+  <div class="sec-title">1 · Arquitectura del sistema</div>
+  <div class="card">
+    <div class="arch">
+      <!-- App 1 -->
+      <div class="arch-box ab-app1">
+        <div class="ab-label">existente</div>
+        <div class="ab-name">App 1</div>
+        <div class="ab-tech">HMI / Control</div>
+        <span class="ab-port" style="border-color:var(--magenta);color:var(--magenta)">no tocar</span>
+      </div>
+
+      <div class="arrow mqtt">
+        <div class="arrow-label">MQTT publica</div>
+        <div class="arrow-line"></div>
+      </div>
+
+      <!-- Mosquitto -->
+      <div class="arch-box ab-mqtt">
+        <div class="ab-label">broker</div>
+        <div class="ab-name">Mosquitto</div>
+        <div class="ab-tech">eclipse-mosquitto:2</div>
+        <span class="ab-port" style="border-color:var(--amber);color:var(--amber)">:1883</span>
+      </div>
+
+      <div class="arrow mqtt">
+        <div class="arrow-label">suscribe</div>
+        <div class="arrow-line"></div>
+      </div>
+
+      <!-- Backend -->
+      <div class="arch-col">
+        <div class="arch-box ab-back">
+          <div class="ab-label">app 2 · backend</div>
+          <div class="ab-name">FastAPI</div>
+          <div class="ab-tech">Python 3.11 · uvicorn</div>
+          <span class="ab-port" style="border-color:var(--cyan);color:var(--cyan)">:8000</span>
+        </div>
+      </div>
+
+      <!-- Flechas a SQL + Grafana -->
+      <div class="arch-col" style="gap:32px">
+        <div class="arrow sql">
+          <div class="arrow-label">escribe métricas</div>
+          <div class="arrow-line"></div>
+        </div>
+        <div class="arrow api" style="transform:scaleX(-1)">
+          <div class="arrow-label" style="transform:scaleX(-1)">lee dashboards</div>
+          <div class="arrow-line"></div>
+        </div>
+      </div>
+
+      <!-- SQL + Grafana apilados -->
+      <div class="arch-col" style="gap:32px">
+        <div class="arch-box ab-sql">
+          <div class="ab-label">base de datos</div>
+          <div class="ab-name">SQL Server</div>
+          <div class="ab-tech">tablas mes_*</div>
+          <span class="ab-port" style="border-color:var(--green);color:var(--green)">:1433</span>
+        </div>
+        <div class="arch-box ab-grf">
+          <div class="ab-label">dashboard</div>
+          <div class="ab-name">Grafana</div>
+          <div class="ab-tech">v10.4 · provisioning</div>
+          <span class="ab-port" style="border-color:#E040FB;color:#E040FB">:3000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Claude API debajo -->
+    <div style="display:flex;justify-content:center;margin-top:12px;align-items:center;gap:12px">
+      <div style="font-size:10px;color:var(--label);letter-spacing:.1em;text-transform:uppercase">Claude API (chatbot)</div>
+      <div class="arrow ai" style="transform:rotate(0deg)">
+        <div class="arrow-line" style="width:60px"></div>
+      </div>
+      <div class="arch-box ab-ai" style="min-width:170px">
+        <div class="ab-label">LLM</div>
+        <div class="ab-name">claude-sonnet-4-6</div>
+        <div class="ab-tech">herramientas parametrizadas</div>
+        <span class="ab-port" style="border-color:var(--amber);color:var(--amber)">api.anthropic.com</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 2. CAPAS ── -->
+<section>
+  <div class="sec-title">2 · Capas del sistema</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Capa</th><th>Tecnología</th><th>Puerto</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--amber)">Broker MQTT</td><td>eclipse-mosquitto 2</td><td style="color:var(--amber);font-family:monospace">1883 / 9001 WS</td><td>Recibe eventos de App 1 y los retransmite al backend. LWT detecta caídas.</td></tr>
+        <tr><td style="color:var(--cyan)">Backend</td><td>FastAPI + paho-mqtt + APScheduler</td><td style="color:var(--cyan);font-family:monospace">8000</td><td>Procesa eventos MQTT, calcula OEE, sirve API REST y chatbot.</td></tr>
+        <tr><td style="color:var(--green)">Base de datos</td><td>SQL Server + SQLAlchemy</td><td style="color:var(--green);font-family:monospace">1433</td><td>App 1 escribe el LOG. App 2 escribe tablas mes_* y lee solo lectura el histórico.</td></tr>
+        <tr><td style="color:#E040FB">Dashboard</td><td>Grafana 10.4 (provisioning)</td><td style="color:#E040FB;font-family:monospace">3000</td><td>12 paneles (gauges, timeseries, state-timeline, barchart, tabla).</td></tr>
+        <tr><td style="color:var(--amber)">Chatbot</td><td>Claude claude-sonnet-4-6 + Anthropic SDK</td><td style="color:var(--label)">—</td><td>6 herramientas parametrizadas. Nunca ejecuta SQL libre. Responde en español.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── 3. ESTADOS PACKML ── -->
+<section>
+  <div class="sec-title">3 · Modelo de estados PackML</div>
+  <div class="card">
+    <div class="state-track">
+      <div class="state-seg" style="background:var(--green);flex:3" title="Tiempo productivo">Execute</div>
+      <div class="state-seg" style="background:var(--amber);flex:1" title="Parada controlada">Held</div>
+      <div class="state-seg" style="background:var(--green);flex:2" title="Tiempo productivo">Execute</div>
+      <div class="state-seg" style="background:var(--orange);flex:0.5" title="Error leve">Holding</div>
+      <div class="state-seg" style="background:var(--green);flex:1.5" title="Tiempo productivo">Execute</div>
+      <div class="state-seg" style="background:var(--red);flex:0.5" title="Error crítico">Aborted</div>
+      <div class="state-seg" style="background:#4A505E;flex:1" title="Sin producción">Idle</div>
+    </div>
+    <div class="state-legend">
+      <div class="sl"><div class="sl-dot" style="background:var(--green)"></div><span>Execute — tiempo productivo (cuenta para OEE)</span></div>
+      <div class="sl"><div class="sl-dot" style="background:var(--amber)"></div><span>Held — pausa controlada</span></div>
+      <div class="sl"><div class="sl-dot" style="background:var(--red)"></div><span>Aborted — parada por error crítico</span></div>
+      <div class="sl"><div class="sl-dot" style="background:var(--orange)"></div><span>Aborting / Holding — error en proceso</span></div>
+      <div class="sl"><div class="sl-dot" style="background:#4A505E"></div><span>Idle / Stopped / Complete — sin producción</span></div>
+    </div>
+    <div style="margin-top:16px">
+      <table>
+        <thead><tr><th>Término App 1</th><th>Estado PackML</th><th>Color</th><th>¿Cuenta OEE?</th></tr></thead>
+        <tbody>
+          <tr><td><code>run</code></td><td style="color:var(--green)">Execute</td><td><span style="color:var(--green)">■</span> #2FD06A</td><td style="color:var(--green)">Sí</td></tr>
+          <tr><td><code>pause</code></td><td style="color:var(--amber)">Held</td><td><span style="color:var(--amber)">■</span> #F4A623</td><td style="color:var(--red)">No</td></tr>
+          <tr><td><code>abortado</code></td><td style="color:var(--red)">Aborted</td><td><span style="color:var(--red)">■</span> #E32636</td><td style="color:var(--red)">No</td></tr>
+          <tr><td><code>error</code> (crítico)</td><td style="color:var(--red)">Aborting</td><td><span style="color:var(--orange)">■</span> #FF6A00</td><td style="color:var(--red)">No</td></tr>
+          <tr><td><code>error</code> (leve)</td><td style="color:var(--orange)">Holding</td><td><span style="color:var(--orange)">■</span> #FF6A00</td><td style="color:var(--red)">No</td></tr>
+          <tr><td>—</td><td style="color:var(--label)">Idle / Stopped</td><td><span style="color:#4A505E">■</span> #8B92A0</td><td style="color:var(--red)">No</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. OEE ── -->
+<section>
+  <div class="sec-title">4 · Fórmulas OEE</div>
+  <div class="oee-grid">
+    <div class="oee-card" style="border-color:var(--green)">
+      <div class="oc-label">Disponibilidad</div>
+      <div class="oc-formula">
+        <div class="oc-num">Tiempo en Execute</div>
+        <div style="border-top:1px solid var(--border);margin:6px 0"></div>
+        <div class="oc-den">Tiempo planificado</div>
+      </div>
+    </div>
+    <div class="oee-card" style="border-color:var(--amber)">
+      <div class="oc-label">Rendimiento</div>
+      <div class="oc-formula">
+        <div class="oc-num">Ciclo ideal × Piezas totales</div>
+        <div style="border-top:1px solid var(--border);margin:6px 0"></div>
+        <div class="oc-den">Tiempo en Execute</div>
+      </div>
+    </div>
+    <div class="oee-card" style="border-color:var(--magenta)">
+      <div class="oc-label">Calidad</div>
+      <div class="oc-formula">
+        <div class="oc-num">Piezas buenas</div>
+        <div style="border-top:1px solid var(--border);margin:6px 0"></div>
+        <div class="oc-den">Piezas totales</div>
+      </div>
+    </div>
+  </div>
+  <div class="oee-result">
+    <div class="big">OEE = Disponibilidad × Rendimiento × Calidad</div>
+    <div style="color:var(--label);font-size:11px;margin-top:6px;letter-spacing:.08em">
+      Calculado en ventana móvil · por turno · por día · snapshots cada 60 s en <code style="color:var(--cyan)">mes_oee_snapshots</code>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. ESTRUCTURA ── -->
+<section>
+  <div class="sec-title">5 · Estructura del proyecto</div>
+  <div class="card">
+    <div class="tree">
+<span class="tree-dir">APLICACION MES-OEE/</span>
+├── <span class="tree-key">launcher.py</span>              <span class="tree-desc">← lanzador con menú interactivo</span>
+├── <span class="tree-file">.env.example</span>             <span class="tree-desc">variables de entorno (copiar a .env)</span>
+├── <span class="tree-file">docker-compose.yml</span>       <span class="tree-desc">Mosquitto + Backend + Grafana</span>
+├── <span class="tree-file">README.md</span>
+├── <span class="tree-dir">mosquitto/config/</span>
+│   └── <span class="tree-file">mosquitto.conf</span>
+├── <span class="tree-dir">grafana/provisioning/</span>
+│   ├── <span class="tree-dir">datasources/</span>
+│   │   └── <span class="tree-file">sqlserver.yml</span>       <span class="tree-desc">datasource SQL Server</span>
+│   └── <span class="tree-dir">dashboards/</span>
+│       ├── <span class="tree-file">dashboard.yml</span>
+│       └── <span class="tree-key">oee_dashboard.json</span>  <span class="tree-desc">← 12 paneles, versionado como código</span>
+└── <span class="tree-dir">backend/</span>
+    ├── <span class="tree-file">main.py</span>               <span class="tree-desc">FastAPI + lifespan (MQTT + scheduler)</span>
+    ├── <span class="tree-file">config.py</span>             <span class="tree-desc">settings por pydantic-settings</span>
+    ├── <span class="tree-dir">models/</span>
+    │   └── <span class="tree-key">events.py</span>           <span class="tree-desc">← ORM: mes_machine_events, mes_oee_snapshots, mes_machine_status</span>
+    ├── <span class="tree-dir">database/</span>
+    │   ├── <span class="tree-file">session.py</span>         <span class="tree-desc">engine SQLAlchemy + contexto</span>
+    │   └── <span class="tree-file">repositories.py</span>    <span class="tree-desc">lectura/escritura datos</span>
+    ├── <span class="tree-dir">mqtt/</span>
+    │   └── <span class="tree-key">client.py</span>           <span class="tree-desc">← QoS 1 + reconexión + LWT</span>
+    ├── <span class="tree-dir">oee/</span>
+    │   ├── <span class="tree-key">calculator.py</span>       <span class="tree-desc">← OEE ventana móvil / turno / día</span>
+    │   └── <span class="tree-file">scheduler.py</span>       <span class="tree-desc">APScheduler: snapshots cada 60 s</span>
+    ├── <span class="tree-dir">api/</span>
+    │   └── <span class="tree-file">routes.py</span>          <span class="tree-desc">7 endpoints REST /api/v1/...</span>
+    ├── <span class="tree-dir">chatbot/</span>
+    │   ├── <span class="tree-key">tools.py</span>            <span class="tree-desc">← 6 herramientas parametrizadas</span>
+    │   ├── <span class="tree-file">agent.py</span>           <span class="tree-desc">Claude claude-sonnet-4-6 con bucle tool_use</span>
+    │   └── <span class="tree-file">routes.py</span>          <span class="tree-desc">POST /api/v1/chat</span>
+    ├── <span class="tree-dir">static/</span>
+    │   └── <span class="tree-key">chat.html</span>           <span class="tree-desc">← UI chatbot HMI oscuro Logisnext</span>
+    └── <span class="tree-dir">tests/</span>
+        └── <span class="tree-key">test_oee_calculator.py</span> <span class="tree-desc">← 6 casos pytest</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. API ENDPOINTS ── -->
+<section>
+  <div class="sec-title">6 · API REST</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method m-get">GET</span></td><td><code>/api/v1/machines</code></td><td>Lista todas las máquinas registradas</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code>/api/v1/machines/{id}/status</code></td><td>Estado en tiempo real de la máquina</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code>/api/v1/machines/{id}/oee/live?minutes=60</code></td><td>OEE en ventana móvil (1–1440 min)</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code>/api/v1/machines/{id}/oee/shift</code></td><td>OEE del turno actual (T1/T2/T3)</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code>/api/v1/machines/{id}/oee/history</code></td><td>Historial de snapshots por rango de tiempo</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code>/api/v1/machines/{id}/events</code></td><td>Eventos de estado en rango</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code>/api/v1/machines/{id}/stops</code></td><td>Top causas de parada por reason_code</td></tr>
+        <tr><td><span class="method m-post">POST</span></td><td><code>/api/v1/chat</code></td><td>Chatbot — pregunta en lenguaje natural</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code>/health</code></td><td>Estado del servicio + estado MQTT</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── 7. MQTT ── -->
+<section>
+  <div class="sec-title">7 · Topics MQTT</div>
+  <div class="card">
+    <div class="topic-box">
+      <div class="topic-path">planta/{linea}/{maquina}/estado</div>
+      <div style="font-size:11px;color:var(--label);margin-bottom:10px">QoS 1 · LWT activo · reconexión automática</div>
+      <pre><span class="json-key">{</span>
+  <span class="json-key">"machine_id"</span>:   <span class="json-str">"MAQ-01"</span>,
+  <span class="json-key">"state"</span>:        <span class="json-str">"Execute"</span>,
+  <span class="json-key">"timestamp"</span>:    <span class="json-str">"2026-06-08T10:15:30Z"</span>,
+  <span class="json-key">"piece_count"</span>:  <span class="json-num">1240</span>,
+  <span class="json-key">"good_count"</span>:   <span class="json-num">1228</span>,
+  <span class="json-key">"bad_count"</span>:    <span class="json-num">12</span>,
+  <span class="json-key">"reason_code"</span>:  <span class="json-str">null</span>
+<span class="json-key">}</span></pre>
+    </div>
+    <div class="topic-box">
+      <div class="topic-path">planta/{linea}/{maquina}/contadores</div>
+      <div style="font-size:11px;color:var(--label)">Actualización de contadores sin cambio de estado</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 8. PALETA ── -->
+<section>
+  <div class="sec-title">8 · Paleta de colores Logisnext HMI</div>
+  <div class="card">
+    <div class="palette">
+      <div class="swatch">
+        <div class="sw-color" style="background:#0A0D14"></div>
+        <div class="sw-info"><div class="sw-name">Fondo principal</div><div class="sw-hex" style="color:#25C9D6">#0A0D14</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#141925"></div>
+        <div class="sw-info"><div class="sw-name">Fondo tarjeta</div><div class="sw-hex" style="color:#25C9D6">#141925</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#2A3040"></div>
+        <div class="sw-info"><div class="sw-name">Borde</div><div class="sw-hex" style="color:#25C9D6">#2A3040</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#2FD06A"></div>
+        <div class="sw-info"><div class="sw-name">Verde OK / Execute</div><div class="sw-hex" style="color:#2FD06A">#2FD06A</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#E32636"></div>
+        <div class="sw-info"><div class="sw-name">Rojo alarma</div><div class="sw-hex" style="color:#E32636">#E32636</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#F4A623"></div>
+        <div class="sw-info"><div class="sw-name">Ámbar espera</div><div class="sw-hex" style="color:#F4A623">#F4A623</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#25C9D6"></div>
+        <div class="sw-info"><div class="sw-name">Cian datos</div><div class="sw-hex" style="color:#25C9D6">#25C9D6</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#FF2E92"></div>
+        <div class="sw-info"><div class="sw-name">Magenta acento</div><div class="sw-hex" style="color:#FF2E92">#FF2E92</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#FF6A00"></div>
+        <div class="sw-info"><div class="sw-name">Naranja error</div><div class="sw-hex" style="color:#FF6A00">#FF6A00</div></div>
+      </div>
+      <div class="swatch">
+        <div class="sw-color" style="background:#8B92A0"></div>
+        <div class="sw-info"><div class="sw-name">Gris etiquetas</div><div class="sw-hex" style="color:#8B92A0">#8B92A0</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /page -->
+</body>
+</html>
