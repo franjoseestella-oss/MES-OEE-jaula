@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: MES_SQLServer
+    type: mssql
+    access: proxy
+    url: ${SQL_SERVER_HOST}:${SQL_SERVER_PORT}
+    database: ${SQL_SERVER_DATABASE}
+    user: ${SQL_SERVER_USER}
+    secureJsonData:
+      password: ${SQL_SERVER_PASSWORD}
+    jsonData:
+      authenticationType: SQL Server Authentication
+      encrypt: "false"
+    editable: true
+    uid: mes_sqlserver
