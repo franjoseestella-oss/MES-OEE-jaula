@@ -286,7 +286,7 @@
     {
       "id": 14,
       "type": "bargauge",
-      "title": "MÁRGENES DE ELEVACIÓN — ${selected_id:text}",
+      "title": "MÁRGENES DE ELEVACIÓN Y DESCENSO — ${selected_id:text}",
       "gridPos": { "x": 0, "y": 16, "w": 12, "h": 6 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
@@ -301,38 +301,62 @@
         "defaults": {
           "unit": "s",
           "min": 0,
-          "max": 8,
-          "color": { "mode": "thresholds" }
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "Elevación con Carga - Medido" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Elevación con Carga - Límite" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "#E32636", "mode": "fixed" } }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Elevación sin Carga - Medido" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Elevación sin Carga - Límite" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "#E32636", "mode": "fixed" } }
+          "decimals": 2,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "#2FD06A", "value": null },
+              { "color": "#E32636", "value": 100 }
             ]
           }
-        ]
+        }
       },
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configQuery": "A",
+            "mappings": [
+              {
+                "fieldName": "Elevación Sin Carga Max",
+                "handlerId": "max",
+                "targetField": "Elevación Sin Carga"
+              },
+              {
+                "fieldName": "Descenso Sin Carga Max",
+                "handlerId": "max",
+                "targetField": "Descenso Sin Carga"
+              },
+              {
+                "fieldName": "Elevación Con Carga Max",
+                "handlerId": "max",
+                "targetField": "Elevación Con Carga"
+              },
+              {
+                "fieldName": "Descenso Con Carga Max",
+                "handlerId": "max",
+                "targetField": "Descenso Con Carga"
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Elevación Sin Carga",
+                "Descenso Sin Carga",
+                "Elevación Con Carga",
+                "Descenso Con Carga"
+              ]
+            }
+          }
+        }
+      ],
       "targets": [{
-        "rawSql": "SELECT TOP 1 TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elevación con Carga - Medido], TIEMPO_ELEVACION_MAX_CARGA AS [Elevación con Carga - Límite], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elevación sin Carga - Medido], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elevación sin Carga - Límite] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion DESC",
+        "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 8.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 8.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL ORDER BY fecha_creacion DESC",
         "format": "table",
         "refId": "A"
       }]
@@ -340,7 +364,7 @@
     {
       "id": 15,
       "type": "gauge",
-      "title": "TIEMPOS DE ELEVACIÓN — DETALLE DE AGUJA — ${selected_id:text}",
+      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO — DETALLE DE AGUJA — ${selected_id:text}",
       "gridPos": { "x": 12, "y": 16, "w": 12, "h": 6 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
@@ -353,38 +377,62 @@
         "defaults": {
           "unit": "s",
           "min": 0,
-          "max": 8,
-          "color": { "mode": "thresholds" }
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "Medido Con Carga" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Límite Con Carga" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "#E32636", "mode": "fixed" } }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Medido Sin Carga" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Límite Sin Carga" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "#E32636", "mode": "fixed" } }
+          "decimals": 2,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "#2FD06A", "value": null },
+              { "color": "#E32636", "value": 100 }
             ]
           }
-        ]
+        }
       },
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configQuery": "A",
+            "mappings": [
+              {
+                "fieldName": "Elevación Sin Carga Max",
+                "handlerId": "max",
+                "targetField": "Elevación Sin Carga"
+              },
+              {
+                "fieldName": "Descenso Sin Carga Max",
+                "handlerId": "max",
+                "targetField": "Descenso Sin Carga"
+              },
+              {
+                "fieldName": "Elevación Con Carga Max",
+                "handlerId": "max",
+                "targetField": "Elevación Con Carga"
+              },
+              {
+                "fieldName": "Descenso Con Carga Max",
+                "handlerId": "max",
+                "targetField": "Descenso Con Carga"
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Elevación Sin Carga",
+                "Descenso Sin Carga",
+                "Elevación Con Carga",
+                "Descenso Con Carga"
+              ]
+            }
+          }
+        }
+      ],
       "targets": [{
-        "rawSql": "SELECT TOP 1 TIEMPO_ELEVACION_MEDIDO_CARGA AS [Medido Con Carga], TIEMPO_ELEVACION_MAX_CARGA AS [Límite Con Carga], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Medido Sin Carga], TIEMPO_ELEVACION_MAX_SINCARGA AS [Límite Sin Carga] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion DESC",
+        "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 8.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 8.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL ORDER BY fecha_creacion DESC",
         "format": "table",
         "refId": "A"
       }]
