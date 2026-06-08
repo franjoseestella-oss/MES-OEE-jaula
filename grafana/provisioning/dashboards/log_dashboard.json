@@ -159,6 +159,7 @@
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "orientation": "horizontal",
+        "xField": "Modelo",
         "legend": { "displayMode": "hidden" }
       },
       "fieldConfig": {
@@ -181,6 +182,7 @@
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "orientation": "horizontal",
+        "xField": "Operario",
         "legend": { "displayMode": "hidden" }
       },
       "fieldConfig": {
