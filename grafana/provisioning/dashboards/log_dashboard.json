@@ -1,22 +1,154 @@
 {
   "id": null,
   "uid": "mes-log-v1",
-  "title": "LOGISNEXT — HISTORIAL DE PRUEBAS (LOG)",
-  "description": "Historial de pruebas de la jaula de elevación y tiempos registrados",
-  "tags": ["mes", "log", "pruebas"],
+  "title": "LOGISNEXT — HISTORIAL DE PRUEBAS Y OEE (MES)",
+  "description": "Historial de pruebas de la jaula de elevación, tiempos registrados y KPIs de OEE",
+  "tags": ["mes", "log", "pruebas", "oee"],
   "timezone": "browser",
   "schemaVersion": 38,
-  "version": 1,
+  "version": 2,
   "refresh": "10s",
   "time": { "from": "now-30d", "to": "now" },
   "graphTooltip": 1,
   "style": "dark",
   "panels": [
     {
+      "id": 10,
+      "type": "stat",
+      "title": "OEE GLOBAL",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "mes_sqlserver" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0, "max": 100,
+          "decimals": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#E32636", "value": null },
+              { "color": "#F4A623", "value": 75 },
+              { "color": "#2FD06A", "value": 85 }
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "rawSql": "SELECT COALESCE((SELECT TOP 1 oee * 100 FROM mes_oee_snapshots WHERE oee IS NOT NULL ORDER BY ts DESC), 0.0) AS value",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "DISPONIBILIDAD",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "mes_sqlserver" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0, "max": 100,
+          "decimals": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#E32636", "value": null },
+              { "color": "#F4A623", "value": 80 },
+              { "color": "#2FD06A", "value": 90 }
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "rawSql": "SELECT COALESCE((SELECT TOP 1 availability * 100 FROM mes_oee_snapshots WHERE availability IS NOT NULL ORDER BY ts DESC), 0.0) AS value",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "RENDIMIENTO",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "mes_sqlserver" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0, "max": 100,
+          "decimals": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#E32636", "value": null },
+              { "color": "#F4A623", "value": 80 },
+              { "color": "#2FD06A", "value": 90 }
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "rawSql": "SELECT COALESCE((SELECT TOP 1 performance * 100 FROM mes_oee_snapshots WHERE performance IS NOT NULL ORDER BY ts DESC), 0.0) AS value",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "CALIDAD",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "uid": "mes_sqlserver" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0, "max": 100,
+          "decimals": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#E32636", "value": null },
+              { "color": "#F4A623", "value": 90 },
+              { "color": "#2FD06A", "value": 98 }
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "rawSql": "SELECT COALESCE((SELECT TOP 1 quality * 100 FROM mes_oee_snapshots WHERE quality IS NOT NULL ORDER BY ts DESC), 0.0) AS value",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
       "id": 1,
       "type": "stat",
       "title": "PRUEBAS TOTALES (Últimos 30 días)",
-      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "gridPos": { "x": 0, "y": 4, "w": 6, "h": 4 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "reduceOptions": { "calcs": ["sum"] },
@@ -38,7 +170,7 @@
       "id": 2,
       "type": "stat",
       "title": "PRUEBAS OK (Últimos 30 días)",
-      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "gridPos": { "x": 6, "y": 4, "w": 6, "h": 4 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "reduceOptions": { "calcs": ["sum"] },
@@ -60,7 +192,7 @@
       "id": 3,
       "type": "stat",
       "title": "PRUEBAS NOK (Últimos 30 días)",
-      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "gridPos": { "x": 12, "y": 4, "w": 6, "h": 4 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "reduceOptions": { "calcs": ["sum"] },
@@ -82,7 +214,7 @@
       "id": 4,
       "type": "gauge",
       "title": "TASA DE APROBACIÓN (OK %)",
-      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 8 },
+      "gridPos": { "x": 18, "y": 4, "w": 6, "h": 4 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] }
@@ -112,8 +244,8 @@
     {
       "id": 5,
       "type": "timeseries",
-      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO CON CARGA (Segundos)",
-      "gridPos": { "x": 0, "y": 4, "w": 9, "h": 8 },
+      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO CON CARGA (Histórico)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" }
@@ -133,8 +265,8 @@
     {
       "id": 6,
       "type": "timeseries",
-      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO SIN CARGA (Segundos)",
-      "gridPos": { "x": 9, "y": 4, "w": 9, "h": 8 },
+      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO SIN CARGA (Histórico)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" }
@@ -152,10 +284,116 @@
       }]
     },
     {
+      "id": 14,
+      "type": "bargauge",
+      "title": "MÁRGENES DE ELEVACIÓN (ÚLTIMA PRUEBA)",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 6 },
+      "datasource": { "uid": "mes_sqlserver" },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "values": true,
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "max": 8,
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Elevación con Carga - Medido" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Elevación con Carga - Límite" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#E32636", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Elevación sin Carga - Medido" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Elevación sin Carga - Límite" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#E32636", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "targets": [{
+        "rawSql": "SELECT TOP 1 TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elevación con Carga - Medido], TIEMPO_ELEVACION_MAX_CARGA AS [Elevación con Carga - Límite], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elevación sin Carga - Medido], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elevación sin Carga - Límite] FROM LOG_TABLA WHERE TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion DESC",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 15,
+      "type": "gauge",
+      "title": "TIEMPOS DE ELEVACIÓN — DETALLE DE AGUJA (ÚLTIMA PRUEBA)",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 6 },
+      "datasource": { "uid": "mes_sqlserver" },
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "max": 8,
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Medido Con Carga" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Límite Con Carga" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#E32636", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Medido Sin Carga" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Límite Sin Carga" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#E32636", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "targets": [{
+        "rawSql": "SELECT TOP 1 TIEMPO_ELEVACION_MEDIDO_CARGA AS [Medido Con Carga], TIEMPO_ELEVACION_MAX_CARGA AS [Límite Con Carga], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Medido Sin Carga], TIEMPO_ELEVACION_MAX_SINCARGA AS [Límite Sin Carga] FROM LOG_TABLA WHERE TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion DESC",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
       "id": 7,
       "type": "barchart",
       "title": "PRUEBAS POR MODELO DE MÁSTIL / MÁQUINA",
-      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 6 },
+      "gridPos": { "x": 0, "y": 22, "w": 12, "h": 6 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "orientation": "horizontal",
@@ -178,7 +416,7 @@
       "id": 8,
       "type": "barchart",
       "title": "PRUEBAS POR OPERARIO (Rendimiento del Operador)",
-      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 6 },
+      "gridPos": { "x": 12, "y": 22, "w": 12, "h": 6 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "orientation": "horizontal",
@@ -201,7 +439,7 @@
       "id": 9,
       "type": "table",
       "title": "REGISTRO DETALLADO DE PRUEBAS (Historial Completo)",
-      "gridPos": { "x": 0, "y": 18, "w": 24, "h": 12 },
+      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 10 },
       "datasource": { "uid": "mes_sqlserver" },
       "options": {
         "footer": { "show": true, "enablePagination": true, "fields": ["Resultado"] },
