@@ -53,6 +53,9 @@ services:
     restart: unless-stopped
     networks:
       - mes_net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "DESKTOP-PMRMSPT:host-gateway"
 
 volumes:
   mosquitto_data:

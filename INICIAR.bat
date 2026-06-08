@@ -40,11 +40,11 @@ echo  Esperando que el backend este listo en localhost:8000 ...
 timeout /t 8 /nobreak >nul
 start "" "http://localhost:8000"
 timeout /t 2 /nobreak >nul
-start "" "http://localhost:3000"
+start "" "http://localhost:3010"
 echo.
 echo  Aplicacion abierta:
 echo    Chatbot / API  →  http://localhost:8000
-echo    Grafana        →  http://localhost:3000
+echo    Grafana        →  http://localhost:3010
 echo.
 goto FIN
 

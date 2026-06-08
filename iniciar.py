@@ -347,7 +347,7 @@ def ver_logs():
     if not servicios_corriendo():
         warn("No hay servicios corriendo. Inícielos primero (opción 1).")
         return
-    step("Mostrando logs en tiempo real (Ctrl+C para salir)...")
+    step("Mostrando logs en tiempo real (Ctrl+C para salir)…")
     try:
         subprocess.run(compose_cmd("logs", "-f", "--tail=80"), cwd=ROOT)
     except KeyboardInterrupt:

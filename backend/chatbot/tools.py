@@ -1,4 +1,4 @@
-"""Herramientas para chatbot."""
+"""Herramientas parametrizadas para el chatbot — nunca ejecuta SQL libre."""
 
 from datetime import datetime, timezone, timedelta
 from typing import Optional
@@ -24,6 +24,8 @@ def _db_rows_to_events(rows) -> list[EventRow]:
         ))
     return out
 
+
+# ── Tool handlers ─────────────────────────────────────────────────────────────
 
 def tool_get_machine_status(machine_id: str) -> dict:
     with get_db() as db:
@@ -166,6 +168,8 @@ def tool_list_machines() -> dict:
         ]
     }
 
+
+# ── Registro de herramientas para Claude ─────────────────────────────────────
 
 TOOL_DEFINITIONS = [
     {

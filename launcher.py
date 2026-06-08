@@ -39,12 +39,12 @@ COMPOSE   = ROOT / "docker-compose.yml"
 
 URLS = {
     "Backend / Chatbot": "http://localhost:8000",
-    "Grafana":           "http://localhost:3000",
+    "Grafana":           "http://localhost:3010",
     "API Docs":          "http://localhost:8000/docs",
 }
 
 HEALTH_URL    = "http://localhost:8000/health"
-GRAFANA_URL   = "http://localhost:3000"
+GRAFANA_URL   = "http://localhost:3010"
 WAIT_TIMEOUT  = 120   # segundos máximos de espera
 POLL_INTERVAL = 3
 
@@ -202,12 +202,12 @@ def wait_and_open() -> None:
 
 def print_menu() -> None:
     print(f"""
-  Opciones:
-    1  Iniciar aplicación
-    2  Ver logs en tiempo real
-    3  Detener aplicación
-    4  Mostrar URLs
-    0  Salir
+{W}  Opciones:{RST}
+    {G}1{RST}  Iniciar aplicación
+    {Y}2{RST}  Ver logs en tiempo real
+    {R}3{RST}  Detener aplicación
+    {C}4{RST}  Mostrar URLs
+    {DIM}0{RST}  Salir
 """)
 
 

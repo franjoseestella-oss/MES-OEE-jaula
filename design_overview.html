@@ -230,7 +230,7 @@ pre{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:6px;
           <div class="ab-label">dashboard</div>
           <div class="ab-name">Grafana</div>
           <div class="ab-tech">v10.4 · provisioning</div>
-          <span class="ab-port" style="border-color:#E040FB;color:#E040FB">:3000</span>
+          <span class="ab-port" style="border-color:#E040FB;color:#E040FB">:3010</span>
         </div>
       </div>
     </div>
@@ -261,7 +261,7 @@ pre{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:6px;
         <tr><td style="color:var(--amber)">Broker MQTT</td><td>eclipse-mosquitto 2</td><td style="color:var(--amber);font-family:monospace">1883 / 9001 WS</td><td>Recibe eventos de App 1 y los retransmite al backend. LWT detecta caídas.</td></tr>
         <tr><td style="color:var(--cyan)">Backend</td><td>FastAPI + paho-mqtt + APScheduler</td><td style="color:var(--cyan);font-family:monospace">8000</td><td>Procesa eventos MQTT, calcula OEE, sirve API REST y chatbot.</td></tr>
         <tr><td style="color:var(--green)">Base de datos</td><td>SQL Server + SQLAlchemy</td><td style="color:var(--green);font-family:monospace">1433</td><td>App 1 escribe el LOG. App 2 escribe tablas mes_* y lee solo lectura el histórico.</td></tr>
-        <tr><td style="color:#E040FB">Dashboard</td><td>Grafana 10.4 (provisioning)</td><td style="color:#E040FB;font-family:monospace">3000</td><td>12 paneles (gauges, timeseries, state-timeline, barchart, tabla).</td></tr>
+        <tr><td style="color:#E040FB">Dashboard</td><td>Grafana 10.4 (provisioning)</td><td style="color:#E040FB;font-family:monospace">3010</td><td>12 paneles (gauges, timeseries, state-timeline, barchart, tabla).</td></tr>
         <tr><td style="color:var(--amber)">Chatbot</td><td>Claude claude-sonnet-4-6 + Anthropic SDK</td><td style="color:var(--label)">—</td><td>6 herramientas parametrizadas. Nunca ejecuta SQL libre. Responde en español.</td></tr>
       </tbody>
     </table>
