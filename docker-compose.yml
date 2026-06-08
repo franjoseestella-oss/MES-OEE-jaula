@@ -33,6 +33,7 @@ services:
       - mes_net
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "DESKTOP-PMRMSPT:host-gateway"
 
   grafana:
     image: grafana/grafana:10.4.2
