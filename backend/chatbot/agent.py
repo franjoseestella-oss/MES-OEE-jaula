@@ -20,7 +20,7 @@ Respondes SIEMPRE en español. Tu rol es ayudar a los operadores y supervisores 
 
 Reglas:
 1. Solo usas las herramientas disponibles para consultar datos. No inventas cifras.
-2. Si no encuentras datos, dilo claramente y sugiere qué revisar.
+2. Si no encuentras datos, dilo claramente y sugerir qué revisar.
 3. Presentas los porcentajes de OEE redondeados a 1 decimal.
 4. Para reportes de turno o día, estructura la respuesta con secciones claras.
 5. Si el usuario pide un reporte exportable, formatea la respuesta como Markdown."""
@@ -41,10 +41,21 @@ def run_chat(
         Respuesta textual final del asistente.
     """
     settings = get_settings()
-    if not settings.anthropic_api_key:
-        return "Error: ANTHROPIC_API_KEY no configurada. Contacta al administrador."
+    api_key = settings.anthropic_api_key.strip() if settings.anthropic_api_key else ""
+    if not api_key or api_key == "tu_api_key_aqui" or not api_key.startswith("sk-ant-"):
+        return (
+            "⚠️ **Configuración de clave API requerida**\n\n"
+            "Para conversar con el chatbot, necesitas configurar una clave API de Anthropic válida en tu archivo `.env`:\n\n"
+            "1. Abre el archivo `.env` en la raíz del del proyecto.\n"
+            "2. Modifica la línea `ANTHROPIC_API_KEY=tu_api_key_aqui` introduciendo tu clave real (debe empezar con `sk-ant-`).\n"
+            "3. Guarda el archivo (la aplicación se recargará automáticamente)."
+        )
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+    except Exception as exc:
+        logger.error("Error al inicializar cliente Anthropic: %s", exc)
+        return f"⚠️ **Error de inicialización:** No se pudo instanciar el cliente de Anthropic ({exc})."
 
     system = SYSTEM_PROMPT
     if machine_id_hint:
@@ -60,13 +71,27 @@ def run_chat(
 
     # Bucle agentico: hasta MAX_ITERATIONS llamadas a herramientas
     for _ in range(MAX_ITERATIONS):
-        response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=2048,
-            system=system,
-            tools=TOOL_DEFINITIONS,
-            messages=claude_messages,
-        )
+        try:
+            response = client.messages.create(
+                model="claude-3-5-sonnet-latest",
+                max_tokens=2048,
+                system=system,
+                tools=TOOL_DEFINITIONS,
+                messages=claude_messages,
+            )
+        except anthropic.AuthenticationError as exc:
+            logger.error("Error de autenticación con Anthropic: %s", exc)
+            return (
+                "⚠️ **Clave API no válida o revocada**\n\n"
+                "La clave configurada en el archivo `.env` ha sido rechazada por los servidores de Anthropic. "
+                "Por favor, asegúrate de que la clave sea correcta y esté activa en tu consola de Anthropic."
+            )
+        except anthropic.APIError as exc:
+            logger.error("Error de la API de Anthropic: %s", exc)
+            return f"⚠️ **Error en el servicio de IA (Claude):** {exc.message}"
+        except Exception as exc:
+            logger.error("Error inesperado en llamada de chatbot: %s", exc, exc_info=True)
+            return f"⚠️ **Error interno del chatbot:** {str(exc)}"
 
         # Respuesta final (sin uso de herramientas)
         if response.stop_reason == "end_turn":
