@@ -1,7 +1,26 @@
 {
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
   "description": "Historial de pruebas de la jaula de elevación, tiempos registrados y KPIs de OEE",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": 2,
+  "links": [],
   "panels": [
     {
       "datasource": {
@@ -13,6 +32,7 @@
             "mode": "thresholds"
           },
           "decimals": 1,
+          "mappings": [],
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -33,7 +53,8 @@
             ]
           },
           "unit": "percent"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -45,12 +66,20 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
-        }
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -71,6 +100,7 @@
             "mode": "thresholds"
           },
           "decimals": 1,
+          "mappings": [],
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -91,7 +121,8 @@
             ]
           },
           "unit": "percent"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -103,12 +134,20 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
-        }
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -129,6 +168,7 @@
             "mode": "thresholds"
           },
           "decimals": 1,
+          "mappings": [],
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -149,7 +189,8 @@
             ]
           },
           "unit": "percent"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -161,12 +202,20 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
-        }
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -187,6 +236,7 @@
             "mode": "thresholds"
           },
           "decimals": 1,
+          "mappings": [],
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -207,7 +257,8 @@
             ]
           },
           "unit": "percent"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -219,12 +270,20 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
-        }
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -245,8 +304,23 @@
             "fixedColor": "#25C9D6",
             "mode": "fixed"
           },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "short"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -257,12 +331,21 @@
       "id": 1,
       "options": {
         "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "sum"
-          ]
-        }
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -283,8 +366,23 @@
             "fixedColor": "#2FD06A",
             "mode": "fixed"
           },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "short"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -295,12 +393,21 @@
       "id": 2,
       "options": {
         "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "sum"
-          ]
-        }
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -321,8 +428,23 @@
             "fixedColor": "#E32636",
             "mode": "fixed"
           },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "short"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -333,12 +455,21 @@
       "id": 3,
       "options": {
         "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "sum"
-          ]
-        }
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -359,6 +490,7 @@
             "mode": "thresholds"
           },
           "decimals": 1,
+          "mappings": [],
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -379,7 +511,8 @@
             ]
           },
           "unit": "percent"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -389,12 +522,21 @@
       },
       "id": 4,
       "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
-          ]
-        }
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -411,120 +553,62 @@
       },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2
-          },
-          "unit": "s"
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      },
-      "targets": [
-        {
-          "format": "time_series",
-          "rawSql": "SELECT fecha_creacion AS time, TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elevación con Carga], TIEMPO_DESCENSO_MEDIDO_CARGA AS [Descenso con Carga] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL ORDER BY fecha_creacion",
-          "refId": "A"
-        }
-      ],
-      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO CON CARGA (Histórico)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2
-          },
-          "unit": "s"
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 6,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      },
-      "targets": [
-        {
-          "format": "time_series",
-          "rawSql": "SELECT fecha_creacion AS time, TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elevación sin Carga], TIEMPO_DESCENSO_MEDIDO_SINCARGA AS [Descenso sin Carga] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NOT NULL ORDER BY fecha_creacion",
-          "refId": "A"
-        }
-      ],
-      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO SIN CARGA (Histórico)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
           "color": {
             "mode": "thresholds"
           },
           "decimals": 2,
-          "min": 0,
+          "mappings": [],
+          "max": 6,
+          "min": 1,
           "thresholds": {
-            "mode": "percentage",
+            "mode": "absolute",
             "steps": [
               {
-                "color": "#2FD06A",
+                "color": "green",
                 "value": null
               },
               {
-                "color": "#E32636",
-                "value": 100
+                "color": "red",
+                "value": 80
               }
             ]
           },
           "unit": "s"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 8
       },
       "id": 14,
       "options": {
         "displayMode": "basic",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
+          "fields": "",
           "values": true
-        }
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 8.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 8.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Elevación Sin Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Descenso Sin Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Elevación Con Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Descenso Con Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
           "refId": "A"
         }
       ],
@@ -540,8 +624,12 @@
             "configRefId": "A",
             "mappings": [
               {
+                "fieldName": "Elevación Sin Carga Min",
+                "handlerKey": "threshold1"
+              },
+              {
                 "fieldName": "Elevación Sin Carga Max",
-                "handlerKey": "max"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -556,8 +644,12 @@
             "configRefId": "A",
             "mappings": [
               {
+                "fieldName": "Descenso Sin Carga Min",
+                "handlerKey": "threshold1"
+              },
+              {
                 "fieldName": "Descenso Sin Carga Max",
-                "handlerKey": "max"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -572,8 +664,12 @@
             "configRefId": "A",
             "mappings": [
               {
+                "fieldName": "Elevación Con Carga Min",
+                "handlerKey": "threshold1"
+              },
+              {
                 "fieldName": "Elevación Con Carga Max",
-                "handlerKey": "max"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -588,8 +684,12 @@
             "configRefId": "A",
             "mappings": [
               {
+                "fieldName": "Descenso Con Carga Min",
+                "handlerKey": "threshold1"
+              },
+              {
                 "fieldName": "Descenso Con Carga Max",
-                "handlerKey": "max"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -620,31 +720,50 @@
             "mode": "thresholds"
           },
           "decimals": 2,
+          "mappings": [],
           "max": 6,
           "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 17,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 8
       },
       "id": 15,
       "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
+          "fields": "",
           "values": true
         },
         "showThresholdLabels": true,
         "showThresholdMarkers": true,
+        "sizing": "auto",
         "text": {}
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -760,22 +879,73 @@
             "fixedColor": "#25C9D6",
             "mode": "fixed"
           },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "short"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 7,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 18
       },
       "id": 7,
       "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
         "legend": {
-          "displayMode": "hidden"
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "bottom",
+          "showLegend": true
         },
         "orientation": "horizontal",
-        "xField": "Modelo"
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xField": "Modelo",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
       },
       "targets": [
         {
@@ -793,46 +963,26 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "fixedColor": "#F4A623",
-            "mode": "fixed"
-          },
-          "unit": "short"
-        }
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
-        "y": 22
-      },
-      "id": 8,
-      "options": {
-        "legend": {
-          "displayMode": "hidden"
-        },
-        "orientation": "horizontal",
-        "xField": "Operario"
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT OPERARIO AS [Operario], COUNT(*) AS [Pruebas] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() GROUP BY OPERARIO ORDER BY COUNT(*) DESC",
-          "refId": "A"
-        }
-      ],
-      "title": "PRUEBAS POR OPERARIO (Rendimiento del Operador)",
-      "type": "barchart"
-    },
-    {
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
           "custom": {
             "align": "auto",
-            "displayMode": "auto"
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
           }
         },
         "overrides": [
@@ -891,17 +1041,23 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 25
       },
       "id": 9,
       "options": {
+        "cellHeight": "sm",
         "footer": {
+          "countRows": false,
           "enablePagination": true,
           "fields": [
             "Resultado"
           ],
+          "reducer": [
+            "sum"
+          ],
           "show": true
         },
+        "showHeader": true,
         "sortBy": [
           {
             "desc": true,
@@ -909,6 +1065,7 @@
           }
         ]
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -921,8 +1078,7 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 38,
-  "style": "dark",
+  "schemaVersion": 39,
   "tags": [
     "mes",
     "log",
@@ -942,11 +1098,16 @@
         },
         "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
         "hide": 0,
+        "includeAll": false,
         "label": "Filtro Prueba",
+        "multi": false,
         "name": "selected_id",
         "options": [],
         "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "refresh": 1,
+        "regex": "",
         "skipUrlSync": false,
+        "sort": 0,
         "type": "query"
       }
     ]
@@ -955,8 +1116,10 @@
     "from": "now-30d",
     "to": "now"
   },
+  "timepicker": {},
   "timezone": "browser",
   "title": "LOGISNEXT — HISTORIAL DE PRUEBAS Y OEE (MES)",
   "uid": "mes-log-v1",
-  "version": 29
+  "version": 32,
+  "weekStart": ""
 }
