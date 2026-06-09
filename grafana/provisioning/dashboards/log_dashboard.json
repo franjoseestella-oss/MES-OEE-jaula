@@ -316,27 +316,63 @@
         {
           "id": "configFromData",
           "options": {
-            "configQuery": "A",
+            "configRefId": "A",
+            "applyTo": {
+              "id": "byName",
+              "options": "Elevación Sin Carga"
+            },
             "mappings": [
               {
                 "fieldName": "Elevación Sin Carga Max",
-                "handlerId": "max",
-                "targetField": "Elevación Sin Carga"
-              },
+                "handlerKey": "max"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "applyTo": {
+              "id": "byName",
+              "options": "Descenso Sin Carga"
+            },
+            "mappings": [
               {
                 "fieldName": "Descenso Sin Carga Max",
-                "handlerId": "max",
-                "targetField": "Descenso Sin Carga"
-              },
+                "handlerKey": "max"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "applyTo": {
+              "id": "byName",
+              "options": "Elevación Con Carga"
+            },
+            "mappings": [
               {
                 "fieldName": "Elevación Con Carga Max",
-                "handlerId": "max",
-                "targetField": "Elevación Con Carga"
-              },
+                "handlerKey": "max"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "applyTo": {
+              "id": "byName",
+              "options": "Descenso Con Carga"
+            },
+            "mappings": [
               {
                 "fieldName": "Descenso Con Carga Max",
-                "handlerId": "max",
-                "targetField": "Descenso Con Carga"
+                "handlerKey": "max"
               }
             ]
           }
@@ -397,47 +433,119 @@
         {
           "id": "configFromData",
           "options": {
-            "configQuery": "A",
+            "configRefId": "A",
+            "applyTo": {
+              "id": "byName",
+              "options": "Elevación Sin Carga"
+            },
             "mappings": [
               {
                 "fieldName": "Elevación Sin Carga Min",
-                "handlerId": "threshold1",
-                "targetField": "Elevación Sin Carga"
+                "handlerKey": "threshold1",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "green"
+                  }
+                }
               },
               {
                 "fieldName": "Elevación Sin Carga Max",
-                "handlerId": "threshold2",
-                "targetField": "Elevación Sin Carga"
-              },
+                "handlerKey": "threshold1",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "red"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "applyTo": {
+              "id": "byName",
+              "options": "Descenso Sin Carga"
+            },
+            "mappings": [
               {
                 "fieldName": "Descenso Sin Carga Min",
-                "handlerId": "threshold1",
-                "targetField": "Descenso Sin Carga"
+                "handlerKey": "threshold1",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "green"
+                  }
+                }
               },
               {
                 "fieldName": "Descenso Sin Carga Max",
-                "handlerId": "threshold2",
-                "targetField": "Descenso Sin Carga"
-              },
+                "handlerKey": "threshold1",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "red"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "applyTo": {
+              "id": "byName",
+              "options": "Elevación Con Carga"
+            },
+            "mappings": [
               {
                 "fieldName": "Elevación Con Carga Min",
-                "handlerId": "threshold1",
-                "targetField": "Elevación Con Carga"
+                "handlerKey": "threshold1",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "green"
+                  }
+                }
               },
               {
                 "fieldName": "Elevación Con Carga Max",
-                "handlerId": "threshold2",
-                "targetField": "Elevación Con Carga"
-              },
+                "handlerKey": "threshold1",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "red"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "applyTo": {
+              "id": "byName",
+              "options": "Descenso Con Carga"
+            },
+            "mappings": [
               {
                 "fieldName": "Descenso Con Carga Min",
-                "handlerId": "threshold1",
-                "targetField": "Descenso Con Carga"
+                "handlerKey": "threshold1",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "green"
+                  }
+                }
               },
               {
                 "fieldName": "Descenso Con Carga Max",
-                "handlerId": "threshold2",
-                "targetField": "Descenso Con Carga"
+                "handlerKey": "threshold1",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "red"
+                  }
+                }
               }
             ]
           }
