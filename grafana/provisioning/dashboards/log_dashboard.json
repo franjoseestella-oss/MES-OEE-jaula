@@ -356,7 +356,7 @@
         }
       ],
       "targets": [{
-        "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 8.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 8.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL ORDER BY fecha_creacion DESC",
+        "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 8.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 8.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
         "format": "table",
         "refId": "A"
       }]
@@ -395,6 +395,54 @@
       },
       "transformations": [
         {
+          "id": "configFromData",
+          "options": {
+            "configQuery": "A",
+            "mappings": [
+              {
+                "fieldName": "Elevación Sin Carga Min",
+                "handlerId": "threshold1",
+                "targetField": "Elevación Sin Carga"
+              },
+              {
+                "fieldName": "Elevación Sin Carga Max",
+                "handlerId": "threshold2",
+                "targetField": "Elevación Sin Carga"
+              },
+              {
+                "fieldName": "Descenso Sin Carga Min",
+                "handlerId": "threshold1",
+                "targetField": "Descenso Sin Carga"
+              },
+              {
+                "fieldName": "Descenso Sin Carga Max",
+                "handlerId": "threshold2",
+                "targetField": "Descenso Sin Carga"
+              },
+              {
+                "fieldName": "Elevación Con Carga Min",
+                "handlerId": "threshold1",
+                "targetField": "Elevación Con Carga"
+              },
+              {
+                "fieldName": "Elevación Con Carga Max",
+                "handlerId": "threshold2",
+                "targetField": "Elevación Con Carga"
+              },
+              {
+                "fieldName": "Descenso Con Carga Min",
+                "handlerId": "threshold1",
+                "targetField": "Descenso Con Carga"
+              },
+              {
+                "fieldName": "Descenso Con Carga Max",
+                "handlerId": "threshold2",
+                "targetField": "Descenso Con Carga"
+              }
+            ]
+          }
+        },
+        {
           "id": "filterFieldsByName",
           "options": {
             "include": {
@@ -409,7 +457,7 @@
         }
       ],
       "targets": [{
-        "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 8.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 8.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') AND TIEMPO_ELEVACION_MEDIDO_CARGA IS NOT NULL ORDER BY fecha_creacion DESC",
+        "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 0.0) AS [Elevación Sin Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 8.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 0.0) AS [Descenso Sin Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 8.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 0.0) AS [Elevación Con Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 0.0) AS [Descenso Con Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
         "format": "table",
         "refId": "A"
       }]
@@ -503,7 +551,7 @@
         ]
       },
       "targets": [{
-        "rawSql": "SELECT id AS [ID], fecha_creacion AS [Fecha Creación], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elev Carga (s)], TIEMPO_DESCENSO_MEDIDO_CARGA AS [Desc Carga (s)], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elev Sin Carga (s)], DURACION_SEC AS [Duración], OK_NOK AS [Resultado] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() ORDER BY fecha_creacion DESC",
+        "rawSql": "SELECT id AS [ID], fecha_creacion AS [Fecha Creación], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], TIEMPO_DESCENSO_MEDIDO_SINCARGA AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], TIEMPO_DESCENSO_MEDIDO_CARGA AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración], OK_NOK AS [Resultado] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() ORDER BY fecha_creacion DESC",
         "format": "table",
         "refId": "A"
       }]
