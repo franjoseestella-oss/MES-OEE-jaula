@@ -11,6 +11,9 @@ mapear los campos al modelo de OEE.
 import pyodbc
 import sys
 
+# Reconfigure stdout to support utf-8 output in Windows PowerShell/cmd
+sys.stdout.reconfigure(encoding='utf-8')
+
 SERVER   = r"DESKTOP-PMRMSPT\SQLEXPRESS"
 DATABASE = "DAFEED"
 TABLE    = "dbo.LOG_TABLA"
@@ -19,7 +22,7 @@ TABLE    = "dbo.LOG_TABLA"
 # Si necesitas usuario SQL, cambia a:
 # conn_str = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID=usuario;PWD=contraseña;TrustServerCertificate=yes"
 conn_str = (
-    f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+    f"DRIVER={{ODBC Driver 17 for SQL Server}};"
     f"SERVER={SERVER};"
     f"DATABASE={DATABASE};"
     f"Trusted_Connection=yes;"
@@ -33,9 +36,9 @@ print(f"{'='*60}\n")
 try:
     conn = pyodbc.connect(conn_str, timeout=10)
     cursor = conn.cursor()
-    print("✓ Conexión OK\n")
+    print("OK - Conexion OK\n")
 except Exception as e:
-    print(f"✗ Error de conexión: {e}")
+    print(f"Error - Error de conexion: {e}")
     print("\nSi falla Windows Auth, edita conn_str con UID/PWD.")
     sys.exit(1)
 
