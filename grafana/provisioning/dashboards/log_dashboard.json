@@ -371,52 +371,29 @@
         "reduceOptions": {
           "values": true,
           "calcs": ["lastNotNull"]
-        }
+        },
+        "orientation": "auto",
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
       },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
           "min": 0,
+          "max": 8,
           "decimals": 2,
           "color": { "mode": "thresholds" },
           "thresholds": {
-            "mode": "percentage",
+            "mode": "absolute",
             "steps": [
-              { "color": "#2FD06A", "value": null },
-              { "color": "#E32636", "value": 100 }
+              { "color": "#F4A623", "value": null },
+              { "color": "#2FD06A", "value": 3 },
+              { "color": "#E32636", "value": 5 }
             ]
           }
         }
       },
       "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "configQuery": "A",
-            "mappings": [
-              {
-                "fieldName": "Elevación Sin Carga Max",
-                "handlerId": "max",
-                "targetField": "Elevación Sin Carga"
-              },
-              {
-                "fieldName": "Descenso Sin Carga Max",
-                "handlerId": "max",
-                "targetField": "Descenso Sin Carga"
-              },
-              {
-                "fieldName": "Elevación Con Carga Max",
-                "handlerId": "max",
-                "targetField": "Elevación Con Carga"
-              },
-              {
-                "fieldName": "Descenso Con Carga Max",
-                "handlerId": "max",
-                "targetField": "Descenso Con Carga"
-              }
-            ]
-          }
-        },
         {
           "id": "filterFieldsByName",
           "options": {
