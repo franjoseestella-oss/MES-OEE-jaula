@@ -1,0 +1,59 @@
+import json
+
+dashboard_path = 'grafana/provisioning/dashboards/log_dashboard.json'
+
+with open(dashboard_path, 'r', encoding='utf-8') as f:
+    d = json.load(f)
+
+for panel in d.get('panels', []):
+    d['version'] = 200
+    if panel.get('id') == 15:
+        # Keep min=0 and max=8
+        panel['fieldConfig']['defaults']['min'] = 0
+        panel['fieldConfig']['defaults']['max'] = 8
+        
+        # Keep the defaults thresholds steps
+        panel['fieldConfig']['defaults']['thresholds'] = {
+            "mode": "absolute",
+            "steps": [
+                {
+                    "color": "#F4A623",
+                    "value": None
+                },
+                {
+                    "color": "#2FD06A",
+                    "value": 3
+                },
+                {
+                    "color": "#E32636",
+                    "value": 5
+                }
+            ]
+        }
+        
+        for transform in panel.get('transformations', []):
+            if transform.get('id') == 'configFromData':
+                mappings = transform.get('options', {}).get('mappings', [])
+                for mapping in mappings:
+                    field_name = mapping.get('fieldName', '')
+                    # Both Min and Max must use handlerKey = "threshold1"
+                    mapping['handlerKey'] = 'threshold1'
+                    if 'Min' in field_name:
+                        mapping['handlerArguments'] = {
+                            "threshold": {
+                                "color": "#2FD06A"
+                            }
+                        }
+                        print(f"Mapped {field_name} -> threshold1 (#2FD06A)")
+                    elif 'Max' in field_name:
+                        mapping['handlerArguments'] = {
+                            "threshold": {
+                                "color": "#E32636"
+                            }
+                        }
+                        print(f"Mapped {field_name} -> threshold1 (#E32636)")
+
+with open(dashboard_path, 'w', encoding='utf-8') as f:
+    json.dump(d, f, indent=2, ensure_ascii=False)
+
+print("Dashboard threshold mappings set to threshold1 with hex colors.")

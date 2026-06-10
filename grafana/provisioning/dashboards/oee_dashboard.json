@@ -1,365 +1,1096 @@
 {
-  "id": null,
-  "uid": "mes-oee-v1",
-  "title": "LOGISNEXT — MES / OEE",
-  "description": "Dashboard de producción y OEE en tiempo real",
-  "tags": ["mes", "oee", "logisnext"],
-  "timezone": "browser",
-  "schemaVersion": 38,
-  "version": 1,
-  "refresh": "30s",
-  "time": { "from": "now-8h", "to": "now" },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Historial de pruebas de la jaula de elevación, tiempos registrados y KPIs de OEE",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "style": "dark",
-  "panels": [
-
+  "id": 3,
+  "links": [
     {
-      "id": 1,
-      "type": "gauge",
-      "title": "OEE ACTUAL",
-      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 8 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
-        "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+      "asDropdown": false,
+      "icon": "home",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Inicio",
+      "type": "link",
+      "url": "/d/mes-home-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "OEE/MES",
+      "type": "link",
+      "url": "/d/mes-oee-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "LOG_SECUENCIAS",
+      "type": "link",
+      "url": "/d/mes-reg-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "alert",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "ALARMAS",
+      "type": "link",
+      "url": "/d/mes-alarms-v1"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percent",
-          "min": 0, "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
           "decimals": 1,
-          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "#E32636", "value": null },
-              { "color": "#F4A623", "value": 65 },
-              { "color": "#2FD06A", "value": 85 }
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 85.0
+              }
             ]
           },
-          "mappings": []
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 ts AS time, ROUND(oee*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 2,
-      "type": "gauge",
-      "title": "DISPONIBILIDAD",
-      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "#E32636", "value": null },
-              { "color": "#F4A623", "value": 70 },
-              { "color": "#2FD06A", "value": 90 }
-            ]
-          }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 ts AS time, ROUND(availability*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 3,
-      "type": "gauge",
-      "title": "RENDIMIENTO",
-      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "#E32636", "value": null },
-              { "color": "#F4A623", "value": 70 },
-              { "color": "#2FD06A", "value": 90 }
-            ]
-          }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 ts AS time, ROUND(performance*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 4,
-      "type": "gauge",
-      "title": "CALIDAD",
-      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "#E32636", "value": null },
-              { "color": "#F4A623", "value": 95 },
-              { "color": "#2FD06A", "value": 99 }
-            ]
-          }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 ts AS time, ROUND(quality*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 5,
-      "type": "stat",
-      "title": "ESTADO MÁQUINA",
-      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
-        "textMode": "value",
-        "colorMode": "background"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            { "type": "value", "options": { "Execute": { "text": "EXECUTE", "color": "#2FD06A" } } },
-            { "type": "value", "options": { "Held": { "text": "HELD", "color": "#F4A623" } } },
-            { "type": "value", "options": { "Aborted": { "text": "ABORTED", "color": "#E32636" } } },
-            { "type": "value", "options": { "Idle": { "text": "IDLE", "color": "#8B92A0" } } }
-          ],
-          "color": { "mode": "thresholds" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "#8B92A0", "value": null }] }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 updated_at AS time, state AS value FROM mes_machine_status ORDER BY updated_at DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 6,
-      "type": "stat",
-      "title": "PIEZAS BUENAS",
-      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": { "fixedColor": "#2FD06A", "mode": "fixed" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "#2FD06A", "value": null }] }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 updated_at AS time, good_count AS value FROM mes_machine_status ORDER BY updated_at DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 7,
-      "type": "stat",
-      "title": "PIEZAS RECHAZADAS",
-      "gridPos": { "x": 20, "y": 4, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": { "fixedColor": "#E32636", "mode": "fixed" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "#E32636", "value": null }] }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 updated_at AS time, bad_count AS value FROM mes_machine_status ORDER BY updated_at DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 8,
-      "type": "timeseries",
-      "title": "TENDENCIA OEE — VENTANA 1H",
-      "gridPos": { "x": 0, "y": 8, "w": 16, "h": 9 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0, "max": 100,
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "spanNulls": false
-          }
+          "unit": "percent"
         },
-        "overrides": [
-          { "matcher": { "id": "byName", "options": "OEE" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#25C9D6", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Disponibilidad" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Rendimiento" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#F4A623", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Calidad" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#FF2E92", "mode": "fixed" } }] }
-        ]
+        "overrides": []
       },
-      "targets": [{
-        "rawSql": "SELECT ts AS time, ROUND(oee*100,1) AS [OEE], ROUND(availability*100,1) AS [Disponibilidad], ROUND(performance*100,1) AS [Rendimiento], ROUND(quality*100,1) AS [Calidad] FROM mes_oee_snapshots WHERE ts >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY ts",
-        "format": "time_series",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 9,
-      "type": "timeseries",
-      "title": "PRODUCCIÓN — PIEZAS TOTALES vs BUENAS",
-      "gridPos": { "x": 16, "y": 8, "w": 8, "h": 9 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" }
+      "gridPos": {
+        "h": 4,
+        "w": 10,
+        "x": 0,
+        "y": 0
       },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": { "lineWidth": 2, "fillOpacity": 8 }
-        },
-        "overrides": [
-          { "matcher": { "id": "byName", "options": "Totales" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#25C9D6", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Buenas" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }] }
-        ]
-      },
-      "targets": [{
-        "rawSql": "SELECT ts AS time, total_pieces AS [Totales], good_pieces AS [Buenas] FROM mes_oee_snapshots WHERE ts >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY ts",
-        "format": "time_series",
-        "refId": "A"
-      }]
-    },
-
-    {
       "id": 10,
-      "type": "state-timeline",
-      "title": "TIMELINE DE ESTADOS",
-      "gridPos": { "x": 0, "y": 17, "w": 24, "h": 7 },
-      "datasource": { "uid": "mes_sqlserver" },
       "options": {
-        "mergeValues": true,
-        "showValue": "never",
-        "alignValue": "left",
-        "rowHeight": 0.9
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
       },
-      "fieldConfig": {
-        "defaults": {
-          "custom": { "fillOpacity": 85 },
-          "mappings": [
-            { "type": "value", "options": { "Execute":  { "color": "#2FD06A" } } },
-            { "type": "value", "options": { "Held":     { "color": "#F4A623" } } },
-            { "type": "value", "options": { "Aborted":  { "color": "#E32636" } } },
-            { "type": "value", "options": { "Aborting": { "color": "#FF6A00" } } },
-            { "type": "value", "options": { "Holding":  { "color": "#FF6A00" } } },
-            { "type": "value", "options": { "Idle":     { "color": "#8B92A0" } } },
-            { "type": "value", "options": { "Stopped":  { "color": "#4A505E" } } }
-          ]
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COALESCE((SELECT TOP 1 oee * 100 FROM mes_oee_snapshots WHERE oee IS NOT NULL ORDER BY ts DESC), 0.0) AS [OEE GLOBAL], TRY_CAST(COALESCE(NULLIF(TRIM('${objetivo_oee}'), ''), '85') AS FLOAT) AS [Objetivo OEE]",
+          "refId": "A"
         }
-      },
-      "targets": [{
-        "rawSql": "SELECT timestamp AS time, machine_id, state FROM mes_machine_events WHERE timestamp >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY timestamp",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 11,
-      "type": "barchart",
-      "title": "TOP CAUSAS DE PARADA",
-      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "orientation": "horizontal",
-        "xTickLabelRotation": 0,
-        "legend": { "displayMode": "hidden" }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": { "fixedColor": "#F4A623", "mode": "fixed" }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 10 reason_code AS [Causa], COUNT(*) AS [Ocurrencias] FROM mes_machine_events WHERE reason_code IS NOT NULL AND timestamp >= DATEADD(hour,-8,GETUTCDATE()) GROUP BY reason_code ORDER BY COUNT(*) DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 12,
-      "type": "table",
-      "title": "ÚLTIMOS EVENTOS",
-      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "footer": { "show": false },
-        "sortBy": [{ "displayName": "Timestamp", "desc": true }]
-      },
-      "fieldConfig": {
-        "defaults": { "custom": { "align": "auto" } },
-        "overrides": [
-          { "matcher": { "id": "byName", "options": "Estado" },
-            "properties": [{
-              "id": "mappings",
-              "value": [
-                { "type": "value", "options": { "Execute":  { "text": "EXECUTE",  "color": "#2FD06A" } } },
-                { "type": "value", "options": { "Held":     { "text": "HELD",     "color": "#F4A623" } } },
-                { "type": "value", "options": { "Aborted":  { "text": "ABORTED",  "color": "#E32636" } } },
-                { "type": "value", "options": { "Idle":     { "text": "IDLE",     "color": "#8B92A0" } } }
+      ],
+      "title": "OEE GLOBAL",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "OEE GLOBAL"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Objetivo OEE",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "OEE GLOBAL"
               ]
-            }]
+            }
+          }
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#F4A623",
+                "value": 80.0
+              },
+              {
+                "color": "#2FD06A",
+                "value": 90.0
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Calidad"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#E32636",
+                      "value": null
+                    },
+                    {
+                      "color": "#F4A623",
+                      "value": 90.0
+                    },
+                    {
+                      "color": "#2FD06A",
+                      "value": 98.0
+                    }
+                  ]
+                }
+              }
+            ]
           }
         ]
       },
-      "targets": [{
-        "rawSql": "SELECT TOP 50 timestamp AS [Timestamp], machine_id AS [Máquina], state AS [Estado], piece_count AS [Piezas], reason_code AS [Causa] FROM mes_machine_events ORDER BY timestamp DESC",
-        "format": "table",
-        "refId": "A"
-      }]
+      "gridPos": {
+        "h": 4,
+        "w": 14,
+        "x": 10,
+        "y": 0
+      },
+      "id": 11,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COALESCE((SELECT TOP 1 availability * 100 FROM mes_oee_snapshots WHERE availability IS NOT NULL ORDER BY ts DESC), 0.0) AS [Disponibilidad], COALESCE((SELECT TOP 1 performance * 100 FROM mes_oee_snapshots WHERE performance IS NOT NULL ORDER BY ts DESC), 0.0) AS [Rendimiento], COALESCE((SELECT TOP 1 quality * 100 FROM mes_oee_snapshots WHERE quality IS NOT NULL ORDER BY ts DESC), 0.0) AS [Calidad]",
+          "refId": "A"
+        }
+      ],
+      "title": "METRICAS OEE",
+      "transformations": [],
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#25C9D6",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 4
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "refId": "A"
+        }
+      ],
+      "title": "PRUEBAS TOTALES (Últimos 30 días)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#2FD06A",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE OK_NOK = 'OK' AND fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "refId": "A"
+        }
+      ],
+      "title": "PRUEBAS OK (Últimos 30 días)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#E32636",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 4
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE OK_NOK <> 'OK' AND fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "refId": "A"
+        }
+      ],
+      "title": "PRUEBAS NOK (Últimos 30 días)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#F4A623",
+                "value": 85
+              },
+              {
+                "color": "#2FD06A",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 4
+      },
+      "id": 4,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT ROUND(CAST(SUM(CASE WHEN OK_NOK = 'OK' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 1) AS value FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "refId": "A"
+        }
+      ],
+      "title": "TASA DE APROBACIÓN (OK %)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 6,
+          "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 3.0
+              },
+              {
+                "color": "#E32636",
+                "value": 5.0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 14,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevacion Sin Carga], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Elevacion Sin Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Elevacion Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Descenso Sin Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevacion Con Carga], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Elevacion Con Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) AS [Elevacion Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Descenso Con Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "MÁRGENES DE ELEVACIÓN Y DESCENSO — ${selected_id:text}",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Elevacion Sin Carga"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Elevacion Sin Carga Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Elevacion Sin Carga Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Descenso Sin Carga"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Descenso Sin Carga Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Descenso Sin Carga Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Elevacion Con Carga"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Elevacion Con Carga Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Elevacion Con Carga Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Descenso Con Carga"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Descenso Con Carga Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Descenso Con Carga Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Elevacion Sin Carga",
+                "Descenso Sin Carga",
+                "Elevacion Con Carga",
+                "Descenso Con Carga"
+              ]
+            }
+          }
+        }
+      ],
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 6,
+          "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 3.0
+              },
+              {
+                "color": "#E32636",
+                "value": 5.0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 17,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 15,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "text": {}
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevacion Sin Carga], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Elevacion Sin Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Elevacion Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Descenso Sin Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevacion Con Carga], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Elevacion Con Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) AS [Elevacion Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Descenso Con Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO — DETALLE DE AGUJA — ${selected_id:text}",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Elevacion Sin Carga"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Elevacion Sin Carga Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Elevacion Sin Carga Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Descenso Sin Carga"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Descenso Sin Carga Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Descenso Sin Carga Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Elevacion Con Carga"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Elevacion Con Carga Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Elevacion Con Carga Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Descenso Con Carga"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Descenso Con Carga Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Descenso Con Carga Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Elevacion Sin Carga",
+                "Descenso Sin Carga",
+                "Elevacion Con Carga",
+                "Descenso Con Carga"
+              ]
+            }
+          }
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#25C9D6",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 7,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xField": "Modelo",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT NMODELO AS [Modelo], COUNT(*) AS [Pruebas] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() GROUP BY NMODELO ORDER BY COUNT(*) DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "PRUEBAS POR MODELO DE MÁSTIL / MÁQUINA",
+      "type": "barchart"
     }
-
-  ]
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": [
+    "mes",
+    "log",
+    "pruebas",
+    "oee"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "Último (Por defecto)",
+          "value": "latest"
+        },
+        "datasource": {
+          "uid": "mes_sqlserver"
+        },
+        "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Filtro Prueba",
+        "multi": false,
+        "name": "selected_id",
+        "options": [],
+        "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "85",
+          "value": "85"
+        },
+        "hide": 0,
+        "label": "Objetivo OEE (%)",
+        "name": "objetivo_oee",
+        "options": [
+          {
+            "selected": true,
+            "text": "85",
+            "value": "85"
+          }
+        ],
+        "query": "85",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "LOGISNEXT — OEE / MES",
+  "uid": "mes-oee-v1",
+  "version": 10,
+  "weekStart": ""
 }

@@ -53,7 +53,7 @@ URLS = {
     "Backend / API":  "http://localhost:8000",
     "API Docs":       "http://localhost:8000/docs",
     "Chatbot":        "http://localhost:8000",
-    "Grafana":        "http://localhost:3010",
+    "Grafana":        "http://localhost:3010/d/mes-home-v1/logisnext-e28094-inicio?orgId=1&refresh=10s",
 }
 
 HEALTH_URL     = "http://localhost:8000/health"

@@ -39,7 +39,7 @@ COMPOSE   = ROOT / "docker-compose.yml"
 
 URLS = {
     "Backend / Chatbot": "http://localhost:8000",
-    "Grafana":           "http://localhost:3010",
+    "Grafana":           "http://localhost:3010/d/mes-home-v1/logisnext-e28094-inicio?orgId=1&refresh=10s",
     "API Docs":          "http://localhost:8000/docs",
 }
 
