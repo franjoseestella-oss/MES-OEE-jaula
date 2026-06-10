@@ -1039,7 +1039,7 @@
       },
       "gridPos": {
         "h": 10,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 25
       },
@@ -1069,11 +1069,130 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT id AS [ID], fecha_creacion AS [Fecha Creación], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], TIEMPO_DESCENSO_MEDIDO_SINCARGA AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], TIEMPO_DESCENSO_MEDIDO_CARGA AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración], OK_NOK AS [Resultado] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() ORDER BY fecha_creacion DESC",
+          "rawSql": "SELECT id AS [ID], fecha_creacion AS [Fecha Creación], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], TIEMPO_DESCENSO_MEDIDO_SINCARGA AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], TIEMPO_DESCENSO_MEDIDO_CARGA AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración], OK_NOK AS [Resultado] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND OK_NOK = 'OK' ORDER BY fecha_creacion DESC",
           "refId": "A"
         }
       ],
-      "title": "REGISTRO DETALLADO DE PRUEBAS (Historial Completo)",
+      "title": "REGISTRO DETALLADO DE PRUEBAS OK",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Cargar en indicadores",
+                    "url": "/d/mes-log-v1?var-selected_id=${__value.raw}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Resultado"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "OK": {
+                        "color": "#2FD06A",
+                        "text": "OK"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "NOK": {
+                        "color": "#E32636",
+                        "text": "NOK"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "id": 16,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": true,
+          "fields": [
+            "Resultado"
+          ],
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Fecha Creación"
+          }
+        ]
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT id AS [ID], fecha_creacion AS [Fecha Creación], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], TIEMPO_ELEVACION_MEDIDO_SINCARGA AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], TIEMPO_DESCENSO_MEDIDO_SINCARGA AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], TIEMPO_ELEVACION_MEDIDO_CARGA AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], TIEMPO_DESCENSO_MEDIDO_CARGA AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración], OK_NOK AS [Resultado] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND OK_NOK = 'NOK' ORDER BY fecha_creacion DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "REGISTRO DETALLADO DE PRUEBAS NOK",
       "type": "table"
     }
   ],
