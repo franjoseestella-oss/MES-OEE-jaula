@@ -251,14 +251,14 @@
         "sortBy": [
           {
             "desc": true,
-            "displayName": "Creado el"
+            "displayName": "Fecha/Hora"
           }
         ]
       },
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT id AS [ID], VARIABLE_PLC AS [Variable], DESCRIPCION AS [Descripción], TIPO AS [Tipo], FECHA_Y_HORA AS [Fecha/Hora], DURACION AS [Duración], fecha_creacion AS [Creado el] FROM LOG_ALARMAS ORDER BY fecha_creacion DESC",
+          "rawSql": "SELECT id AS [ID], DESCRIPCION AS [Descripcion], TIPO AS [Tipo], FECHA_Y_HORA AS [Fecha/Hora], DURACION AS [Duracion] FROM LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC",
           "refId": "A"
         }
       ],
