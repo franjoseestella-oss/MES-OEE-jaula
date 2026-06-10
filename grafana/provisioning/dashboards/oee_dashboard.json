@@ -53,6 +53,17 @@
       "title": "LOG_SECUENCIAS",
       "type": "link",
       "url": "/d/mes-reg-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "alert",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "ALARMAS",
+      "type": "link",
+      "url": "/d/mes-alarms-v1"
     }
   ],
   "panels": [
