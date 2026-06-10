@@ -204,7 +204,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Tipo"
+              "options": "TIPO"
             },
             "properties": [
               {
@@ -222,7 +222,12 @@
                         "color": "#E32636",
                         "index": 0,
                         "text": "Alarma"
-                      },
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
                       "Advertencia": {
                         "color": "#F4A623",
                         "index": 1,
@@ -251,14 +256,14 @@
         "sortBy": [
           {
             "desc": true,
-            "displayName": "Fecha/Hora"
+            "displayName": "FECHA_Y_HORA"
           }
         ]
       },
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT id AS [ID], DESCRIPCION AS [Descripcion], TIPO AS [Tipo], FECHA_Y_HORA AS [Fecha/Hora], DURACION AS [Duracion] FROM LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC",
+          "rawSql": "SELECT id, FECHA_Y_HORA, TIPO, DESCRIPCION, DURACION FROM LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC",
           "refId": "A"
         }
       ],
