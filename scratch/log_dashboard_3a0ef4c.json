@@ -1,4 +1,4 @@
-{
+﻿{
   "annotations": {
     "list": [
       {
@@ -15,11 +15,11 @@
       }
     ]
   },
-  "description": "Historial de pruebas de la jaula de elevación, tiempos registrados y KPIs de OEE",
+  "description": "Historial de pruebas de la jaula de elevaci├│n, tiempos registrados y KPIs de OEE",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 3,
+  "id": 2,
   "links": [
     {
       "asDropdown": false,
@@ -52,18 +52,18 @@
       "targetBlank": false,
       "title": "LOG_SECUENCIAS",
       "type": "link",
-      "url": "/d/mes-reg-v1"
+      "url": "/d/mes-log-v1"
     },
     {
       "asDropdown": false,
-      "icon": "alert",
+      "icon": "dashboard",
       "includeVars": true,
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "ALARMAS",
+      "title": "REGISTRO",
       "type": "link",
-      "url": "/d/mes-alarms-v1"
+      "url": "/d/mes-reg-v1"
     }
   ],
   "panels": [
@@ -335,7 +335,7 @@
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS TOTALES (Últimos 30 días)",
+      "title": "PRUEBAS TOTALES (├Ültimos 30 d├¡as)",
       "type": "stat"
     },
     {
@@ -397,7 +397,7 @@
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS OK (Últimos 30 días)",
+      "title": "PRUEBAS OK (├Ültimos 30 d├¡as)",
       "type": "stat"
     },
     {
@@ -459,7 +459,7 @@
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS NOK (Últimos 30 días)",
+      "title": "PRUEBAS NOK (├Ültimos 30 d├¡as)",
       "type": "stat"
     },
     {
@@ -526,7 +526,7 @@
           "refId": "A"
         }
       ],
-      "title": "TASA DE APROBACIÓN (OK %)",
+      "title": "TASA DE APROBACI├ôN (OK %)",
       "type": "gauge"
     },
     {
@@ -546,16 +546,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
+                "color": "green",
                 "value": null
               },
               {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
+                "color": "red",
+                "value": 80
               }
             ]
           },
@@ -598,7 +594,7 @@
           "refId": "A"
         }
       ],
-      "title": "MÁRGENES DE ELEVACIÓN Y DESCENSO — ${selected_id:text}",
+      "title": "M├üRGENES DE ELEVACI├ôN Y DESCENSO ÔÇö ${selected_id:text}",
       "transformations": [
         {
           "id": "configFromData",
@@ -611,21 +607,11 @@
             "mappings": [
               {
                 "fieldName": "Elevacion Sin Carga Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
                 "handlerKey": "threshold1"
               },
               {
                 "fieldName": "Elevacion Sin Carga Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -641,21 +627,11 @@
             "mappings": [
               {
                 "fieldName": "Descenso Sin Carga Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
                 "handlerKey": "threshold1"
               },
               {
                 "fieldName": "Descenso Sin Carga Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -671,21 +647,11 @@
             "mappings": [
               {
                 "fieldName": "Elevacion Con Carga Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
                 "handlerKey": "threshold1"
               },
               {
                 "fieldName": "Elevacion Con Carga Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -701,21 +667,11 @@
             "mappings": [
               {
                 "fieldName": "Descenso Con Carga Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
                 "handlerKey": "threshold1"
               },
               {
                 "fieldName": "Descenso Con Carga Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -753,16 +709,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
+                "color": "green",
                 "value": null
               },
               {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
+                "color": "red",
+                "value": 80
               }
             ]
           },
@@ -801,7 +753,7 @@
           "refId": "A"
         }
       ],
-      "title": "TIEMPOS DE ELEVACIÓN Y DESCENSO — DETALLE DE AGUJA — ${selected_id:text}",
+      "title": "TIEMPOS DE ELEVACI├ôN Y DESCENSO ÔÇö DETALLE DE AGUJA ÔÇö ${selected_id:text}",
       "transformations": [
         {
           "id": "configFromData",
@@ -814,21 +766,11 @@
             "mappings": [
               {
                 "fieldName": "Elevacion Sin Carga Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
                 "handlerKey": "threshold1"
               },
               {
                 "fieldName": "Elevacion Sin Carga Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -844,21 +786,11 @@
             "mappings": [
               {
                 "fieldName": "Descenso Sin Carga Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
                 "handlerKey": "threshold1"
               },
               {
                 "fieldName": "Descenso Sin Carga Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -874,21 +806,11 @@
             "mappings": [
               {
                 "fieldName": "Elevacion Con Carga Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
                 "handlerKey": "threshold1"
               },
               {
                 "fieldName": "Elevacion Con Carga Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -904,21 +826,11 @@
             "mappings": [
               {
                 "fieldName": "Descenso Con Carga Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
                 "handlerKey": "threshold1"
               },
               {
                 "fieldName": "Descenso Con Carga Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -1024,7 +936,7 @@
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS POR MODELO DE MÁSTIL / MÁQUINA",
+      "title": "PRUEBAS POR MODELO DE M├üSTIL / M├üQUINA",
       "type": "barchart"
     }
   ],
@@ -1041,20 +953,20 @@
       {
         "current": {
           "selected": true,
-          "text": "Último (Por defecto)",
+          "text": "├Ültimo (Por defecto)",
           "value": "latest"
         },
         "datasource": {
           "uid": "mes_sqlserver"
         },
-        "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], '├Ültimo (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
         "hide": 0,
         "includeAll": false,
         "label": "Filtro Prueba",
         "multi": false,
         "name": "selected_id",
         "options": [],
-        "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], '├Ültimo (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1089,8 +1001,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "LOGISNEXT — OEE / MES",
-  "uid": "mes-oee-v1",
-  "version": 10,
+  "title": "LOGISNEXT ÔÇö LOG_SECUENCIAS",
+  "uid": "mes-log-v1",
+  "version": 63,
   "weekStart": ""
 }
