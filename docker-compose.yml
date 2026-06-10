@@ -45,6 +45,7 @@ services:
     environment:
       GF_PATHS_PROVISIONING: /etc/grafana/provisioning
       GF_FEATURE_TOGGLES_ENABLE: publicDashboards
+      GF_PANELS_DISABLE_SANITIZE_HTML: "true"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning

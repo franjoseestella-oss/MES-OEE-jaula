@@ -1,365 +1,866 @@
 {
-  "id": null,
-  "uid": "mes-oee-v1",
-  "title": "LOGISNEXT — MES / OEE",
   "description": "Dashboard de producción y OEE en tiempo real",
-  "tags": ["mes", "oee", "logisnext"],
-  "timezone": "browser",
-  "schemaVersion": 38,
-  "version": 1,
-  "refresh": "30s",
-  "time": { "from": "now-8h", "to": "now" },
   "graphTooltip": 1,
-  "style": "dark",
-  "panels": [
-
+  "id": 3,
+  "links": [
     {
+      "asDropdown": false,
+      "icon": "home",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Inicio",
+      "type": "link",
+      "url": "/d/mes-home-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "OEE/MES",
+      "type": "link",
+      "url": "/d/mes-oee-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "LOG_SECUENCIAS",
+      "type": "link",
+      "url": "/d/mes-log-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "REGISTRO",
+      "type": "link",
+      "url": "/d/mes-reg-v1"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#F4A623",
+                "value": 65
+              },
+              {
+                "color": "#2FD06A",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
-      "type": "gauge",
-      "title": "OEE ACTUAL",
-      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 8 },
-      "datasource": { "uid": "mes_sqlserver" },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
         "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ts AS time, ROUND(oee*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "OEE ACTUAL",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "percent",
-          "min": 0, "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
           "decimals": 1,
-          "color": { "mode": "thresholds" },
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "#E32636", "value": null },
-              { "color": "#F4A623", "value": 65 },
-              { "color": "#2FD06A", "value": 85 }
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#F4A623",
+                "value": 70
+              },
+              {
+                "color": "#2FD06A",
+                "value": 90
+              }
             ]
           },
-          "mappings": []
+          "unit": "percent"
         }
       },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 ts AS time, ROUND(oee*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
       "id": 2,
-      "type": "gauge",
-      "title": "DISPONIBILIDAD",
-      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "#E32636", "value": null },
-              { "color": "#F4A623", "value": 70 },
-              { "color": "#2FD06A", "value": 90 }
-            ]
-          }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 ts AS time, ROUND(availability*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 3,
-      "type": "gauge",
-      "title": "RENDIMIENTO",
-      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "#E32636", "value": null },
-              { "color": "#F4A623", "value": 70 },
-              { "color": "#2FD06A", "value": 90 }
-            ]
-          }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 ts AS time, ROUND(performance*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 4,
-      "type": "gauge",
-      "title": "CALIDAD",
-      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "#E32636", "value": null },
-              { "color": "#F4A623", "value": 95 },
-              { "color": "#2FD06A", "value": 99 }
-            ]
-          }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 ts AS time, ROUND(quality*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 5,
-      "type": "stat",
-      "title": "ESTADO MÁQUINA",
-      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
-        "textMode": "value",
-        "colorMode": "background"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            { "type": "value", "options": { "Execute": { "text": "EXECUTE", "color": "#2FD06A" } } },
-            { "type": "value", "options": { "Held": { "text": "HELD", "color": "#F4A623" } } },
-            { "type": "value", "options": { "Aborted": { "text": "ABORTED", "color": "#E32636" } } },
-            { "type": "value", "options": { "Idle": { "text": "IDLE", "color": "#8B92A0" } } }
-          ],
-          "color": { "mode": "thresholds" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "#8B92A0", "value": null }] }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 updated_at AS time, state AS value FROM mes_machine_status ORDER BY updated_at DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 6,
-      "type": "stat",
-      "title": "PIEZAS BUENAS",
-      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": { "fixedColor": "#2FD06A", "mode": "fixed" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "#2FD06A", "value": null }] }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 updated_at AS time, good_count AS value FROM mes_machine_status ORDER BY updated_at DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 7,
-      "type": "stat",
-      "title": "PIEZAS RECHAZADAS",
-      "gridPos": { "x": 20, "y": 4, "w": 4, "h": 4 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": { "fixedColor": "#E32636", "mode": "fixed" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "#E32636", "value": null }] }
-        }
-      },
-      "targets": [{
-        "rawSql": "SELECT TOP 1 updated_at AS time, bad_count AS value FROM mes_machine_status ORDER BY updated_at DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 8,
-      "type": "timeseries",
-      "title": "TENDENCIA OEE — VENTANA 1H",
-      "gridPos": { "x": 0, "y": 8, "w": 16, "h": 9 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi" }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0, "max": 100,
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "spanNulls": false
-          }
-        },
-        "overrides": [
-          { "matcher": { "id": "byName", "options": "OEE" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#25C9D6", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Disponibilidad" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Rendimiento" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#F4A623", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Calidad" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#FF2E92", "mode": "fixed" } }] }
-        ]
-      },
-      "targets": [{
-        "rawSql": "SELECT ts AS time, ROUND(oee*100,1) AS [OEE], ROUND(availability*100,1) AS [Disponibilidad], ROUND(performance*100,1) AS [Rendimiento], ROUND(quality*100,1) AS [Calidad] FROM mes_oee_snapshots WHERE ts >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY ts",
-        "format": "time_series",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 9,
-      "type": "timeseries",
-      "title": "PRODUCCIÓN — PIEZAS TOTALES vs BUENAS",
-      "gridPos": { "x": 16, "y": 8, "w": 8, "h": 9 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": { "lineWidth": 2, "fillOpacity": 8 }
-        },
-        "overrides": [
-          { "matcher": { "id": "byName", "options": "Totales" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#25C9D6", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Buenas" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "#2FD06A", "mode": "fixed" } }] }
-        ]
-      },
-      "targets": [{
-        "rawSql": "SELECT ts AS time, total_pieces AS [Totales], good_pieces AS [Buenas] FROM mes_oee_snapshots WHERE ts >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY ts",
-        "format": "time_series",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 10,
-      "type": "state-timeline",
-      "title": "TIMELINE DE ESTADOS",
-      "gridPos": { "x": 0, "y": 17, "w": 24, "h": 7 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "mergeValues": true,
-        "showValue": "never",
-        "alignValue": "left",
-        "rowHeight": 0.9
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": { "fillOpacity": 85 },
-          "mappings": [
-            { "type": "value", "options": { "Execute":  { "color": "#2FD06A" } } },
-            { "type": "value", "options": { "Held":     { "color": "#F4A623" } } },
-            { "type": "value", "options": { "Aborted":  { "color": "#E32636" } } },
-            { "type": "value", "options": { "Aborting": { "color": "#FF6A00" } } },
-            { "type": "value", "options": { "Holding":  { "color": "#FF6A00" } } },
-            { "type": "value", "options": { "Idle":     { "color": "#8B92A0" } } },
-            { "type": "value", "options": { "Stopped":  { "color": "#4A505E" } } }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
           ]
         }
       },
-      "targets": [{
-        "rawSql": "SELECT timestamp AS time, machine_id, state FROM mes_machine_events WHERE timestamp >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY timestamp",
-        "format": "table",
-        "refId": "A"
-      }]
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ts AS time, ROUND(availability*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "DISPONIBILIDAD",
+      "type": "gauge"
     },
-
     {
-      "id": 11,
-      "type": "barchart",
-      "title": "TOP CAUSAS DE PARADA",
-      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
-      "datasource": { "uid": "mes_sqlserver" },
-      "options": {
-        "orientation": "horizontal",
-        "xTickLabelRotation": 0,
-        "legend": { "displayMode": "hidden" }
+      "datasource": {
+        "uid": "mes_sqlserver"
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "color": { "fixedColor": "#F4A623", "mode": "fixed" }
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#F4A623",
+                "value": 70
+              },
+              {
+                "color": "#2FD06A",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
         }
       },
-      "targets": [{
-        "rawSql": "SELECT TOP 10 reason_code AS [Causa], COUNT(*) AS [Ocurrencias] FROM mes_machine_events WHERE reason_code IS NOT NULL AND timestamp >= DATEADD(hour,-8,GETUTCDATE()) GROUP BY reason_code ORDER BY COUNT(*) DESC",
-        "format": "table",
-        "refId": "A"
-      }]
-    },
-
-    {
-      "id": 12,
-      "type": "table",
-      "title": "ÚLTIMOS EVENTOS",
-      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
-      "datasource": { "uid": "mes_sqlserver" },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "id": 3,
       "options": {
-        "footer": { "show": false },
-        "sortBy": [{ "displayName": "Timestamp", "desc": true }]
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ts AS time, ROUND(performance*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "RENDIMIENTO",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
       },
       "fieldConfig": {
-        "defaults": { "custom": { "align": "auto" } },
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#F4A623",
+                "value": 95
+              },
+              {
+                "color": "#2FD06A",
+                "value": 99
+              }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ts AS time, ROUND(quality*100,1) AS value FROM mes_oee_snapshots ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "CALIDAD",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "Execute": {
+                  "color": "#2FD06A",
+                  "text": "EXECUTE"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Held": {
+                  "color": "#F4A623",
+                  "text": "HELD"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Aborted": {
+                  "color": "#E32636",
+                  "text": "ABORTED"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Idle": {
+                  "color": "#8B92A0",
+                  "text": "IDLE"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#8B92A0",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 updated_at AS time, state AS value FROM mes_machine_status ORDER BY updated_at DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "ESTADO MÁQUINA",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#2FD06A",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#2FD06A",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 updated_at AS time, good_count AS value FROM mes_machine_status ORDER BY updated_at DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "PIEZAS BUENAS",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#E32636",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 4
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 updated_at AS time, bad_count AS value FROM mes_machine_status ORDER BY updated_at DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "PIEZAS RECHAZADAS",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "spanNulls": false
+          },
+          "max": 100,
+          "min": 0,
+          "unit": "percent"
+        },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "Estado" },
-            "properties": [{
-              "id": "mappings",
-              "value": [
-                { "type": "value", "options": { "Execute":  { "text": "EXECUTE",  "color": "#2FD06A" } } },
-                { "type": "value", "options": { "Held":     { "text": "HELD",     "color": "#F4A623" } } },
-                { "type": "value", "options": { "Aborted":  { "text": "ABORTED",  "color": "#E32636" } } },
-                { "type": "value", "options": { "Idle":     { "text": "IDLE",     "color": "#8B92A0" } } }
-              ]
-            }]
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "OEE"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#25C9D6",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Disponibilidad"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2FD06A",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Rendimiento"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F4A623",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Calidad"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FF2E92",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
-      "targets": [{
-        "rawSql": "SELECT TOP 50 timestamp AS [Timestamp], machine_id AS [Máquina], state AS [Estado], piece_count AS [Piezas], reason_code AS [Causa] FROM mes_machine_events ORDER BY timestamp DESC",
-        "format": "table",
-        "refId": "A"
-      }]
+      "gridPos": {
+        "h": 9,
+        "w": 16,
+        "x": 0,
+        "y": 8
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT ts AS time, ROUND(oee*100,1) AS [OEE], ROUND(availability*100,1) AS [Disponibilidad], ROUND(performance*100,1) AS [Rendimiento], ROUND(quality*100,1) AS [Calidad] FROM mes_oee_snapshots WHERE ts >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY ts",
+          "refId": "A"
+        }
+      ],
+      "title": "TENDENCIA OEE — VENTANA 1H",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 8,
+            "lineWidth": 2
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Totales"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#25C9D6",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Buenas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2FD06A",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT ts AS time, total_pieces AS [Totales], good_pieces AS [Buenas] FROM mes_oee_snapshots WHERE ts >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY ts",
+          "refId": "A"
+        }
+      ],
+      "title": "PRODUCCIÓN — PIEZAS TOTALES vs BUENAS",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 85
+          },
+          "mappings": [
+            {
+              "options": {
+                "Execute": {
+                  "color": "#2FD06A"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Held": {
+                  "color": "#F4A623"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Aborted": {
+                  "color": "#E32636"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Aborting": {
+                  "color": "#FF6A00"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Holding": {
+                  "color": "#FF6A00"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Idle": {
+                  "color": "#8B92A0"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "Stopped": {
+                  "color": "#4A505E"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 10,
+      "options": {
+        "alignValue": "left",
+        "mergeValues": true,
+        "rowHeight": 0.9,
+        "showValue": "never"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT timestamp AS time, machine_id, state FROM mes_machine_events WHERE timestamp >= DATEADD(hour,-8,GETUTCDATE()) ORDER BY timestamp",
+          "refId": "A"
+        }
+      ],
+      "title": "TIMELINE DE ESTADOS",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#F4A623",
+            "mode": "fixed"
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "orientation": "horizontal",
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 10 reason_code AS [Causa], COUNT(*) AS [Ocurrencias] FROM mes_machine_events WHERE reason_code IS NOT NULL AND timestamp >= DATEADD(hour,-8,GETUTCDATE()) GROUP BY reason_code ORDER BY COUNT(*) DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "TOP CAUSAS DE PARADA",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Estado"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Execute": {
+                        "color": "#2FD06A",
+                        "text": "EXECUTE"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "Held": {
+                        "color": "#F4A623",
+                        "text": "HELD"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "Aborted": {
+                        "color": "#E32636",
+                        "text": "ABORTED"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "Idle": {
+                        "color": "#8B92A0",
+                        "text": "IDLE"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 12,
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Timestamp"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 50 timestamp AS [Timestamp], machine_id AS [Máquina], state AS [Estado], piece_count AS [Piezas], reason_code AS [Causa] FROM mes_machine_events ORDER BY timestamp DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "ÚLTIMOS EVENTOS",
+      "type": "table"
     }
-
-  ]
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "mes",
+    "oee",
+    "logisnext"
+  ],
+  "time": {
+    "from": "now-8h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "LOGISNEXT — MES / OEE",
+  "uid": "mes-oee-v1",
+  "version": 2
 }
