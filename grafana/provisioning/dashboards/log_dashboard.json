@@ -585,7 +585,7 @@
       },
       "id": 14,
       "options": {
-        "displayMode": "basic",
+        "displayMode": "gradient",
         "maxVizHeight": 300,
         "minVizHeight": 16,
         "minVizWidth": 8,
@@ -598,7 +598,7 @@
           "fields": "",
           "values": true
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
         "showUnfilled": true,
         "sizing": "auto",
@@ -608,7 +608,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Elevación Sin Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Elevación Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Descenso Sin Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Elevación Con Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) AS [Elevación Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Descenso Con Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevacion Sin Carga], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Elevacion Sin Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Elevacion Sin Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Descenso Sin Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Descenso Sin Carga Max], COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevacion Con Carga], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Elevacion Con Carga Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) AS [Elevacion Con Carga Max], COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Descenso Con Carga Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) AS [Descenso Con Carga Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
           "refId": "A"
         }
       ],
@@ -619,16 +619,16 @@
           "options": {
             "applyTo": {
               "id": "byName",
-              "options": "Elevación Sin Carga"
+              "options": "Elevacion Sin Carga"
             },
             "configRefId": "A",
             "mappings": [
               {
-                "fieldName": "Elevación Sin Carga Min",
+                "fieldName": "Elevacion Sin Carga Min",
                 "handlerKey": "threshold1"
               },
               {
-                "fieldName": "Elevación Sin Carga Max",
+                "fieldName": "Elevacion Sin Carga Max",
                 "handlerKey": "threshold1"
               }
             ]
@@ -659,16 +659,16 @@
           "options": {
             "applyTo": {
               "id": "byName",
-              "options": "Elevación Con Carga"
+              "options": "Elevacion Con Carga"
             },
             "configRefId": "A",
             "mappings": [
               {
-                "fieldName": "Elevación Con Carga Min",
+                "fieldName": "Elevacion Con Carga Min",
                 "handlerKey": "threshold1"
               },
               {
-                "fieldName": "Elevación Con Carga Max",
+                "fieldName": "Elevacion Con Carga Max",
                 "handlerKey": "threshold1"
               }
             ]
@@ -699,9 +699,9 @@
           "options": {
             "include": {
               "names": [
-                "Elevación Sin Carga",
+                "Elevacion Sin Carga",
                 "Descenso Sin Carga",
-                "Elevación Con Carga",
+                "Elevacion Con Carga",
                 "Descenso Con Carga"
               ]
             }
