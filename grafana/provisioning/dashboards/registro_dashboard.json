@@ -52,17 +52,6 @@
       "targetBlank": false,
       "title": "LOG_SECUENCIAS",
       "type": "link",
-      "url": "/d/mes-log-v1"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "REGISTRO",
-      "type": "link",
       "url": "/d/mes-reg-v1"
     }
   ],
