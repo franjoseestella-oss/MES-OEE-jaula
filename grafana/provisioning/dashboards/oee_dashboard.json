@@ -90,7 +90,7 @@
               },
               {
                 "color": "#2FD06A",
-                "value": 85.0
+                "value": 85
               }
             ]
           },
@@ -99,8 +99,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 10,
+        "h": 14,
+        "w": 6,
         "x": 0,
         "y": 0
       },
@@ -193,11 +193,11 @@
               },
               {
                 "color": "#F4A623",
-                "value": 80.0
+                "value": 80
               },
               {
                 "color": "#2FD06A",
-                "value": 90.0
+                "value": 90
               }
             ]
           },
@@ -221,11 +221,11 @@
                     },
                     {
                       "color": "#F4A623",
-                      "value": 90.0
+                      "value": 90
                     },
                     {
                       "color": "#2FD06A",
-                      "value": 98.0
+                      "value": 98
                     }
                   ]
                 }
@@ -235,9 +235,9 @@
         ]
       },
       "gridPos": {
-        "h": 4,
+        "h": 14,
         "w": 14,
-        "x": 10,
+        "x": 6,
         "y": 0
       },
       "id": 11,
@@ -259,6 +259,7 @@
         "sizing": "auto",
         "valueMode": "color"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -273,7 +274,6 @@
         }
       ],
       "title": "METRICAS OEE",
-      "transformations": [],
       "type": "bargauge"
     },
     {
@@ -283,60 +283,65 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "#25C9D6",
-            "mode": "fixed"
+            "mode": "thresholds"
           },
+          "decimals": 1,
           "mappings": [],
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#E32636",
                 "value": null
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "#F4A623",
+                "value": 85
+              },
+              {
+                "color": "#2FD06A",
+                "value": 95
               }
             ]
           },
-          "unit": "short"
+          "unit": "percent"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 12,
         "w": 6,
         "x": 0,
-        "y": 4
+        "y": 14
       },
-      "id": 1,
+      "id": 4,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "sum"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
       },
       "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "rawSql": "SELECT ROUND(CAST(SUM(CASE WHEN OK_NOK = 'OK' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 1) AS value FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS TOTALES (Últimos 30 días)",
-      "type": "stat"
+      "title": "TASA DE APROBACIÓN (OK %)",
+      "type": "gauge"
     },
     {
       "datasource": {
@@ -367,10 +372,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 6,
         "x": 6,
-        "y": 4
+        "y": 14
       },
       "id": 2,
       "options": {
@@ -407,6 +412,208 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 6,
+          "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 3
+              },
+              {
+                "color": "#E32636",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 14
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevacion Sin Carga",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Valor"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold1"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 6,
+          "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 3
+              },
+              {
+                "color": "#E32636",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 14
+      },
+      "id": 17,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Sin Carga",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Valor"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold1"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "fixedColor": "#E32636",
             "mode": "fixed"
           },
@@ -431,8 +638,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 4
+        "x": 6,
+        "y": 19
       },
       "id": 3,
       "options": {
@@ -471,10 +678,10 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 1,
+          "decimals": 2,
           "mappings": [],
-          "max": 100,
-          "min": 0,
+          "max": 6,
+          "min": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -483,27 +690,28 @@
                 "value": null
               },
               {
-                "color": "#F4A623",
-                "value": 85
+                "color": "#2FD06A",
+                "value": 3
               },
               {
-                "color": "#2FD06A",
-                "value": 95
+                "color": "#E32636",
+                "value": 5
               }
             ]
           },
-          "unit": "percent"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 9,
         "w": 6,
-        "x": 18,
-        "y": 4
+        "x": 12,
+        "y": 22
       },
-      "id": 4,
+      "id": 18,
       "options": {
+        "colorMode": "value",
         "minVizHeight": 75,
         "minVizWidth": 75,
         "orientation": "auto",
@@ -511,23 +719,219 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/^Valor$/",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
-        "sizing": "auto"
+        "sizing": "auto",
+        "textMode": "auto"
       },
       "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT ROUND(CAST(SUM(CASE WHEN OK_NOK = 'OK' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 1) AS value FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
           "refId": "A"
         }
       ],
-      "title": "TASA DE APROBACIÓN (OK %)",
+      "title": "Elevacion Con Carga",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Valor"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold1"
+              }
+            ]
+          }
+        }
+      ],
       "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 6,
+          "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 3
+              },
+              {
+                "color": "#E32636",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 22
+      },
+      "id": 19,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Con Carga",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Valor"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold1"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#25C9D6",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 23
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "refId": "A"
+        }
+      ],
+      "title": "PRUEBAS TOTALES (Últimos 30 días)",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -579,10 +983,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 18
+        "h": 9,
+        "w": 16,
+        "x": 1,
+        "y": 31
       },
       "id": 7,
       "options": {
@@ -616,814 +1020,6 @@
       ],
       "title": "PRUEBAS POR MODELO DE MÁSTIL / MÁQUINA",
       "type": "barchart"
-    },
-    {
-      "id": 16,
-      "title": "Elevacion Sin Carga",
-      "type": "gauge",
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 8,
-        "w": 6,
-        "h": 8
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
-              }
-            ]
-          }
-        }
-      ],
-      "options": {
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^Valor$/",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2,
-          "custom": {},
-          "mappings": [],
-          "min": 1,
-          "max": 6
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 17,
-      "title": "Descenso Sin Carga",
-      "type": "gauge",
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 8,
-        "w": 6,
-        "h": 8
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
-              }
-            ]
-          }
-        }
-      ],
-      "options": {
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^Valor$/",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2,
-          "custom": {},
-          "mappings": [],
-          "min": 1,
-          "max": 6
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 18,
-      "title": "Elevacion Con Carga",
-      "type": "gauge",
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 16,
-        "w": 6,
-        "h": 9
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
-              }
-            ]
-          }
-        }
-      ],
-      "options": {
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^Valor$/",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2,
-          "custom": {},
-          "mappings": [],
-          "min": 1,
-          "max": 8
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 19,
-      "title": "Descenso Con Carga",
-      "type": "gauge",
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 16,
-        "w": 6,
-        "h": 9
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
-              }
-            ]
-          }
-        }
-      ],
-      "options": {
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^Valor$/",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2,
-          "custom": {},
-          "mappings": [],
-          "min": 1,
-          "max": 8
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 20,
-      "title": "Elevación Sin Carga — ${selected_id:text}",
-      "type": "bargauge",
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 8,
-        "w": 6,
-        "h": 5
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
-              }
-            ]
-          }
-        }
-      ],
-      "options": {
-        "displayMode": "basic",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^Valor$/",
-          "values": false
-        },
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2,
-          "custom": {},
-          "mappings": [],
-          "min": 1,
-          "max": 6
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 21,
-      "title": "Descenso Sin Carga — ${selected_id:text}",
-      "type": "bargauge",
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "x": 6,
-        "y": 8,
-        "w": 6,
-        "h": 5
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
-              }
-            ]
-          }
-        }
-      ],
-      "options": {
-        "displayMode": "basic",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^Valor$/",
-          "values": false
-        },
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2,
-          "custom": {},
-          "mappings": [],
-          "min": 1,
-          "max": 6
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 22,
-      "title": "Elevación Con Carga — ${selected_id:text}",
-      "type": "bargauge",
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 13,
-        "w": 6,
-        "h": 5
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
-              }
-            ]
-          }
-        }
-      ],
-      "options": {
-        "displayMode": "basic",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^Valor$/",
-          "values": false
-        },
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2,
-          "custom": {},
-          "mappings": [],
-          "min": 1,
-          "max": 6
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 23,
-      "title": "Descenso Con Carga — ${selected_id:text}",
-      "type": "bargauge",
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "x": 6,
-        "y": 13,
-        "w": 6,
-        "h": 5
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold2"
-              }
-            ]
-          }
-        }
-      ],
-      "options": {
-        "displayMode": "basic",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^Valor$/",
-          "values": false
-        },
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 3.0
-              },
-              {
-                "color": "#E32636",
-                "value": 5.0
-              }
-            ]
-          },
-          "unit": "s",
-          "decimals": 2,
-          "custom": {},
-          "mappings": [],
-          "min": 1,
-          "max": 6
-        },
-        "overrides": []
-      }
     }
   ],
   "refresh": "10s",
@@ -1489,6 +1085,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — OEE / MES",
   "uid": "mes-oee-v1",
-  "version": 10,
+  "version": 26,
   "weekStart": ""
 }

@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 1,
+  "id": 4,
   "links": [
     {
       "asDropdown": false,
@@ -102,6 +102,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — INICIO",
   "uid": "mes-home-v1",
-  "version": 1,
+  "version": 7,
   "weekStart": ""
 }

@@ -74,8 +74,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "fixed",
-            "fixedColor": "#E32636"
+            "fixedColor": "#E32636",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
@@ -87,7 +87,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -108,8 +109,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -127,8 +131,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "fixed",
-            "fixedColor": "#F4A623"
+            "fixedColor": "#F4A623",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
@@ -140,7 +144,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
@@ -161,8 +166,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -204,7 +212,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "TIPO"
+              "options": "Tipo"
             },
             "properties": [
               {
@@ -239,6 +247,18 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Descripcion"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 605
+              }
+            ]
           }
         ]
       },
@@ -250,20 +270,28 @@
       },
       "id": 3,
       "options": {
+        "cellHeight": "sm",
         "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
+        "showHeader": true,
         "sortBy": [
           {
             "desc": true,
-            "displayName": "FECHA_Y_HORA"
+            "displayName": "Fecha/Hora"
           }
         ]
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT id, FECHA_Y_HORA, TIPO, DESCRIPCION, DURACION FROM LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC",
+          "rawSql": "SELECT id AS [ID], DESCRIPCION AS [Descripcion], TIPO AS [Tipo], FECHA_Y_HORA AS [Fecha/Hora], DURACION AS [Duracion] FROM LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC",
           "refId": "A"
         }
       ],
@@ -278,6 +306,9 @@
     "alarms",
     "log"
   ],
+  "templating": {
+    "list": []
+  },
   "time": {
     "from": "now-30d",
     "to": "now"
@@ -286,6 +317,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — ALARMAS",
   "uid": "mes-alarms-v1",
-  "version": 1,
+  "version": 7,
   "weekStart": ""
 }
