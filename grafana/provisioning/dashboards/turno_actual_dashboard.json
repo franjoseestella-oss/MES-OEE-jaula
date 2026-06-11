@@ -23,35 +23,15 @@
         "type": "mssql",
         "uid": "mes_sqlserver"
       },
-      "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "title": "OEE Global (%)",
-      "type": "gauge",
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
-      },
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "color": {
             "mode": "thresholds"
           },
+          "custom": {},
           "mappings": [],
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -69,32 +49,56 @@
               }
             ]
           },
-          "min": 0,
-          "max": 100,
           "unit": "percent"
         },
         "overrides": []
-      }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 1 oee AS [OEE] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND oee IS NOT NULL ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "OEE Global (%)",
+      "type": "gauge"
     },
     {
       "datasource": {
         "type": "mssql",
         "uid": "mes_sqlserver"
       },
-      "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 6,
-        "y": 0
-      },
-      "id": 2,
-      "title": "Disponibilidad (%)",
-      "type": "gauge",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -112,31 +116,42 @@
               }
             ]
           },
-          "min": 0,
-          "max": 100,
           "unit": "percent"
         }
-      }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 1 availability AS [Disponibilidad] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND availability IS NOT NULL ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Disponibilidad (%)",
+      "type": "gauge"
     },
     {
       "datasource": {
         "type": "mssql",
         "uid": "mes_sqlserver"
       },
-      "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 12,
-        "y": 0
-      },
-      "id": 3,
-      "title": "Rendimiento (%)",
-      "type": "gauge",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -154,31 +169,42 @@
               }
             ]
           },
-          "min": 0,
-          "max": 100,
           "unit": "percent"
         }
-      }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 1 performance AS [Rendimiento] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND performance IS NOT NULL ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Rendimiento (%)",
+      "type": "gauge"
     },
     {
       "datasource": {
         "type": "mssql",
         "uid": "mes_sqlserver"
       },
-      "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 18,
-        "y": 0
-      },
-      "id": 4,
-      "title": "Calidad (%)",
-      "type": "gauge",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -196,30 +222,34 @@
               }
             ]
           },
-          "min": 0,
-          "max": 100,
           "unit": "percent"
         }
-      }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 4,
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 1 quality AS [Calidad] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND quality IS NOT NULL ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Calidad (%)",
+      "type": "gauge"
     },
     {
       "datasource": {
         "type": "mssql",
         "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 16,
-        "x": 0,
-        "y": 6
-      },
-      "id": 5,
-      "title": "Línea de Tiempo de Estados",
-      "type": "state-timeline",
-      "options": {
-        "showValue": "never",
-        "alignValue": "left",
-        "mergeValues": true
       },
       "fieldConfig": {
         "defaults": {
@@ -227,8 +257,8 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "lineWidth": 0,
-            "fillOpacity": 80
+            "fillOpacity": 80,
+            "lineWidth": 0
           },
           "mappings": [
             {
@@ -258,7 +288,32 @@
             }
           ]
         }
-      }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 6
+      },
+      "id": 5,
+      "options": {
+        "alignValue": "left",
+        "mergeValues": true,
+        "showValue": "never"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT timestamp AS time, CASE state WHEN 'Running' THEN 1 WHEN 'Stopped' THEN 0 WHEN 'Setup' THEN 2 WHEN 'Micro-stop' THEN 3 WHEN 'Break' THEN 4 ELSE -1 END AS [Estado] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= $__timeFrom() AND timestamp <= $__timeTo() ORDER BY timestamp",
+          "refId": "A"
+        }
+      ],
+      "title": "Línea de Tiempo de Estados",
+      "type": "state-timeline"
     },
     {
       "datasource": {
@@ -272,18 +327,37 @@
         "y": 6
       },
       "id": 6,
-      "title": "Producción Total",
-      "type": "stat",
       "options": {
         "colorMode": "value",
         "justifyMode": "auto",
         "textMode": "auto"
-      }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 1 total_pieces AS [Producción Total] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND total_pieces IS NOT NULL ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Producción Total",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "mssql",
         "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          }
+        }
       },
       "gridPos": {
         "h": 4,
@@ -292,21 +366,32 @@
         "y": 6
       },
       "id": 7,
-      "title": "Piezas Buenas",
-      "type": "stat",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "green"
-          }
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 1 good_pieces AS [Piezas Buenas] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND good_pieces IS NOT NULL ORDER BY ts DESC",
+          "refId": "A"
         }
-      }
+      ],
+      "title": "Piezas Buenas",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "mssql",
         "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          }
+        }
       },
       "gridPos": {
         "h": 4,
@@ -315,16 +400,19 @@
         "y": 10
       },
       "id": 8,
-      "title": "Piezas Defectuosas",
-      "type": "stat",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "red"
-          }
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 1 (total_pieces - good_pieces) AS [Piezas Defectuosas] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND total_pieces IS NOT NULL ORDER BY ts DESC",
+          "refId": "A"
         }
-      }
+      ],
+      "title": "Piezas Defectuosas",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -338,6 +426,17 @@
         "y": 10
       },
       "id": 9,
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 1 800 AS [Objetivo], (total_pieces - 800) AS [Desviación] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND total_pieces IS NOT NULL ORDER BY ts DESC",
+          "refId": "A"
+        }
+      ],
       "title": "Objetivo vs Desviación",
       "type": "stat"
     },
@@ -353,17 +452,37 @@
         "y": 14
       },
       "id": 10,
-      "title": "Top 5 Motivos de Parada (Diagrama de Pareto)",
-      "type": "barchart",
       "options": {
         "orientation": "horizontal",
         "showValue": "auto"
-      }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT TOP 5 reason AS [Motivo], SUM(duration_s) AS [Duración (s)] FROM mes_stop_reasons WHERE machine_id = 'MAQ-01' AND start_time >= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(duration_s) DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 5 Motivos de Parada (Diagrama de Pareto)",
+      "type": "barchart"
     },
     {
       "datasource": {
         "type": "mssql",
         "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "dark-green",
+            "mode": "fixed"
+          },
+          "unit": "dtdurations"
+        }
       },
       "gridPos": {
         "h": 4,
@@ -372,6 +491,17 @@
         "y": 14
       },
       "id": 11,
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT CAST(SUM(CASE WHEN state = 'Running' THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 15, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state = 'Stopped' THEN 1 ELSE 0 END), 0) AS [MTBF] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME)",
+          "refId": "A"
+        }
+      ],
       "title": "MTBF (Tiempo Medio Entre Fallos)",
       "type": "stat"
     },
@@ -380,6 +510,15 @@
         "type": "mssql",
         "uid": "mes_sqlserver"
       },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "dark-orange",
+            "mode": "fixed"
+          },
+          "unit": "dtdurations"
+        }
+      },
       "gridPos": {
         "h": 4,
         "w": 4,
@@ -387,6 +526,17 @@
         "y": 18
       },
       "id": 12,
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT CAST(SUM(CASE WHEN state = 'Stopped' THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 10, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state = 'Stopped' THEN 1 ELSE 0 END), 0) AS [MTTR] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME)",
+          "refId": "A"
+        }
+      ],
       "title": "MTTR (Tiempo Medio de Reparación)",
       "type": "stat"
     },
@@ -402,15 +552,26 @@
         "y": 14
       },
       "id": 13,
-      "title": "Top 5 Motivos de Rechazo",
-      "type": "piechart",
       "options": {
-        "pieType": "donut",
         "legend": {
           "displayMode": "list",
           "placement": "right"
+        },
+        "pieType": "donut"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT reason AS [Motivo], SUM(quantity) AS [Cantidad] FROM mes_reject_reasons WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(quantity) DESC",
+          "refId": "A"
         }
-      }
+      ],
+      "title": "Top 5 Motivos de Rechazo",
+      "type": "piechart"
     }
   ],
   "refresh": "5s",
@@ -431,6 +592,5 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Panel de Control OEE Fábrica - Turno Actual (ES)",
-  "uid": "panel-oee-mes-fabrica",
-  "version": 1
+  "uid": "panel-oee-mes-fabrica"
 }
