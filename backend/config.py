@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     app_port: int = 8000
     log_level: str = "INFO"
 
-    # Claude
-    anthropic_api_key: str = ""
+    # Gemini (gratuito)
+    gemini_api_key: str = ""
 
     # Grafana
     gf_security_admin_user: str = "admin"

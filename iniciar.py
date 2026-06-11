@@ -310,7 +310,7 @@ def arrancar_local():
             [sys.executable, "-m", "pip", "install",
              "fastapi", "uvicorn[standard]", "paho-mqtt", "pyodbc",
              "SQLAlchemy", "pydantic", "pydantic-settings",
-             "anthropic", "apscheduler", "jinja2", "markdown", "-q"],
+             "google-genai", "apscheduler", "jinja2", "markdown", "-q"],
         )
     ok("Dependencias instaladas.")
 
