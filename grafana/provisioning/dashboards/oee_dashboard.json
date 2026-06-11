@@ -940,28 +940,13 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "#25C9D6",
-            "mode": "fixed"
+            "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "fillOpacity": 80,
-            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
-            },
-            "lineWidth": 1,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
             }
           },
           "mappings": [],
@@ -971,10 +956,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -992,15 +973,29 @@
       "options": {
         "barRadius": 0,
         "barWidth": 0.97,
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom",
+          "calcs": [
+            "value"
+          ],
+          "displayMode": "list",
+          "placement": "right",
           "showLegend": true
         },
         "orientation": "horizontal",
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "showValue": "auto",
         "stacking": "none",
         "tooltip": {
@@ -1019,7 +1014,7 @@
         }
       ],
       "title": "PRUEBAS POR MODELO DE MÁSTIL / MÁQUINA",
-      "type": "barchart"
+      "type": "piechart"
     }
   ],
   "refresh": "10s",
@@ -1085,6 +1080,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — OEE / MES",
   "uid": "mes-oee-v1",
-  "version": 26,
+  "version": 28,
   "weekStart": ""
 }
