@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 EXECUTE_STATE = "Execute"
 
 SHIFT_SCHEDULE = {
-    "T1": (6, 14),
-    "T2": (14, 22),
-    "T3": (22, 6),   # cruza medianoche
+    "T1": (7, 15),
+    "T2": (15, 23),
+    "T3": (23, 7),   # cruza medianoche
 }
 
 
