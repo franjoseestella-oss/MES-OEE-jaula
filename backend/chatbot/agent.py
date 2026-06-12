@@ -93,7 +93,13 @@ def run_chat(
 
     # Configurar modelo y sus respaldos en caso de límite de cuota (429)
     primary_model = settings.gemini_model.strip() if getattr(settings, "gemini_model", None) else "gemini-2.0-flash"
-    candidate_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite"]
+    candidate_models = [
+        "gemini-2.0-flash",
+        "gemini-2.5-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-flash-latest",
+    ]
     current_model = primary_model
 
     # Bucle agéntico: hasta MAX_ITERATIONS llamadas a herramientas
