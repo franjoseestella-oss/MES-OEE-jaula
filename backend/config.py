@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     # Gemini (gratuito)
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
+
 
     # Grafana
     gf_security_admin_user: str = "admin"

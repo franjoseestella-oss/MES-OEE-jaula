@@ -91,28 +91,69 @@ def run_chat(
         elif role == "assistant":
             gemini_contents.append(types.Content(role="model", parts=[types.Part.from_text(text=content)]))
 
+    # Configurar modelo y sus respaldos en caso de límite de cuota (429)
+    primary_model = settings.gemini_model.strip() if getattr(settings, "gemini_model", None) else "gemini-2.0-flash"
+    candidate_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite"]
+    current_model = primary_model
+
     # Bucle agéntico: hasta MAX_ITERATIONS llamadas a herramientas
     for _ in range(MAX_ITERATIONS):
-        try:
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=gemini_contents,
-                config=types.GenerateContentConfig(
-                    system_instruction=system,
-                    tools=gemini_tools,
-                    temperature=0.3,
-                ),
-            )
-        except Exception as exc:
-            error_msg = str(exc)
-            logger.error("Error de la API de Gemini: %s", error_msg)
-            if "API_KEY" in error_msg.upper() or "401" in error_msg or "403" in error_msg:
-                return (
-                    "⚠️ **Clave API no válida**\n\n"
-                    "La clave configurada en el archivo `.env` ha sido rechazada por Google. "
-                    "Por favor, verifica que sea correcta en [Google AI Studio](https://aistudio.google.com/apikey)."
+        response = None
+        # Lista ordenada de modelos a probar (empezando por el actual que funcionó o el primario)
+        models_to_try = [current_model] + [m for m in candidate_models if m != current_model]
+        
+        last_exception = None
+        for model_candidate in models_to_try:
+            try:
+                logger.info("Llamando a Gemini con modelo: %s", model_candidate)
+                response = client.models.generate_content(
+                    model=model_candidate,
+                    contents=gemini_contents,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system,
+                        tools=gemini_tools,
+                        temperature=0.3,
+                    ),
                 )
-            return f"⚠️ **Error en el servicio de IA (Gemini):** {error_msg}"
+                # Si tiene éxito, fijamos este modelo para el resto de la conversación de este turno
+                current_model = model_candidate
+                break
+            except Exception as exc:
+                error_msg = str(exc)
+                logger.error("Error con modelo %s: %s", model_candidate, error_msg)
+                
+                # Si el error es de clave de API inválida o filtrada, abortamos inmediatamente
+                if "API_KEY" in error_msg.upper() or "401" in error_msg or "403" in error_msg or "LEAKED" in error_msg.upper():
+                    return (
+                        "⚠️ **Clave API no válida o filtrada (Leaked)**\n\n"
+                        "La clave configurada en el archivo `.env` ha sido rechazada por Google "
+                        "(posiblemente por haberse detectado su publicación en un repositorio público y haber sido revocada).\n\n"
+                        "Por favor, sigue estos pasos para solucionarlo:\n"
+                        "1. Ve a [Google AI Studio](https://aistudio.google.com/apikey) y crea una nueva clave API gratis.\n"
+                        "2. Abre el archivo `.env` en la raíz de tu proyecto.\n"
+                        "3. Modifica la línea `GEMINI_API_KEY=tu_api_key_aqui` con tu clave real.\n"
+                        "4. Guarda el archivo y el servidor se reiniciará automáticamente."
+                    )
+                
+                # Si es un error de cuota/límite de peticiones (429), probamos el siguiente modelo
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg.upper() or "QUOTA" in error_msg.upper() or "LIMIT" in error_msg.upper():
+                    logger.warning("El modelo %s devolvió error de cuota (429/RESOURCE_EXHAUSTED). Intentando modelo alternativo...", model_candidate)
+                    last_exception = exc
+                    continue
+                else:
+                    # Si es otro tipo de error, informamos y salimos para no ocultar bugs reales
+                    return f"⚠️ **Error en el servicio de IA (Gemini):** {error_msg}"
+
+        if response is None:
+            # Si se probaron todos los modelos de la pool y todos fallaron con cuota
+            if last_exception:
+                return (
+                    f"⚠️ **Error de Cuota/Límite en Gemini (429):** Se han agotado las solicitudes gratuitas en todos los modelos "
+                    f"disponibles ({', '.join(models_to_try)}).\n\n"
+                    f"Detalle del error original:\n`{str(last_exception)}`\n\n"
+                    f"Por favor, espera un minuto o configura una clave API diferente o con facturación en tu `.env`."
+                )
+            return "⚠️ **Error en el servicio de IA:** Todos los modelos de Gemini fallaron al generar una respuesta."
 
         # Comprobar si hay llamadas a funciones
         has_function_calls = False
