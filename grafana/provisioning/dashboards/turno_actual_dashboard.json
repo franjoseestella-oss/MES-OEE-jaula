@@ -56,6 +56,17 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
+      "title": "PLAN PRODUCCIÓN",
+      "type": "link",
+      "url": "/d/mes-plan-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "LOG_SECUENCIAS",
       "type": "link",
       "url": "/d/mes-reg-v1"

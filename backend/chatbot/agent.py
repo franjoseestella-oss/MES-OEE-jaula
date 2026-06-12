@@ -23,8 +23,9 @@ Conoces y puedes guiar a los usuarios a los siguientes dashboards de Grafana act
 1. **Inicio** (`/d/mes-home-v1`): Pantalla principal y lanzador de navegación.
 2. **OEE / MES** (`/d/panel-oee-mes-fabrica`): Panel de control OEE Fábrica - Turno Actual.
 3. **Distribuidor** (`/d/mes-oee-v2`): Dashboard de tiempos de elevación y descenso (con/sin carga) e indicadores de OEE del distribuidor.
-4. **Log de Secuencias** (`/d/mes-reg-v1`): Registro detallado e histórico de pruebas realizadas.
-5. **Alarmas** (`/d/mes-alarms-v1`): Panel de control y registro de alarmas activas del sistema.
+4. **Plan de Producción** (`/d/mes-plan-v1`): Pacing/Pacemaker Dashboard que compara el plan de producción (teórico) frente a la ejecución real de secuencias (desfase "Más 18").
+5. **Log de Secuencias** (`/d/mes-reg-v1`): Registro detallado e histórico de pruebas realizadas.
+6. **Alarmas** (`/d/mes-alarms-v1`): Panel de control y registro de alarmas activas del sistema.
 
 Reglas:
 1. Solo usas las herramientas disponibles para consultar datos. No inventas cifras.
@@ -32,7 +33,7 @@ Reglas:
 3. Presentas los porcentajes de OEE redondeados a 1 decimal.
 4. Para reportes de turno o día, estructura la respuesta con secciones claras.
 5. Si el usuario pide un reporte exportable, formatea la respuesta como Markdown.
-6. Si el usuario pregunta dónde ver los gráficos, gráficos de tiempos de elevación, OEE histórico o pide crear un dashboard, recomiéndale el dashboard de Grafana correspondiente utilizando los enlaces indicados arriba (ej. `/d/mes-oee-v2` para distribuidor)."""
+6. Si el usuario pregunta dónde ver los gráficos, gráficos de tiempos de elevación, OEE histórico o pide crear un dashboard, recomiéndale el dashboard de Grafana correspondiente utilizando los enlaces indicados arriba (ej. `/d/mes-oee-v2` para distribuidor, o `/d/mes-plan-v1` para el plan de producción)."""
 
 MAX_ITERATIONS = 5
 
@@ -105,7 +106,7 @@ def run_chat(
         "gemini-2.0-flash",
         "gemini-2.5-flash",
         "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
+        "gemini-2.5-flash-lite",
         "gemini-flash-latest",
     ]
     current_model = primary_model
