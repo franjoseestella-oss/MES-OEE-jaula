@@ -139,7 +139,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n)\nSELECT COALESCE(MAX(seq_idx), 0) AS [Teórico]\nFROM Cumulative_Plan\nWHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END",
+          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n      AND fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n)\nSELECT COALESCE(MAX(seq_idx), 0) AS [Teórico]\nFROM Cumulative_Plan\nWHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END",
           "refId": "A"
         }
       ],
@@ -256,7 +256,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n),\nTeorico_Count AS (\n    SELECT COALESCE(MAX(seq_idx), 0) AS teorico\n    FROM Cumulative_Plan\n    WHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END\n),\nReal_Count AS (\n    SELECT COUNT(*) AS real\n    FROM LOG_TABLA\n    WHERE fecha_creacion >= DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND fecha_creacion <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END\n      AND OK_NOK = 'OK'\n)\nSELECT \n    r.real - t.teorico AS [Desviación]\nFROM Real_Count r, Teorico_Count t",
+          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n      AND fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n),\nTeorico_Count AS (\n    SELECT COALESCE(MAX(seq_idx), 0) AS teorico\n    FROM Cumulative_Plan\n    WHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END\n),\nReal_Count AS (\n    SELECT COUNT(*) AS real\n    FROM LOG_TABLA\n    WHERE fecha_creacion >= DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND fecha_creacion <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END\n      AND OK_NOK = 'OK'\n)\nSELECT \n    r.real - t.teorico AS [Desviación]\nFROM Real_Count r, Teorico_Count t",
           "refId": "A"
         }
       ],
@@ -314,7 +314,7 @@
       },
       "gridPos": {
         "h": 16,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 4
       },
@@ -341,7 +341,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        secuencia,\n        modelo,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        id,\n        secuencia,\n        modelo,\n        cycle_time,\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n)\nSELECT time, [Teórico] FROM (\n    SELECT \n        DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)) AS time,\n        0 AS [Teórico]\n    UNION ALL\n    SELECT \n        DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) AS time,\n        seq_idx AS [Teórico]\n    FROM Cumulative_Plan\n    WHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= $__timeTo()\n) t\nORDER BY time",
+          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        secuencia,\n        modelo,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n      AND fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        id,\n        secuencia,\n        modelo,\n        cycle_time,\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n)\nSELECT time, [Teórico] FROM (\n    SELECT \n        DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)) AS time,\n        0 AS [Teórico]\n    UNION ALL\n    SELECT \n        DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) AS time,\n        seq_idx AS [Teórico]\n    FROM Cumulative_Plan\n    WHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= $__timeTo()\n) t\nORDER BY time",
           "refId": "A"
         },
         {
@@ -358,6 +358,122 @@
       ],
       "title": "EVOLUCIÓN PLAN DE PRODUCCIÓN (PLAN vs REAL)",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Estado"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "OK": {
+                        "text": "🟢 OK",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "NOK": {
+                        "text": "🔴 NOK",
+                        "color": "red",
+                        "index": 1
+                      },
+                      "Pendiente": {
+                        "text": "⚪ Pendiente",
+                        "color": "gray",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH Latest_Log AS (\n    SELECT \n        NBASTIDOR,\n        FECHA_MONTAJE,\n        OK_NOK,\n        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR, FECHA_MONTAJE ORDER BY id DESC) as rn\n    FROM LOG_TABLA\n)\nSELECT \n    j.secuencia AS [Secuencia],\n    j.bastidor AS [Bastidor],\n    j.modelo AS [Modelo],\n    COALESCE(l.OK_NOK, 'Pendiente') AS [Estado]\nFROM JAULA_ERP j\nLEFT JOIN Latest_Log l ON j.bastidor = l.NBASTIDOR AND l.FECHA_MONTAJE = j.fecha_montaje AND l.rn = 1\nWHERE j.fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112)\nORDER BY CAST(j.secuencia AS INT) ASC",
+          "refId": "A"
+        }
+      ],
+      "title": "LISTADO DE SECUENCIAS (PLAN vs REAL)",
+      "type": "table"
+    },
+    {
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 6,
+      "options": {
+        "content": "<div style=\"display: flex; gap: 20px; align-items: stretch; justify-content: space-between; font-family: 'Inter', -apple-system, sans-serif; background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(168, 85, 247, 0.02) 100%); border: 1px solid rgba(168, 85, 247, 0.25); padding: 20px; border-radius: 8px; color: #ffffff;\">\n  <div style=\"flex: 1;\">\n    <h3 style=\"color: #a855f7; font-size: 1.2rem; margin: 0 0 10px 0; font-weight: 600;\">ℹ️ Lógica Pacing / Pacemaker de Planta</h3>\n    <p style=\"color: #a2aab7; font-size: 0.9rem; margin: 0; line-height: 1.5;\">\n      Este panel compara la producción teórica frente a la real. La lógica teórica inicia cada día a las <strong>06:00 AM</strong> con un desfase de <strong>+18 secuencias</strong> respecto al último bastidor completado (OK) del día anterior. El avance teórico se calcula de forma acumulada según los tiempos definidos en <code>tiempo_teorico_segundos</code>.\n    </p>\n  </div>\n  <div style=\"display: flex; align-items: center; justify-content: center; padding-left: 20px; border-left: 1px solid rgba(168, 85, 247, 0.15);\">\n    <a href=\"/d/mes-home-v1\" style=\"display: inline-block; background: #a855f7; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: 600; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);\"\n       onmouseover=\"this.style.background='#b566ff'; this.style.boxShadow='0 6px 16px rgba(168, 85, 247, 0.45)';\"\n       onmouseout=\"this.style.background='#a855f7'; this.style.boxShadow='0 4px 12px rgba(168, 85, 247, 0.3)';\">\n      Volver al Inicio\n    </a>\n  </div>\n</div>",
+        "mode": "html"
+      },
+      "title": "",
+      "type": "text"
     }
   ],
   "refresh": "5s",
@@ -388,5 +504,5 @@
   "timezone": "browser",
   "title": "PLAN PRODUCCIÓN",
   "uid": "mes-plan-v1",
-  "version": 1
+  "version": 3
 }
