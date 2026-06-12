@@ -171,6 +171,34 @@ def tool_list_machines() -> dict:
 
 # ── Registro de herramientas para Claude ─────────────────────────────────────
 
+def tool_query_database(sql_query: str) -> dict:
+    """Ejecuta una consulta SQL de solo lectura (SELECT) en la base de datos de producción (DAFEED) y devuelve los resultados."""
+    from sqlalchemy import text
+    from datetime import datetime, date, time
+    
+    sql_clean = sql_query.strip()
+    if not sql_clean.upper().startswith("SELECT"):
+        return {"error": "Solo se permiten consultas de tipo SELECT."}
+        
+    with get_db() as db:
+        try:
+            result = db.execute(text(sql_clean))
+            if result.returns_rows:
+                columns = list(result.keys())
+                rows = [dict(zip(columns, row)) for row in result.fetchall()]
+                for row in rows:
+                    for k, v in row.items():
+                        if isinstance(v, (datetime, date, time)):
+                            row[k] = v.isoformat()
+                        elif isinstance(v, (bytes, bytearray)):
+                            row[k] = v.hex()
+                return {"columns": columns, "rows": rows, "count": len(rows)}
+            else:
+                return {"message": "Consulta ejecutada correctamente. No se devolvieron filas."}
+        except Exception as exc:
+            return {"error": str(exc)}
+
+
 TOOL_DEFINITIONS = [
     {
         "name": "get_machine_status",
@@ -240,6 +268,20 @@ TOOL_DEFINITIONS = [
             "required": [],
         },
     },
+    {
+        "name": "query_database",
+        "description": "Ejecuta una consulta SQL SELECT en la base de datos de producción (DAFEED) para consultar información sobre el plan de producción (JAULA_ERP), el registro de pruebas (LOG_TABLA), alarmas (LOG_ALARMAS), operarios (Operarios) o referencias en ciclo (REFERENCIA_EN_CICLO).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "sql_query": {
+                    "type": "string",
+                    "description": "Consulta SQL SELECT completa, p.ej. 'SELECT COUNT(*) FROM LOG_TABLA WHERE OK_NOK = \\'OK\\'' o 'SELECT TOP 5 * FROM LOG_ALARMAS ORDER BY id DESC'"
+                }
+            },
+            "required": ["sql_query"],
+        },
+    },
 ]
 
 TOOL_HANDLERS = {
@@ -249,4 +291,5 @@ TOOL_HANDLERS = {
     "get_oee_day": lambda inp: tool_get_oee_day(**inp),
     "get_stop_reasons": lambda inp: tool_get_stop_reasons(**inp),
     "list_machines": lambda inp: tool_list_machines(),
+    "query_database": lambda inp: tool_query_database(**inp),
 }

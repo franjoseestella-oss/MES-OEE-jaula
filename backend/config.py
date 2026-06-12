@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     mqtt_topic_prefix: str = "planta/linea1/MAQ-01"
 
     # OEE
-    ideal_cycle_time_seconds: float = 30.0
+    ideal_cycle_time_seconds: float = 600.0
     shift_duration_hours: float = 8.0
     oee_snapshot_interval_seconds: int = 60
 
