@@ -20,9 +20,18 @@ def push_dashboard(filepath, message):
     dashboard_to_push.pop("id", None)
     dashboard_to_push["version"] = None
     
-    # We want to make sure folder ID matches folder 1 ("Logisnext MES")
-    # Let's search for folder ID first
-    folder_id = 1 # Default
+    # Dynamically find the folder ID for 'Logisnext MES'
+    folder_id = 0
+    try:
+        req_folders = urllib.request.Request(f"{GRAFANA_URL}/api/folders", headers=headers)
+        with urllib.request.urlopen(req_folders) as resp_folders:
+            folders = json.loads(resp_folders.read().decode("utf-8"))
+            for fld in folders:
+                if fld.get("title") == "Logisnext MES":
+                    folder_id = fld.get("id", 0)
+                    break
+    except Exception as e:
+        print(f"Error fetching folders: {e}")
     
     payload = {
         "dashboard": dashboard_to_push,
@@ -58,9 +67,11 @@ def main():
     dashboard_dir = 'grafana/provisioning/dashboards'
     files = [
         ('home_dashboard.json', 'Push INICIO dashboard'),
-        ('oee_dashboard.json', 'Push MES / OEE dashboard with tabs'),
-        ('log_dashboard.json', 'Push LOG_SECUENCIAS dashboard with tabs'),
-        ('registro_dashboard.json', 'Push REGISTRO dashboard with tabs')
+        ('distribuidor_dashboard.json', 'Push DISTRIBUIDOR dashboard'),
+        ('alarmas_dashboard.json', 'Push ALARMAS dashboard'),
+        ('registro_dashboard.json', 'Push REGISTRO dashboard'),
+        ('plan_dashboard.json', 'Push PLAN dashboard with pacing queries'),
+        ('turno_actual_dashboard.json', 'Push TURNO ACTUAL dashboard')
     ]
     for filename, msg in files:
         filepath = os.path.join(dashboard_dir, filename)

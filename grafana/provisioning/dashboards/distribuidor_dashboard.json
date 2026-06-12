@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 3,
+  "id": 12,
   "links": [
     {
       "asDropdown": false,
@@ -1102,6 +1102,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — DISTRIBUIDOR",
   "uid": "mes-oee-v2",
-  "version": 28,
+  "version": 10,
   "weekStart": ""
 }

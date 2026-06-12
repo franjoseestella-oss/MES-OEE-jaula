@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
+  "id": 14,
   "links": [
     {
       "asDropdown": false,
@@ -139,7 +139,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n      AND fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n)\nSELECT COALESCE(MAX(seq_idx), 0) AS [Teórico]\nFROM Cumulative_Plan\nWHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nIF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)\nBEGIN\n    SET @ActiveDate = COALESCE(\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)\n    );\nEND;\n\nDECLARE @ActiveDateDate DATE = CAST(@ActiveDate AS DATE);\nDECLARE @ShiftStart DATETIME = DATEADD(hour, 7, CAST(@ActiveDateDate AS DATETIME));\nDECLARE @ShiftEnd DATETIME = DATEADD(hour, 15, CAST(@ActiveDateDate AS DATETIME));\nDECLARE @EvalTime DATETIME;\n\nIF CAST($__timeFrom() AS DATE) = CAST(GETDATE() AS DATE)\nBEGIN\n    DECLARE @TimeOfDayDiff INT = DATEDIFF(second, DATEADD(hour, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), GETDATE());\n    IF @TimeOfDayDiff < 0 SET @TimeOfDayDiff = 0;\n    IF @TimeOfDayDiff > 28800 SET @TimeOfDayDiff = 28800;\n    SET @EvalTime = DATEADD(second, @TimeOfDayDiff, @ShiftStart);\nEND\nELSE IF CAST($__timeFrom() AS DATE) > CAST(GETDATE() AS DATE)\nBEGIN\n    SET @EvalTime = @ShiftStart;\nEND\nELSE\nBEGIN\n    SET @EvalTime = @ShiftEnd;\nEND;\n\nWITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < @ShiftStart\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)\n      AND fecha_montaje = @ActiveDate\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n)\nSELECT COALESCE(MAX(seq_idx), 0) AS [Teórico]\nFROM Cumulative_Plan\nWHERE DATEADD(second, CAST(cum_seconds AS INT) + CASE WHEN cum_seconds >= 7200 THEN 1800 ELSE 0 END, @ShiftStart) <= @EvalTime",
           "refId": "A"
         }
       ],
@@ -196,7 +196,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS [Real]\nFROM LOG_TABLA\nWHERE fecha_creacion >= DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n  AND fecha_creacion <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END\n  AND OK_NOK = 'OK'",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nIF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)\nBEGIN\n    SET @ActiveDate = COALESCE(\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)\n    );\nEND;\n\nDECLARE @ActiveDateDate DATE = CAST(@ActiveDate AS DATE);\nDECLARE @ShiftStart DATETIME = DATEADD(hour, 7, CAST(@ActiveDateDate AS DATETIME));\nDECLARE @ShiftEnd DATETIME = DATEADD(hour, 15, CAST(@ActiveDateDate AS DATETIME));\nDECLARE @EvalTime DATETIME;\n\nIF CAST($__timeFrom() AS DATE) = CAST(GETDATE() AS DATE)\nBEGIN\n    DECLARE @TimeOfDayDiff INT = DATEDIFF(second, DATEADD(hour, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), GETDATE());\n    IF @TimeOfDayDiff < 0 SET @TimeOfDayDiff = 0;\n    IF @TimeOfDayDiff > 28800 SET @TimeOfDayDiff = 28800;\n    SET @EvalTime = DATEADD(second, @TimeOfDayDiff, @ShiftStart);\nEND\nELSE IF CAST($__timeFrom() AS DATE) > CAST(GETDATE() AS DATE)\nBEGIN\n    SET @EvalTime = @ShiftStart;\nEND\nELSE\nBEGIN\n    SET @EvalTime = @ShiftEnd;\nEND;\n\nSELECT COUNT(*) AS [Real]\nFROM LOG_TABLA\nWHERE fecha_creacion >= @ShiftStart\n  AND fecha_creacion <= @EvalTime\n  AND OK_NOK = 'OK'",
           "refId": "A"
         }
       ],
@@ -256,7 +256,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n      AND fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n),\nTeorico_Count AS (\n    SELECT COALESCE(MAX(seq_idx), 0) AS teorico\n    FROM Cumulative_Plan\n    WHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END\n),\nReal_Count AS (\n    SELECT COUNT(*) AS real\n    FROM LOG_TABLA\n    WHERE fecha_creacion >= DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND fecha_creacion <= CASE WHEN $__timeTo() > GETUTCDATE() THEN GETUTCDATE() ELSE $__timeTo() END\n      AND OK_NOK = 'OK'\n)\nSELECT \n    r.real - t.teorico AS [Desviación]\nFROM Real_Count r, Teorico_Count t",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nIF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)\nBEGIN\n    SET @ActiveDate = COALESCE(\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)\n    );\nEND;\n\nDECLARE @ActiveDateDate DATE = CAST(@ActiveDate AS DATE);\nDECLARE @ShiftStart DATETIME = DATEADD(hour, 7, CAST(@ActiveDateDate AS DATETIME));\nDECLARE @ShiftEnd DATETIME = DATEADD(hour, 15, CAST(@ActiveDateDate AS DATETIME));\nDECLARE @EvalTime DATETIME;\n\nIF CAST($__timeFrom() AS DATE) = CAST(GETDATE() AS DATE)\nBEGIN\n    DECLARE @TimeOfDayDiff INT = DATEDIFF(second, DATEADD(hour, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), GETDATE());\n    IF @TimeOfDayDiff < 0 SET @TimeOfDayDiff = 0;\n    IF @TimeOfDayDiff > 28800 SET @TimeOfDayDiff = 28800;\n    SET @EvalTime = DATEADD(second, @TimeOfDayDiff, @ShiftStart);\nEND\nELSE IF CAST($__timeFrom() AS DATE) > CAST(GETDATE() AS DATE)\nBEGIN\n    SET @EvalTime = @ShiftStart;\nEND\nELSE\nBEGIN\n    SET @EvalTime = @ShiftEnd;\nEND;\n\nWITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < @ShiftStart\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)\n      AND fecha_montaje = @ActiveDate\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n),\nTeorico_Count AS (\n    SELECT COALESCE(MAX(seq_idx), 0) AS teorico\n    FROM Cumulative_Plan\n    WHERE DATEADD(second, CAST(cum_seconds AS INT) + CASE WHEN cum_seconds >= 7200 THEN 1800 ELSE 0 END, @ShiftStart) <= @EvalTime\n),\nReal_Count AS (\n    SELECT COUNT(*) AS real\n    FROM LOG_TABLA\n    WHERE fecha_creacion >= @ShiftStart\n      AND fecha_creacion <= @EvalTime\n      AND OK_NOK = 'OK'\n)\nSELECT \n    r.real - t.teorico AS [Desviación]\nFROM Real_Count r, Teorico_Count t",
           "refId": "A"
         }
       ],
@@ -269,14 +269,14 @@
       },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "stepAfter",
-            "lineWidth": 2,
-            "fillOpacity": 10
-          },
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2
           }
         },
         "overrides": [
@@ -341,7 +341,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112))) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        secuencia,\n        modelo,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 18 FROM Start_Sec)\n      AND fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112)\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        id,\n        secuencia,\n        modelo,\n        cycle_time,\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n)\nSELECT time, [Teórico] FROM (\n    SELECT \n        DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)) AS time,\n        0 AS [Teórico]\n    UNION ALL\n    SELECT \n        DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) AS time,\n        seq_idx AS [Teórico]\n    FROM Cumulative_Plan\n    WHERE DATEADD(second, CAST(cum_seconds AS INT), DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= $__timeTo()\n) t\nORDER BY time",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nIF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)\nBEGIN\n    SET @ActiveDate = COALESCE(\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)\n    );\nEND;\n\nDECLARE @ActiveDateDate DATE = CAST(@ActiveDate AS DATE);\nDECLARE @ShiftStartActive DATETIME = DATEADD(hour, 7, CAST(@ActiveDateDate AS DATETIME));\n\nWITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < @ShiftStartActive\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT TOP 2000\n        id,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)\n      AND fecha_montaje = @ActiveDate\n    ORDER BY id\n),\nCumulative_Plan AS (\n    SELECT\n        id,\n        cycle_time,\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds\n    FROM Sec_Today\n)\nSELECT time, [Teórico] FROM (\n    SELECT \n        DATEADD(hour, 7, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)) AS time,\n        0 AS [Teórico]\n    UNION ALL\n    SELECT \n        DATEADD(second, CAST(cum_seconds AS INT) + CASE WHEN cum_seconds >= 7200 THEN 1800 ELSE 0 END, DATEADD(hour, 7, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) AS time,\n        seq_idx AS [Teórico]\n    FROM Cumulative_Plan\n    WHERE DATEADD(second, CAST(cum_seconds AS INT) + CASE WHEN cum_seconds >= 7200 THEN 1800 ELSE 0 END, DATEADD(hour, 7, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))) <= DATEADD(hour, 15, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n) t\nORDER BY time",
           "refId": "A"
         },
         {
@@ -352,7 +352,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, [Real] FROM (\n    SELECT \n        DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)) AS time,\n        0 AS [Real]\n    UNION ALL\n    SELECT \n        fecha_creacion AS time,\n        ROW_NUMBER() OVER (ORDER BY fecha_creacion) AS [Real]\n    FROM LOG_TABLA\n    WHERE fecha_creacion >= DATEADD(hour, 6, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))\n      AND fecha_creacion <= $__timeTo()\n      AND OK_NOK = 'OK'\n) t\nORDER BY time",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nIF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)\nBEGIN\n    SET @ActiveDate = COALESCE(\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)\n    );\nEND;\n\nDECLARE @ActiveDateDate DATE = CAST(@ActiveDate AS DATE);\nDECLARE @ShiftStartActive DATETIME = DATEADD(hour, 7, CAST(@ActiveDateDate AS DATETIME));\n\nDECLARE @ShiftEndActive DATETIME = DATEADD(hour, 15, CAST(@ActiveDateDate AS DATETIME));\nDECLARE @EvalTimeActive DATETIME;\n\nIF CAST($__timeFrom() AS DATE) = CAST(GETDATE() AS DATE)\nBEGIN\n    DECLARE @TimeOfDayDiff INT = DATEDIFF(second, DATEADD(hour, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), GETDATE());\n    IF @TimeOfDayDiff < 0 SET @TimeOfDayDiff = 0;\n    IF @TimeOfDayDiff > 28800 SET @TimeOfDayDiff = 28800;\n    SET @EvalTimeActive = DATEADD(second, @TimeOfDayDiff, @ShiftStartActive);\nEND\nELSE IF CAST($__timeFrom() AS DATE) > CAST(GETDATE() AS DATE)\nBEGIN\n    SET @EvalTimeActive = @ShiftStartActive;\nEND\nELSE\nBEGIN\n    SET @EvalTimeActive = @ShiftEndActive;\nEND;\n\nDECLARE @OffsetSeconds INT = DATEDIFF(second, @ShiftStartActive, DATEADD(hour, 7, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)));\n\nSELECT time, [Real] FROM (\n    SELECT \n        DATEADD(hour, 7, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)) AS time,\n        0 AS [Real]\n    UNION ALL\n    SELECT \n        DATEADD(second, @OffsetSeconds, fecha_creacion) AS time,\n        ROW_NUMBER() OVER (ORDER BY fecha_creacion) AS [Real]\n    FROM LOG_TABLA\n    WHERE fecha_creacion >= @ShiftStartActive\n      AND fecha_creacion <= @EvalTimeActive\n      AND OK_NOK = 'OK'\n) t\nORDER BY time",
           "refId": "B"
         }
       ],
@@ -392,24 +392,24 @@
                 "id": "mappings",
                 "value": [
                   {
-                    "type": "value",
                     "options": {
-                      "OK": {
-                        "text": "🟢 OK",
-                        "color": "green",
-                        "index": 0
-                      },
                       "NOK": {
-                        "text": "🔴 NOK",
                         "color": "red",
-                        "index": 1
+                        "index": 1,
+                        "text": "🔴 NOK"
+                      },
+                      "OK": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "🟢 OK"
                       },
                       "Pendiente": {
-                        "text": "⚪ Pendiente",
                         "color": "gray",
-                        "index": 2
+                        "index": 2,
+                        "text": "⚪ Pendiente"
                       }
-                    }
+                    },
+                    "type": "value"
                   }
                 ]
               },
@@ -453,7 +453,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH Latest_Log AS (\n    SELECT \n        NBASTIDOR,\n        FECHA_MONTAJE,\n        OK_NOK,\n        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR, FECHA_MONTAJE ORDER BY id DESC) as rn\n    FROM LOG_TABLA\n)\nSELECT \n    j.secuencia AS [Secuencia],\n    j.bastidor AS [Bastidor],\n    j.modelo AS [Modelo],\n    COALESCE(l.OK_NOK, 'Pendiente') AS [Estado]\nFROM JAULA_ERP j\nLEFT JOIN Latest_Log l ON j.bastidor = l.NBASTIDOR AND l.FECHA_MONTAJE = j.fecha_montaje AND l.rn = 1\nWHERE j.fecha_montaje = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112)\nORDER BY CAST(j.secuencia AS INT) ASC",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nIF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)\nBEGIN\n    SET @ActiveDate = COALESCE(\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)\n    );\nEND;\n\nDECLARE @ActiveDateDate DATE = CAST(@ActiveDate AS DATE);\nDECLARE @ShiftStartActive DATETIME = DATEADD(hour, 7, CAST(@ActiveDateDate AS DATETIME));\n\nWITH Start_Sec AS (\n    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)) AS Last_ERP_ID\n    FROM JAULA_ERP erp\n    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje\n    WHERE log.fecha_creacion < @ShiftStartActive\n      AND log.OK_NOK = 'OK'\n),\nSec_Today AS (\n    SELECT \n        id,\n        secuencia,\n        bastidor,\n        modelo,\n        COALESCE((tpo_elevac_max + tpo_descenso_max + tpo_elev_max_scarga + tpo_desc_max_scarga)/100.0, 20.0) AS cycle_time,\n        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM JAULA_ERP\n    WHERE id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)\n      AND fecha_montaje = @ActiveDate\n),\nCumulative_Plan AS (\n    SELECT\n        id,\n        secuencia,\n        bastidor,\n        modelo,\n        cycle_time,\n        seq_idx,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS cum_seconds_start,\n        SUM(cycle_time) OVER (ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_seconds_end\n    FROM Sec_Today\n),\nPlanned_Times AS (\n    SELECT\n        id,\n        secuencia,\n        bastidor,\n        modelo,\n        seq_idx,\n        DATEADD(second, \n            COALESCE(cum_seconds_start, 0) + CASE WHEN COALESCE(cum_seconds_start, 0) >= 7200 THEN 1800 ELSE 0 END, \n            @ShiftStartActive\n        ) AS [Inicio Planificado],\n        DATEADD(second, \n            cum_seconds_end + CASE WHEN cum_seconds_end > 7200 THEN 1800 ELSE 0 END, \n            @ShiftStartActive\n        ) AS [Fin Planificado]\n    FROM Cumulative_Plan\n),\nLatest_Log AS (\n    SELECT \n        NBASTIDOR,\n        FECHA_MONTAJE,\n        OK_NOK,\n        FECHA_HORA_INICIO_SEC,\n        FECHA_HORA_FIN_SEC,\n        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR, FECHA_MONTAJE ORDER BY id DESC) as rn\n    FROM LOG_TABLA\n)\nSELECT \n    j.secuencia AS [Secuencia],\n    j.bastidor AS [Bastidor],\n    j.modelo AS [Modelo],\n    CONVERT(varchar(8), p.[Inicio Planificado], 108) AS [Inicio Planificado],\n    CONVERT(varchar(8), p.[Fin Planificado], 108) AS [Fin Planificado],\n    CONVERT(varchar(8), CAST(l.FECHA_HORA_INICIO_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Inicio Real],\n    CONVERT(varchar(8), CAST(l.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Fin Real],\n    COALESCE(l.OK_NOK, 'Pendiente') AS [Estado]\nFROM JAULA_ERP j\nLEFT JOIN Planned_Times p ON j.id = p.id\nLEFT JOIN Latest_Log l ON j.bastidor = l.NBASTIDOR AND l.FECHA_MONTAJE = j.fecha_montaje AND l.rn = 1\nWHERE j.fecha_montaje = @ActiveDate\nORDER BY j.id ASC",
           "refId": "A"
         }
       ],
@@ -469,7 +469,7 @@
       },
       "id": 6,
       "options": {
-        "content": "<div style=\"display: flex; gap: 20px; align-items: stretch; justify-content: space-between; font-family: 'Inter', -apple-system, sans-serif; background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(168, 85, 247, 0.02) 100%); border: 1px solid rgba(168, 85, 247, 0.25); padding: 20px; border-radius: 8px; color: #ffffff;\">\n  <div style=\"flex: 1;\">\n    <h3 style=\"color: #a855f7; font-size: 1.2rem; margin: 0 0 10px 0; font-weight: 600;\">ℹ️ Lógica Pacing / Pacemaker de Planta</h3>\n    <p style=\"color: #a2aab7; font-size: 0.9rem; margin: 0; line-height: 1.5;\">\n      Este panel compara la producción teórica frente a la real. La lógica teórica inicia cada día a las <strong>06:00 AM</strong> con un desfase de <strong>+18 secuencias</strong> respecto al último bastidor completado (OK) del día anterior. El avance teórico se calcula de forma acumulada según los tiempos definidos en <code>tiempo_teorico_segundos</code>.\n    </p>\n  </div>\n  <div style=\"display: flex; align-items: center; justify-content: center; padding-left: 20px; border-left: 1px solid rgba(168, 85, 247, 0.15);\">\n    <a href=\"/d/mes-home-v1\" style=\"display: inline-block; background: #a855f7; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: 600; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);\"\n       onmouseover=\"this.style.background='#b566ff'; this.style.boxShadow='0 6px 16px rgba(168, 85, 247, 0.45)';\"\n       onmouseout=\"this.style.background='#a855f7'; this.style.boxShadow='0 4px 12px rgba(168, 85, 247, 0.3)';\">\n      Volver al Inicio\n    </a>\n  </div>\n</div>",
+        "content": "<div style=\"display: flex; gap: 20px; align-items: stretch; justify-content: space-between; font-family: 'Inter', -apple-system, sans-serif; background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(168, 85, 247, 0.02) 100%); border: 1px solid rgba(168, 85, 247, 0.25); padding: 20px; border-radius: 8px; color: #ffffff;\">\n  <div style=\"flex: 1;\">\n    <h3 style=\"color: #a855f7; font-size: 1.2rem; margin: 0 0 10px 0; font-weight: 600;\">ℹ️ Lógica Pacing / Pacemaker de Planta</h3>\n    <p style=\"color: #a2aab7; font-size: 0.9rem; margin: 0; line-height: 1.5;\">\n      Este panel compara la producción teórica frente a la real. La lógica teórica inicia cada día a las <strong>07:00 AM</strong> partiendo de la primera secuencia del día (desfase de <strong>+1 secuencia</strong> respecto al último bastidor completado (OK) del día anterior). El turno es de 07:00 a 15:00, con una parada por almuerzo de 09:00 a 09:30. El avance teórico se calcula de forma acumulada según los tiempos definidos en <code>tiempo_teorico_segundos</code>.\n    </p>\n  </div>\n  <div style=\"display: flex; align-items: center; justify-content: center; padding-left: 20px; border-left: 1px solid rgba(168, 85, 247, 0.15);\">\n    <a href=\"/d/mes-home-v1\" style=\"display: inline-block; background: #a855f7; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: 600; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);\"\n       onmouseover=\"this.style.background='#b566ff'; this.style.boxShadow='0 6px 16px rgba(168, 85, 247, 0.45)';\"\n       onmouseout=\"this.style.background='#a855f7'; this.style.boxShadow='0 4px 12px rgba(168, 85, 247, 0.3)';\">\n      Volver al Inicio\n    </a>\n  </div>\n</div>",
         "mode": "html"
       },
       "title": "",
@@ -484,8 +484,8 @@
     "list": []
   },
   "time": {
-    "from": "now/d+6h",
-    "to": "now/d+14h"
+    "from": "now/d+7h",
+    "to": "now/d+15h"
   },
   "timepicker": {
     "refresh_intervals": [
@@ -504,5 +504,5 @@
   "timezone": "browser",
   "title": "PLAN PRODUCCIÓN",
   "uid": "mes-plan-v1",
-  "version": 3
+  "version": 15
 }

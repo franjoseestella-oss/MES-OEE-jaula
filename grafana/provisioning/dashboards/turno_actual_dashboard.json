@@ -15,6 +15,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 11,
   "links": [
     {
       "asDropdown": false,
@@ -659,5 +660,6 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Panel de Control OEE Fábrica - Turno Actual (ES)",
-  "uid": "panel-oee-mes-fabrica"
+  "uid": "panel-oee-mes-fabrica",
+  "version": 7
 }
