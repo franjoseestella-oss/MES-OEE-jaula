@@ -41,7 +41,18 @@
       "targetBlank": false,
       "title": "OEE/MES",
       "type": "link",
-      "url": "/d/mes-oee-v1"
+      "url": "/d/panel-oee-mes-fabrica"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": false,
+      "title": "DISTRIBUIDOR",
+      "type": "link",
+      "url": "/d/mes-oee-v2"
     },
     {
       "asDropdown": false,
