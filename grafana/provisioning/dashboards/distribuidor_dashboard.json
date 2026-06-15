@@ -115,7 +115,7 @@
                                                     "showLineNumbers":  false,
                                                     "showMiniMap":  false
                                                 },
-                                       "content":  "\u003cstyle\u003e\n    /* Custom CSS to differentiate blocks by color */\n    \n    /* --- BLOQUE 1: HISTÃRICO (BLUE THEME) --- */\n    div[data-panelid=\"100\"] {\n      border-left: 6px solid #3274d9 !important;\n      background: rgba(50, 116, 217, 0.05) !important;\n    }\n    div[data-panelid=\"102\"] .panel-container,\n    div[data-panelid=\"104\"] .panel-container,\n    div[data-panelid=\"106\"] .panel-container {\n      border-top: 4px solid #3274d9 !important;\n      border-left: 2px solid #3274d9 !important;\n      background: linear-gradient(135deg, rgba(50, 116, 217, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 2: BASTIDOR (GREEN THEME) --- */\n    div[data-panelid=\"107\"] {\n      border-left: 6px solid #2fd06a !important;\n      background: rgba(47, 208, 106, 0.05) !important;\n    }\n    div[data-panelid=\"108\"] .panel-container {\n      border-top: 4px solid #2fd06a !important;\n      border-left: 2px solid #2fd06a !important;\n      background: linear-gradient(135deg, rgba(47, 208, 106, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 3: ESTABILIDAD RECIENTE (PURPLE THEME) --- */\n    div[data-panelid=\"109\"] {\n      border-left: 6px solid #a352cc !important;\n      background: rgba(163, 82, 204, 0.05) !important;\n    }\n    div[data-panelid=\"111\"] .panel-container,\n    div[data-panelid=\"113\"] .panel-container,\n    div[data-panelid=\"115\"] .panel-container {\n      border-top: 4px solid #a352cc !important;\n      border-left: 2px solid #a352cc !important;\n      background: linear-gradient(135deg, rgba(163, 82, 204, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n\u003c/style\u003e\n\n\u003cscript\u003e\n(function() {\n  var DASHBOARD_UID = \u0027mes-oee-v2\u0027;\n  var API_BASE = window.location.origin + \u0027/api\u0027;\n  var GAUGE_PANEL_IDS = [102, 104, 106, 111, 113, 115];\n  var BLOQUE2_PANEL_ID = 108;\n  var reloadKey = \u0027threshold_reload_ts\u0027;\n  var lastReload = sessionStorage.getItem(reloadKey);\n  if (lastReload \u0026\u0026 (Date.now() - parseInt(lastReload)) \u003c 5000) return;\n\n  function getUrlVar(name) {\n    return new URLSearchParams(window.location.search).get(\u0027var-\u0027 + name);\n  }\n\n  function getBastidor() {\n    var b = getUrlVar(\u0027selected_bastidor\u0027);\n    if (b) return b;\n    var el = document.querySelector(\u0027[id*=\"var-selected_bastidor\"] .css-1s3seap-singleValue, button[id*=\"var-selected_bastidor\"]\u0027);\n    if (el) return (el.title || el.textContent || \u0027\u0027).trim();\n    var allBtns = document.querySelectorAll(\u0027[data-testid=\"variable-value-group\"] button, .submenu-controls button\u0027);\n    for (var i = 0; i \u003c allBtns.length; i++) {\n      var txt = allBtns[i].textContent || \u0027\u0027;\n      if (txt.match(/^SF/i)) return txt.trim();\n    }\n    return \u0027\u0027;\n  }\n\n  function updateAll() {\n    var minVal = parseInt(getUrlVar(\u0027min_pct\u0027) || \u002740\u0027);\n    var maxVal = parseInt(getUrlVar(\u0027max_pct\u0027) || \u002770\u0027);\n    var bastidor = getBastidor();\n    if (isNaN(minVal) || isNaN(maxVal) || minVal \u003e= maxVal) return;\n\n    var xhr = new XMLHttpRequest();\n    xhr.open(\u0027GET\u0027, API_BASE + \u0027/dashboards/uid/\u0027 + DASHBOARD_UID, true);\n    xhr.onload = function() {\n      if (xhr.status !== 200) return;\n      var data = JSON.parse(xhr.responseText);\n      var dashboard = data.dashboard;\n      var changed = false;\n\n      /* --- BLOQUES 1 y 3: thresholds from min_pct/max_pct variables --- */\n      function updateGaugePanels(panels) {\n        if (!panels) return;\n        for (var i = 0; i \u003c panels.length; i++) {\n          var p = panels[i];\n          if (p.panels) updateGaugePanels(p.panels);\n          if (GAUGE_PANEL_IDS.indexOf(p.id) !== -1) {\n            var steps = p.fieldConfig \u0026\u0026 p.fieldConfig.defaults \u0026\u0026 p.fieldConfig.defaults.thresholds \u0026\u0026 p.fieldConfig.defaults.thresholds.steps;\n            if (steps \u0026\u0026 steps.length === 3) {\n              if (steps[1].value !== minVal || steps[2].value !== maxVal) {\n                steps[1].value = minVal;\n                steps[2].value = maxVal;\n                changed = true;\n              }\n            }\n          }\n        }\n      }\n      updateGaugePanels(dashboard.panels);\n\n      /* --- BLOQUE 2: thresholds from SQL min/max per bastidor --- */\n      if (bastidor) {\n        var sqlXhr = new XMLHttpRequest();\n        var sqlPayload = JSON.stringify({\n          queries: [{\n            datasource: {type: \u0027mssql\u0027, uid: \u0027mes_sqlserver\u0027},\n            rawSql: \"SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MIN_CARGA,1.0) AS ec_min, COALESCE(TIEMPO_ELEVACION_MAX_CARGA,6.0) AS ec_max, COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA,1.0) AS es_min, COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA,6.0) AS es_max, COALESCE(TIEMPO_DESCENSO_MIN_CARGA,1.0) AS dc_min, COALESCE(TIEMPO_DESCENSO_MAX_CARGA,6.0) AS dc_max, COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA,1.0) AS ds_min, COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA,6.0) AS ds_max FROM LOG_TABLA WHERE NBASTIDOR=\u0027\" + bastidor.replace(/\u0027/g, \"\u0027\u0027\") + \"\u0027 ORDER BY fecha_creacion DESC\",\n            refId: \u0027B\u0027, format: \u0027table\u0027\n          }],\n          from: \u0027now-30d\u0027, to: \u0027now\u0027\n        });\n        sqlXhr.open(\u0027POST\u0027, API_BASE + \u0027/ds/query\u0027, false);\n        sqlXhr.setRequestHeader(\u0027Content-Type\u0027, \u0027application/json\u0027);\n        sqlXhr.send(sqlPayload);\n        if (sqlXhr.status === 200) {\n          try {\n            var sqlData = JSON.parse(sqlXhr.responseText);\n            var frames = sqlData.results \u0026\u0026 sqlData.results.B \u0026\u0026 sqlData.results.B.frames;\n            if (frames \u0026\u0026 frames.length \u003e 0) {\n              var fields = frames[0].schema.fields;\n              var vals = frames[0].data.values;\n              var row = {};\n              for (var fi = 0; fi \u003c fields.length; fi++) {\n                row[fields[fi].name] = vals[fi][0];\n              }\n              var fieldMap = {\n                \u0027ElevaciÃ³n Con Carga\u0027: {min: row.ec_min, max: row.ec_max},\n                \u0027ElevaciÃ³n Sin Carga\u0027: {min: row.es_min, max: row.es_max},\n                \u0027Descenso Con Carga\u0027: {min: row.dc_min, max: row.dc_max},\n                \u0027Descenso Sin Carga\u0027: {min: row.ds_min, max: row.ds_max}\n              };\n              function findPanel(panels, pid) {\n                if (!panels) return null;\n                for (var j = 0; j \u003c panels.length; j++) {\n                  if (panels[j].id === pid) return panels[j];\n                  if (panels[j].panels) {\n                    var found = findPanel(panels[j].panels, pid);\n                    if (found) return found;\n                  }\n                }\n                return null;\n              }\n              var p108 = findPanel(dashboard.panels, BLOQUE2_PANEL_ID);\n              if (p108) {\n                p108.fieldConfig.defaults.min = 0;\n                p108.fieldConfig.defaults.max = 6;\n                var overrides = [];\n                for (var fname in fieldMap) {\n                  var mn = Math.round(fieldMap[fname].min * 100) / 100;\n                  var mx = Math.round(fieldMap[fname].max * 100) / 100;\n                  overrides.push({\n                    matcher: {id: \u0027byName\u0027, options: fname},\n                    properties: [{\n                      id: \u0027thresholds\u0027,\n                      value: {\n                        mode: \u0027absolute\u0027,\n                        steps: [\n                          {color: \u0027#E32636\u0027, value: null},\n                          {color: \u0027#2FD06A\u0027, value: mn},\n                          {color: \u0027#E32636\u0027, value: mx}\n                        ]\n                      }\n                    }]\n                  });\n                }\n                var curOv = JSON.stringify(p108.fieldConfig.overrides || []);\n                var newOv = JSON.stringify(overrides);\n                if (curOv !== newOv) {\n                  p108.fieldConfig.overrides = overrides;\n                  p108.transformations = [];\n                  changed = true;\n                }\n              }\n            }\n          } catch(e) { console.error(\u0027SQL parse error:\u0027, e); }\n        }\n      }\n\n      if (changed) {\n        dashboard.version = data.meta.version;\n        var xhr2 = new XMLHttpRequest();\n        xhr2.open(\u0027POST\u0027, API_BASE + \u0027/dashboards/db\u0027, true);\n        xhr2.setRequestHeader(\u0027Content-Type\u0027, \u0027application/json\u0027);\n        xhr2.onload = function() {\n          if (xhr2.status === 200) {\n            sessionStorage.setItem(reloadKey, Date.now().toString());\n            setTimeout(function() { window.location.reload(); }, 300);\n          }\n        };\n        xhr2.send(JSON.stringify({\n          dashboard: dashboard,\n          message: \u0027Auto-update thresholds\u0027,\n          overwrite: true\n        }));\n      }\n    };\n    xhr.send();\n  }\n\n  setTimeout(updateAll, 1500);\n})();\n\u003c/script\u003e",
+                                       "content":  "\u003cstyle\u003e\n    /* Custom CSS to differentiate blocks by color */\n    \n    /* --- BLOQUE 1: HISTÃRICO (BLUE THEME) --- */\n    div[data-panelid=\"100\"] {\n      border-left: 6px solid #3274d9 !important;\n      background: rgba(50, 116, 217, 0.05) !important;\n    }\n    div[data-panelid=\"102\"] .panel-container,\n    div[data-panelid=\"104\"] .panel-container,\n    div[data-panelid=\"106\"] .panel-container {\n      border-top: 4px solid #3274d9 !important;\n      border-left: 2px solid #3274d9 !important;\n      background: linear-gradient(135deg, rgba(50, 116, 217, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 2: BASTIDOR (GREEN THEME) --- */\n    div[data-panelid=\"107\"] {\n      border-left: 6px solid #2fd06a !important;\n      background: rgba(47, 208, 106, 0.05) !important;\n    }\n    div[data-panelid=\"108\"] .panel-container {\n      border-top: 4px solid #2fd06a !important;\n      border-left: 2px solid #2fd06a !important;\n      background: linear-gradient(135deg, rgba(47, 208, 106, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 3: ESTABILIDAD RECIENTE (PURPLE THEME) --- */\n    div[data-panelid=\"109\"] {\n      border-left: 6px solid #a352cc !important;\n      background: rgba(163, 82, 204, 0.05) !important;\n    }\n    div[data-panelid=\"111\"] .panel-container,\n    div[data-panelid=\"113\"] .panel-container,\n    div[data-panelid=\"115\"] .panel-container {\n      border-top: 4px solid #a352cc !important;\n      border-left: 2px solid #a352cc !important;\n      background: linear-gradient(135deg, rgba(163, 82, 204, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n\u003c/style\u003e\n\n\u003cscript\u003e\n(function() {\n  var DASHBOARD_UID = \u0027mes-oee-v2\u0027;\n  var API_BASE = window.location.origin + \u0027/api\u0027;\n  var BLOQUE2_PANEL_ID = 108;\n  var reloadKey = \u0027threshold_reload_ts\u0027;\n  var lastReload = sessionStorage.getItem(reloadKey);\n  if (lastReload \u0026\u0026 (Date.now() - parseInt(lastReload)) \u003c 5000) return;\n\n  function getUrlVar(name) {\n    return new URLSearchParams(window.location.search).get(\u0027var-\u0027 + name);\n  }\n\n  function getBastidor() {\n    var b = getUrlVar(\u0027selected_bastidor\u0027);\n    if (b) return b;\n    var allBtns = document.querySelectorAll(\u0027[data-testid=\"variable-value-group\"] button, .submenu-controls button\u0027);\n    for (var i = 0; i \u003c allBtns.length; i++) {\n      var txt = allBtns[i].textContent || \u0027\u0027;\n      if (txt.match(/^SF/i)) return txt.trim();\n    }\n    return \u0027\u0027;\n  }\n\n  function updateBloque2() {\n    var bastidor = getBastidor();\n    if (!bastidor) return;\n\n    var xhr = new XMLHttpRequest();\n    xhr.open(\u0027GET\u0027, API_BASE + \u0027/dashboards/uid/\u0027 + DASHBOARD_UID, true);\n    xhr.onload = function() {\n      if (xhr.status !== 200) return;\n      var data = JSON.parse(xhr.responseText);\n      var dashboard = data.dashboard;\n      var changed = false;\n\n      var sqlXhr = new XMLHttpRequest();\n      var sqlPayload = JSON.stringify({\n        queries: [{\n          datasource: {type: \u0027mssql\u0027, uid: \u0027mes_sqlserver\u0027},\n          rawSql: \"SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MIN_CARGA,1.0) AS ec_min, COALESCE(TIEMPO_ELEVACION_MAX_CARGA,6.0) AS ec_max, COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA,1.0) AS es_min, COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA,6.0) AS es_max, COALESCE(TIEMPO_DESCENSO_MIN_CARGA,1.0) AS dc_min, COALESCE(TIEMPO_DESCENSO_MAX_CARGA,6.0) AS dc_max, COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA,1.0) AS ds_min, COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA,6.0) AS ds_max FROM LOG_TABLA WHERE NBASTIDOR=\u0027\" + bastidor.replace(/\u0027/g, \"\u0027\u0027\") + \"\u0027 ORDER BY fecha_creacion DESC\",\n          refId: \u0027B\u0027, format: \u0027table\u0027\n        }],\n        from: \u0027now-30d\u0027, to: \u0027now\u0027\n      });\n      sqlXhr.open(\u0027POST\u0027, API_BASE + \u0027/ds/query\u0027, false);\n      sqlXhr.setRequestHeader(\u0027Content-Type\u0027, \u0027application/json\u0027);\n      sqlXhr.send(sqlPayload);\n      if (sqlXhr.status === 200) {\n        try {\n          var sqlData = JSON.parse(sqlXhr.responseText);\n          var frames = sqlData.results \u0026\u0026 sqlData.results.B \u0026\u0026 sqlData.results.B.frames;\n          if (frames \u0026\u0026 frames.length \u003e 0) {\n            var fields = frames[0].schema.fields;\n            var vals = frames[0].data.values;\n            var row = {};\n            for (var fi = 0; fi \u003c fields.length; fi++) {\n              row[fields[fi].name] = vals[fi][0];\n            }\n            var fieldMap = {\n              \u0027ElevaciÃ³n Con Carga\u0027: {min: row.ec_min, max: row.ec_max},\n              \u0027ElevaciÃ³n Sin Carga\u0027: {min: row.es_min, max: row.es_max},\n              \u0027Descenso Con Carga\u0027: {min: row.dc_min, max: row.dc_max},\n              \u0027Descenso Sin Carga\u0027: {min: row.ds_min, max: row.ds_max}\n            };\n            function findPanel(panels, pid) {\n              if (!panels) return null;\n              for (var j = 0; j \u003c panels.length; j++) {\n                if (panels[j].id === pid) return panels[j];\n                if (panels[j].panels) {\n                  var found = findPanel(panels[j].panels, pid);\n                  if (found) return found;\n                }\n              }\n              return null;\n            }\n            var p108 = findPanel(dashboard.panels, BLOQUE2_PANEL_ID);\n            if (p108) {\n              p108.fieldConfig.defaults.min = 0;\n              p108.fieldConfig.defaults.max = 6;\n              var overrides = [];\n              for (var fname in fieldMap) {\n                var mn = Math.round(fieldMap[fname].min * 100) / 100;\n                var mx = Math.round(fieldMap[fname].max * 100) / 100;\n                overrides.push({\n                  matcher: {id: \u0027byName\u0027, options: fname},\n                  properties: [{\n                    id: \u0027thresholds\u0027,\n                    value: {\n                      mode: \u0027absolute\u0027,\n                      steps: [\n                        {color: \u0027#E32636\u0027, value: null},\n                        {color: \u0027#2FD06A\u0027, value: mn},\n                        {color: \u0027#E32636\u0027, value: mx}\n                      ]\n                    }\n                  }]\n                });\n              }\n              var curOv = JSON.stringify(p108.fieldConfig.overrides || []);\n              var newOv = JSON.stringify(overrides);\n              if (curOv !== newOv) {\n                p108.fieldConfig.overrides = overrides;\n                p108.transformations = [];\n                changed = true;\n              }\n            }\n          }\n        } catch(e) { console.error(\u0027SQL parse error:\u0027, e); }\n      }\n\n      if (changed) {\n        dashboard.version = data.meta.version;\n        var xhr2 = new XMLHttpRequest();\n        xhr2.open(\u0027POST\u0027, API_BASE + \u0027/dashboards/db\u0027, true);\n        xhr2.setRequestHeader(\u0027Content-Type\u0027, \u0027application/json\u0027);\n        xhr2.onload = function() {\n          if (xhr2.status === 200) {\n            sessionStorage.setItem(reloadKey, Date.now().toString());\n            setTimeout(function() { window.location.reload(); }, 300);\n          }\n        };\n        xhr2.send(JSON.stringify({\n          dashboard: dashboard,\n          message: \u0027Auto-update Bloque2 thresholds\u0027,\n          overwrite: true\n        }));\n      }\n    };\n    xhr.send();\n  }\n\n  setTimeout(updateBloque2, 1500);\n})();\n\u003c/script\u003e",
                                        "mode":  "html"
                                    },
                        "pluginVersion":  "10.4.2",
@@ -159,15 +159,6 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
-                                                            "color":  {
-                                                                          "mode":  "thresholds"
-                                                                      },
-                                                            "decimals":  1,
-                                                            "mappings":  [
-
-                                                                         ],
-                                                            "max":  100,
-                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -184,8 +175,7 @@
                                                                                                  "value":  70
                                                                                              }
                                                                                          ]
-                                                                           },
-                                                            "unit":  "percent"
+                                                                           }
                                                         },
                                            "overrides":  [
 
@@ -249,9 +239,6 @@
                                        }
                                    ],
                        "title":  "RegulaciÃ³n de Ciclos - M11 (%)",
-                       "transformations":  [
-
-                                           ],
                        "type":  "gauge"
                    },
                    {
@@ -276,15 +263,6 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
-                                                            "color":  {
-                                                                          "mode":  "thresholds"
-                                                                      },
-                                                            "decimals":  1,
-                                                            "mappings":  [
-
-                                                                         ],
-                                                            "max":  100,
-                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -301,8 +279,7 @@
                                                                                                  "value":  70
                                                                                              }
                                                                                          ]
-                                                                           },
-                                                            "unit":  "percent"
+                                                                           }
                                                         },
                                            "overrides":  [
 
@@ -366,9 +343,6 @@
                                        }
                                    ],
                        "title":  "RegulaciÃ³n de Ciclos - XL (%)",
-                       "transformations":  [
-
-                                           ],
                        "type":  "gauge"
                    },
                    {
@@ -393,15 +367,6 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
-                                                            "color":  {
-                                                                          "mode":  "thresholds"
-                                                                      },
-                                                            "decimals":  1,
-                                                            "mappings":  [
-
-                                                                         ],
-                                                            "max":  100,
-                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -418,8 +383,7 @@
                                                                                                  "value":  70
                                                                                              }
                                                                                          ]
-                                                                           },
-                                                            "unit":  "percent"
+                                                                           }
                                                         },
                                            "overrides":  [
 
@@ -483,9 +447,6 @@
                                        }
                                    ],
                        "title":  "RegulaciÃ³n de Ciclos - M2 (%)",
-                       "transformations":  [
-
-                                           ],
                        "type":  "gauge"
                    },
                    {
@@ -727,15 +688,6 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
-                                                            "color":  {
-                                                                          "mode":  "thresholds"
-                                                                      },
-                                                            "decimals":  1,
-                                                            "mappings":  [
-
-                                                                         ],
-                                                            "max":  100,
-                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -752,8 +704,7 @@
                                                                                                  "value":  70
                                                                                              }
                                                                                          ]
-                                                                           },
-                                                            "unit":  "percent"
+                                                                           }
                                                         },
                                            "overrides":  [
 
@@ -792,9 +743,6 @@
                                        }
                                    ],
                        "title":  "Estabilidad de Ciclos - M11 (%)",
-                       "transformations":  [
-
-                                           ],
                        "type":  "gauge"
                    },
                    {
@@ -819,15 +767,6 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
-                                                            "color":  {
-                                                                          "mode":  "thresholds"
-                                                                      },
-                                                            "decimals":  1,
-                                                            "mappings":  [
-
-                                                                         ],
-                                                            "max":  100,
-                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -844,8 +783,7 @@
                                                                                                  "value":  70
                                                                                              }
                                                                                          ]
-                                                                           },
-                                                            "unit":  "percent"
+                                                                           }
                                                         },
                                            "overrides":  [
 
@@ -884,9 +822,6 @@
                                        }
                                    ],
                        "title":  "Estabilidad de Ciclos - XL (%)",
-                       "transformations":  [
-
-                                           ],
                        "type":  "gauge"
                    },
                    {
@@ -911,15 +846,6 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
-                                                            "color":  {
-                                                                          "mode":  "thresholds"
-                                                                      },
-                                                            "decimals":  1,
-                                                            "mappings":  [
-
-                                                                         ],
-                                                            "max":  100,
-                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -936,8 +862,7 @@
                                                                                                  "value":  70
                                                                                              }
                                                                                          ]
-                                                                           },
-                                                            "unit":  "percent"
+                                                                           }
                                                         },
                                            "overrides":  [
 
@@ -976,9 +901,6 @@
                                        }
                                    ],
                        "title":  "Estabilidad de Ciclos - M2 (%)",
-                       "transformations":  [
-
-                                           ],
                        "type":  "gauge"
                    }
                ],
@@ -1016,46 +938,6 @@
                                         "skipUrlSync":  false,
                                         "sort":  0,
                                         "type":  "query"
-                                    },
-                                    {
-                                        "current":  {
-                                                        "selected":  false,
-                                                        "text":  "40",
-                                                        "value":  "40"
-                                                    },
-                                        "hide":  0,
-                                        "label":  "MÃ­nimo %",
-                                        "name":  "min_pct",
-                                        "options":  [
-                                                        {
-                                                            "selected":  true,
-                                                            "text":  "40",
-                                                            "value":  "40"
-                                                        }
-                                                    ],
-                                        "query":  "40",
-                                        "skipUrlSync":  false,
-                                        "type":  "textbox"
-                                    },
-                                    {
-                                        "current":  {
-                                                        "selected":  false,
-                                                        "text":  "70",
-                                                        "value":  "70"
-                                                    },
-                                        "hide":  0,
-                                        "label":  "MÃ¡ximo %",
-                                        "name":  "max_pct",
-                                        "options":  [
-                                                        {
-                                                            "selected":  true,
-                                                            "text":  "70",
-                                                            "value":  "70"
-                                                        }
-                                                    ],
-                                        "query":  "70",
-                                        "skipUrlSync":  false,
-                                        "type":  "textbox"
                                     }
                                 ]
                    },
@@ -1080,6 +962,6 @@
     "timezone":  "",
     "title":  "LOGISNEXT â DISTRIBUIDOR",
     "uid":  "mes-oee-v2",
-    "version":  116,
+    "version":  141,
     "weekStart":  ""
 }
