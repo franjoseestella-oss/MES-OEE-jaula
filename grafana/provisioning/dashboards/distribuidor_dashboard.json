@@ -90,20 +90,25 @@
   ],
   "panels": [
     {
-      "id": 99,
-      "type": "text",
-      "title": "",
-      "transparent": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
       },
+      "id": 99,
       "options": {
-        "mode": "html",
-        "content": "<style>\n    /* Custom CSS to differentiate blocks by color */\n    \n    /* --- BLOQUE 1: HISTÓRICO (BLUE THEME) --- */\n    div[data-panelid=\"100\"] {\n      border-left: 6px solid #3274d9 !important;\n      background: rgba(50, 116, 217, 0.05) !important;\n    }\n    div[data-panelid=\"102\"] .panel-container,\n    div[data-panelid=\"104\"] .panel-container,\n    div[data-panelid=\"106\"] .panel-container {\n      border-top: 4px solid #3274d9 !important;\n      border-left: 2px solid #3274d9 !important;\n      background: linear-gradient(135deg, rgba(50, 116, 217, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 2: BASTIDOR (GREEN THEME) --- */\n    div[data-panelid=\"107\"] {\n      border-left: 6px solid #2fd06a !important;\n      background: rgba(47, 208, 106, 0.05) !important;\n    }\n    div[data-panelid=\"108\"] .panel-container {\n      border-top: 4px solid #2fd06a !important;\n      border-left: 2px solid #2fd06a !important;\n      background: linear-gradient(135deg, rgba(47, 208, 106, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 3: ESTABILIDAD RECIENTE (PURPLE THEME) --- */\n    div[data-panelid=\"109\"] {\n      border-left: 6px solid #a352cc !important;\n      background: rgba(163, 82, 204, 0.05) !important;\n    }\n    div[data-panelid=\"111\"] .panel-container,\n    div[data-panelid=\"113\"] .panel-container,\n    div[data-panelid=\"115\"] .panel-container {\n      border-top: 4px solid #a352cc !important;\n      border-left: 2px solid #a352cc !important;\n      background: linear-gradient(135deg, rgba(163, 82, 204, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    </style>"
-      }
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<style>\n    /* Custom CSS to differentiate blocks by color */\n    \n    /* --- BLOQUE 1: HISTÓRICO (BLUE THEME) --- */\n    div[data-panelid=\"100\"] {\n      border-left: 6px solid #3274d9 !important;\n      background: rgba(50, 116, 217, 0.05) !important;\n    }\n    div[data-panelid=\"102\"] .panel-container,\n    div[data-panelid=\"104\"] .panel-container,\n    div[data-panelid=\"106\"] .panel-container {\n      border-top: 4px solid #3274d9 !important;\n      border-left: 2px solid #3274d9 !important;\n      background: linear-gradient(135deg, rgba(50, 116, 217, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 2: BASTIDOR (GREEN THEME) --- */\n    div[data-panelid=\"107\"] {\n      border-left: 6px solid #2fd06a !important;\n      background: rgba(47, 208, 106, 0.05) !important;\n    }\n    div[data-panelid=\"108\"] .panel-container {\n      border-top: 4px solid #2fd06a !important;\n      border-left: 2px solid #2fd06a !important;\n      background: linear-gradient(135deg, rgba(47, 208, 106, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 3: ESTABILIDAD RECIENTE (PURPLE THEME) --- */\n    div[data-panelid=\"109\"] {\n      border-left: 6px solid #a352cc !important;\n      background: rgba(163, 82, 204, 0.05) !important;\n    }\n    div[data-panelid=\"111\"] .panel-container,\n    div[data-panelid=\"113\"] .panel-container,\n    div[data-panelid=\"115\"] .panel-container {\n      border-top: 4px solid #a352cc !important;\n      border-left: 2px solid #a352cc !important;\n      background: linear-gradient(135deg, rgba(163, 82, 204, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    </style>",
+        "mode": "html"
+      },
+      "pluginVersion": "10.4.2",
+      "transparent": true,
+      "type": "text"
     },
     {
       "collapsed": false,
@@ -143,14 +148,13 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": "$max_pct",
-          "min": "$min_pct",
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
-                "value": null
+                "color": "#E32636"
               },
               {
                 "color": "#2FD06A",
@@ -185,19 +189,71 @@
           "fields": "/^(Elevación|Descenso) (Con|Sin) Carga$/",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "editorMode": "code",
           "format": "table",
-          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n          AND $__timeFilter(fecha_creacion)\n        ",
-          "refId": "A"
+          "rawQuery": true,
+          "rawSql": "\n        SELECT \n          ${min_pct} AS [threshold_min], ${max_pct} AS [threshold_max],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
         }
       ],
       "title": "Regulación de Ciclos - M11 (%)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "threshold_min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "threshold_max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
       "type": "gauge"
     },
     {
@@ -225,14 +281,13 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": "$max_pct",
-          "min": "$min_pct",
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
-                "value": null
+                "color": "#E32636"
               },
               {
                 "color": "#2FD06A",
@@ -267,19 +322,71 @@
           "fields": "/^(Elevación|Descenso) (Con|Sin) Carga$/",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "editorMode": "code",
           "format": "table",
-          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'XL%')\n          AND $__timeFilter(fecha_creacion)\n        ",
-          "refId": "A"
+          "rawQuery": true,
+          "rawSql": "\n        SELECT \n          ${min_pct} AS [threshold_min], ${max_pct} AS [threshold_max],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'XL%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
         }
       ],
       "title": "Regulación de Ciclos - XL (%)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "threshold_min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "threshold_max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
       "type": "gauge"
     },
     {
@@ -307,14 +414,13 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": "$max_pct",
-          "min": "$min_pct",
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
-                "value": null
+                "color": "#E32636"
               },
               {
                 "color": "#2FD06A",
@@ -349,19 +455,71 @@
           "fields": "/^(Elevación|Descenso) (Con|Sin) Carga$/",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "editorMode": "code",
           "format": "table",
-          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'MX%')\n          AND $__timeFilter(fecha_creacion)\n        ",
-          "refId": "A"
+          "rawQuery": true,
+          "rawSql": "\n        SELECT \n          ${min_pct} AS [threshold_min], ${max_pct} AS [threshold_max],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'MX%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
         }
       ],
       "title": "Regulación de Ciclos - M2 (%)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "threshold_min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "threshold_max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
       "type": "gauge"
     },
     {
@@ -393,8 +551,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
-                "value": null
+                "color": "#E32636"
               },
               {
                 "color": "#2FD06A",
@@ -434,6 +591,7 @@
         "sizing": "auto",
         "textMode": "auto"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -441,6 +599,7 @@
           "refId": "A"
         }
       ],
+      "title": "Tiempos Medidos y Límites (Segundos)",
       "transformations": [
         {
           "id": "configFromData",
@@ -563,7 +722,6 @@
           }
         }
       ],
-      "title": "Tiempos Medidos y Límites (Segundos)",
       "type": "gauge"
     },
     {
@@ -604,14 +762,13 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": "$max_pct",
-          "min": "$min_pct",
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
-                "value": null
+                "color": "#E32636"
               },
               {
                 "color": "#2FD06A",
@@ -646,19 +803,48 @@
           "fields": "/^(Elevación|Descenso) (Con|Sin) Carga$/",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM Last50\n        ",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT\n          ${min_pct} AS [threshold_min], ${max_pct} AS [threshold_max], \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM Last50\n        ",
           "refId": "A"
         }
       ],
       "title": "Estabilidad de Ciclos - M11 (%)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "threshold_min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "threshold_max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
       "type": "gauge"
     },
     {
@@ -686,14 +872,13 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": "$max_pct",
-          "min": "$min_pct",
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
-                "value": null
+                "color": "#E32636"
               },
               {
                 "color": "#2FD06A",
@@ -728,19 +913,48 @@
           "fields": "/^(Elevación|Descenso) (Con|Sin) Carga$/",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'XL%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM Last50\n        ",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'XL%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT\n          ${min_pct} AS [threshold_min], ${max_pct} AS [threshold_max], \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM Last50\n        ",
           "refId": "A"
         }
       ],
       "title": "Estabilidad de Ciclos - XL (%)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "threshold_min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "threshold_max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
       "type": "gauge"
     },
     {
@@ -768,14 +982,13 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": "$max_pct",
-          "min": "$min_pct",
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636",
-                "value": null
+                "color": "#E32636"
               },
               {
                 "color": "#2FD06A",
@@ -810,24 +1023,52 @@
           "fields": "/^(Elevación|Descenso) (Con|Sin) Carga$/",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'MX%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM Last50\n        ",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'MX%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT\n          ${min_pct} AS [threshold_min], ${max_pct} AS [threshold_max], \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Elevación Sin Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Con Carga],\n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Descenso Sin Carga]\n        FROM Last50\n        ",
           "refId": "A"
         }
       ],
       "title": "Estabilidad de Ciclos - M2 (%)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "threshold_min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "threshold_max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
       "type": "gauge"
     }
   ],
   "schemaVersion": 39,
-  "style": "dark",
   "tags": [
     "log",
     "mes",
@@ -838,9 +1079,9 @@
     "list": [
       {
         "current": {
-          "selected": true,
-          "value": "SFB09E704641",
-          "text": "SFB09E704641"
+          "selected": false,
+          "text": "SFB09E704641",
+          "value": "SFB09E704641"
         },
         "datasource": {
           "type": "mssql",
@@ -862,41 +1103,41 @@
       },
       {
         "current": {
-          "selected": true,
-          "value": "0",
-          "text": "0"
+          "selected": false,
+          "text": "10",
+          "value": "10"
         },
         "hide": 0,
         "label": "Mínimo %",
         "name": "min_pct",
         "options": [
           {
-            "selected": true,
-            "value": "0",
-            "text": "0"
+            "selected": false,
+            "text": "0",
+            "value": "0"
           }
         ],
-        "query": "",
+        "query": "10",
         "skipUrlSync": false,
         "type": "textbox"
       },
       {
         "current": {
-          "selected": true,
-          "value": "100",
-          "text": "100"
+          "selected": false,
+          "text": "90",
+          "value": "90"
         },
         "hide": 0,
         "label": "Máximo %",
         "name": "max_pct",
         "options": [
           {
-            "selected": true,
-            "value": "100",
-            "text": "100"
+            "selected": false,
+            "text": "100",
+            "value": "100"
           }
         ],
-        "query": "",
+        "query": "90",
         "skipUrlSync": false,
         "type": "textbox"
       }
@@ -923,5 +1164,6 @@
   "timezone": "",
   "title": "LOGISNEXT — DISTRIBUIDOR",
   "uid": "mes-oee-v2",
-  "version": 23
+  "version": 49,
+  "weekStart": ""
 }
