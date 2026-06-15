@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Historial de pruebas de la jaula de elevación, tiempos registrados y KPIs de OEE",
+  "description": "Rediseño de Pantalla Distribuidor y KPIs - MES-OEE Jaula Elevación",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -90,107 +90,30 @@
   ],
   "panels": [
     {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "decimals": 1,
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 85
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
+      "collapsed": false,
       "gridPos": {
-        "h": 14,
-        "w": 6,
+        "h": 1,
+        "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 10,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
+      "id": 100,
+      "panels": [],
+      "title": "📊 BLOQUE 1: ANÁLISIS GENERAL POR HISTÓRICO Y PERIODO (Filtro por Fecha - Solo OK)",
+      "type": "row"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 1
       },
-      "pluginVersion": "10.4.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "mssql",
-            "uid": "mes_sqlserver"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT COALESCE((SELECT TOP 1 oee * 100 FROM mes_oee_snapshots WHERE oee IS NOT NULL ORDER BY ts DESC), 0.0) AS [OEE GLOBAL], TRY_CAST(COALESCE(NULLIF(TRIM('${objetivo_oee}'), ''), '85') AS FLOAT) AS [Objetivo OEE]",
-          "refId": "A"
-        }
-      ],
-      "title": "OEE GLOBAL",
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "OEE GLOBAL"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Objetivo OEE",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              }
-            ]
-          }
-        },
-        {
-          "id": "filterFieldsByName",
-          "options": {
-            "include": {
-              "names": [
-                "OEE GLOBAL"
-              ]
-            }
-          }
-        }
-      ],
-      "type": "gauge"
+      "id": 101,
+      "panels": [],
+      "title": "⚙️ Histórico - Familia M11",
+      "type": "row"
     },
     {
       "datasource": {
@@ -204,8 +127,8 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 100,
-          "min": 0,
+          "max": 200,
+          "min": -100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -214,92 +137,56 @@
                 "value": null
               },
               {
-                "color": "#F4A623",
-                "value": 80
+                "color": "#2FD06A",
+                "value": 0
               },
               {
-                "color": "#2FD06A",
-                "value": 90
+                "color": "#E32636",
+                "value": 100
               }
             ]
           },
           "unit": "percent"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Calidad"
-            },
-            "properties": [
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#E32636",
-                      "value": null
-                    },
-                    {
-                      "color": "#F4A623",
-                      "value": 90
-                    },
-                    {
-                      "color": "#2FD06A",
-                      "value": 98
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
-        "h": 14,
-        "w": 14,
-        "x": 6,
-        "y": 0
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 2
       },
-      "id": 11,
+      "id": 102,
       "options": {
-        "displayMode": "basic",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/^Valor$/",
           "values": false
         },
-        "showUnfilled": true,
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
         "sizing": "auto",
-        "valueMode": "color"
+        "textMode": "auto"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
-          "datasource": {
-            "type": "mssql",
-            "uid": "mes_sqlserver"
-          },
-          "editorMode": "code",
           "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT COALESCE((SELECT TOP 1 availability * 100 FROM mes_oee_snapshots WHERE availability IS NOT NULL ORDER BY ts DESC), 0.0) AS [Disponibilidad], COALESCE((SELECT TOP 1 performance * 100 FROM mes_oee_snapshots WHERE performance IS NOT NULL ORDER BY ts DESC), 0.0) AS [Rendimiento], COALESCE((SELECT TOP 1 quality * 100 FROM mes_oee_snapshots WHERE quality IS NOT NULL ORDER BY ts DESC), 0.0) AS [Calidad]",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n          AND $__timeFilter(fecha_creacion)\n        ",
           "refId": "A"
         }
       ],
-      "title": "METRICAS OEE",
-      "type": "bargauge"
+      "title": "Elevación Con Carga (M11)",
+      "type": "gauge"
     },
     {
       "datasource": {
+        "type": "mssql",
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
@@ -309,8 +196,8 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 100,
-          "min": 0,
+          "max": 200,
+          "min": -100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -319,12 +206,12 @@
                 "value": null
               },
               {
-                "color": "#F4A623",
-                "value": 85
+                "color": "#2FD06A",
+                "value": 0
               },
               {
-                "color": "#2FD06A",
-                "value": 95
+                "color": "#E32636",
+                "value": 100
               }
             ]
           },
@@ -333,13 +220,14 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 12,
+        "h": 6,
         "w": 6,
-        "x": 0,
-        "y": 14
+        "x": 6,
+        "y": 2
       },
-      "id": 4,
+      "id": 103,
       "options": {
+        "colorMode": "value",
         "minVizHeight": 75,
         "minVizWidth": 75,
         "orientation": "auto",
@@ -347,88 +235,27 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/^Valor$/",
           "values": false
         },
         "showThresholdLabels": false,
         "showThresholdMarkers": true,
-        "sizing": "auto"
+        "sizing": "auto",
+        "textMode": "auto"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT ROUND(CAST(SUM(CASE WHEN OK_NOK = 'OK' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 1) AS value FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n          AND $__timeFilter(fecha_creacion)\n        ",
           "refId": "A"
         }
       ],
-      "title": "TASA DE APROBACIÓN (OK %)",
+      "title": "Elevación Sin Carga (M11)",
       "type": "gauge"
     },
     {
       "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "#2FD06A",
-            "mode": "fixed"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 14
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "sum"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.2",
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE OK_NOK = 'OK' AND fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
-          "refId": "A"
-        }
-      ],
-      "title": "PRUEBAS OK (Últimos 30 días)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
+        "type": "mssql",
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
@@ -436,10 +263,10 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
+          "decimals": 1,
           "mappings": [],
-          "max": 6,
-          "min": 1,
+          "max": 200,
+          "min": -100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -449,25 +276,25 @@
               },
               {
                 "color": "#2FD06A",
-                "value": 3
+                "value": 0
               },
               {
                 "color": "#E32636",
-                "value": 5
+                "value": 100
               }
             ]
           },
-          "unit": "s"
+          "unit": "percent"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 6,
         "w": 6,
         "x": 12,
-        "y": 14
+        "y": 2
       },
-      "id": 16,
+      "id": 104,
       "options": {
         "colorMode": "value",
         "minVizHeight": 75,
@@ -480,56 +307,24 @@
           "fields": "/^Valor$/",
           "values": false
         },
-        "showThresholdLabels": true,
+        "showThresholdLabels": false,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n          AND $__timeFilter(fecha_creacion)\n        ",
           "refId": "A"
         }
       ],
-      "title": "Elevacion Sin Carga",
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold1"
-              }
-            ]
-          }
-        }
-      ],
+      "title": "Descenso Con Carga (M11)",
       "type": "gauge"
     },
     {
       "datasource": {
+        "type": "mssql",
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
@@ -537,10 +332,10 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
+          "decimals": 1,
           "mappings": [],
-          "max": 6,
-          "min": 1,
+          "max": 200,
+          "min": -100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -550,25 +345,25 @@
               },
               {
                 "color": "#2FD06A",
-                "value": 3
+                "value": 0
               },
               {
                 "color": "#E32636",
-                "value": 5
+                "value": 100
               }
             ]
           },
-          "unit": "s"
+          "unit": "percent"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 6,
         "w": 6,
         "x": 18,
-        "y": 14
+        "y": 2
       },
-      "id": 17,
+      "id": 105,
       "options": {
         "colorMode": "value",
         "minVizHeight": 75,
@@ -581,118 +376,175 @@
           "fields": "/^Valor$/",
           "values": false
         },
-        "showThresholdLabels": true,
+        "showThresholdLabels": false,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n          AND $__timeFilter(fecha_creacion)\n        ",
           "refId": "A"
         }
       ],
-      "title": "Descenso Sin Carga",
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold1"
-              }
-            ]
-          }
-        }
-      ],
+      "title": "Descenso Sin Carga (M11)",
       "type": "gauge"
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 106,
+      "panels": [],
+      "title": "⚙️ Histórico - Familia XL",
+      "type": "row"
+    },
+    {
       "datasource": {
+        "type": "mssql",
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "#E32636",
-            "mode": "fixed"
+            "mode": "thresholds"
           },
+          "decimals": 1,
           "mappings": [],
+          "max": 200,
+          "min": -100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#E32636",
                 "value": null
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
               }
             ]
           },
-          "unit": "short"
+          "unit": "percent"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 9
+      },
+      "id": 107,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'XL%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Con Carga (XL)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
         "w": 6,
         "x": 6,
-        "y": 19
+        "y": 9
       },
-      "id": 3,
+      "id": 108,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "sum"
+            "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/^Valor$/",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE OK_NOK <> 'OK' AND fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'XL%')\n          AND $__timeFilter(fecha_creacion)\n        ",
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS NOK (Últimos 30 días)",
-      "type": "stat"
+      "title": "Elevación Sin Carga (XL)",
+      "type": "gauge"
     },
     {
       "datasource": {
+        "type": "mssql",
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
@@ -700,10 +552,10 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
+          "decimals": 1,
           "mappings": [],
-          "max": 6,
-          "min": 1,
+          "max": 200,
+          "min": -100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -713,25 +565,25 @@
               },
               {
                 "color": "#2FD06A",
-                "value": 3
+                "value": 0
               },
               {
                 "color": "#E32636",
-                "value": 5
+                "value": 100
               }
             ]
           },
-          "unit": "s"
+          "unit": "percent"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 6,
         "w": 6,
         "x": 12,
-        "y": 22
+        "y": 9
       },
-      "id": 18,
+      "id": 109,
       "options": {
         "colorMode": "value",
         "minVizHeight": 75,
@@ -744,56 +596,395 @@
           "fields": "/^Valor$/",
           "values": false
         },
-        "showThresholdLabels": true,
+        "showThresholdLabels": false,
         "showThresholdMarkers": true,
         "sizing": "auto",
         "textMode": "auto"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'XL%')\n          AND $__timeFilter(fecha_creacion)\n        ",
           "refId": "A"
         }
       ],
-      "title": "Elevacion Con Carga",
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byName",
-              "options": "Valor"
-            },
-            "configRefId": "A",
-            "mappings": [
-              {
-                "fieldName": "Min",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#2FD06A"
-                  }
-                },
-                "handlerKey": "threshold1"
-              },
-              {
-                "fieldName": "Max",
-                "handlerArguments": {
-                  "threshold": {
-                    "color": "#E32636"
-                  }
-                },
-                "handlerKey": "threshold1"
-              }
-            ]
-          }
-        }
-      ],
+      "title": "Descenso Con Carga (XL)",
       "type": "gauge"
     },
     {
       "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 9
+      },
+      "id": 110,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'XL%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Sin Carga (XL)",
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 111,
+      "panels": [],
+      "title": "⚙️ Histórico - Familia M2",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 16
+      },
+      "id": 112,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'MX%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Con Carga (M2)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 16
+      },
+      "id": 113,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'MX%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Sin Carga (M2)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 16
+      },
+      "id": 114,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'MX%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Con Carga (M2)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 16
+      },
+      "id": 115,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM LOG_TABLA \n        WHERE OK_NOK = 'OK'\n          AND (NMODELO LIKE 'MX%')\n          AND $__timeFilter(fecha_creacion)\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Sin Carga (M2)",
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 116,
+      "panels": [],
+      "title": "🔍 BLOQUE 2: ANÁLISIS UNITARIO POR BASTIDOR",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
@@ -803,8 +994,6 @@
           },
           "decimals": 2,
           "mappings": [],
-          "max": 6,
-          "min": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -827,12 +1016,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 6,
         "w": 6,
-        "x": 18,
-        "y": 22
+        "x": 0,
+        "y": 23
       },
-      "id": 19,
+      "id": 117,
       "options": {
         "colorMode": "value",
         "minVizHeight": 75,
@@ -850,15 +1039,14 @@
         "sizing": "auto",
         "textMode": "auto"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC",
+          "rawSql": "\n        SELECT TOP 1 \n          COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Valor],\n          COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Min],\n          COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) AS [Max]\n        FROM LOG_TABLA \n        WHERE NBASTIDOR = '${selected_bastidor}'\n        ORDER BY fecha_creacion DESC\n        ",
           "refId": "A"
         }
       ],
-      "title": "Descenso Con Carga",
+      "title": "Elevación Con Carga (Segundos)",
       "transformations": [
         {
           "id": "configFromData",
@@ -885,7 +1073,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold1"
+                "handlerKey": "threshold2"
               }
             ]
           }
@@ -895,202 +1083,1215 @@
     },
     {
       "datasource": {
+        "type": "mssql",
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "#25C9D6",
-            "mode": "fixed"
+            "mode": "thresholds"
           },
+          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#E32636",
                 "value": null
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "#2FD06A",
+                "value": 3
+              },
+              {
+                "color": "#E32636",
+                "value": 5
               }
             ]
           },
-          "unit": "short"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 6,
         "w": 6,
         "x": 6,
         "y": 23
       },
-      "id": 1,
+      "id": 118,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "sum"
+            "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/^Valor$/",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())",
+          "rawSql": "\n        SELECT TOP 1 \n          COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Valor],\n          COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Min],\n          COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Max]\n        FROM LOG_TABLA \n        WHERE NBASTIDOR = '${selected_bastidor}'\n        ORDER BY fecha_creacion DESC\n        ",
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS TOTALES (Últimos 30 días)",
-      "type": "stat"
+      "title": "Elevación Sin Carga (Segundos)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Valor"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "gauge"
     },
     {
       "datasource": {
+        "type": "mssql",
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
+          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#E32636",
                 "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 3
+              },
+              {
+                "color": "#E32636",
+                "value": 5
               }
             ]
           },
-          "unit": "short"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
-        "w": 16,
-        "x": 1,
-        "y": 31
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 23
       },
-      "id": 7,
+      "id": 119,
       "options": {
-        "barRadius": 0,
-        "barWidth": 0.97,
-        "displayLabels": [
-          "name",
-          "percent"
-        ],
-        "fullHighlight": false,
-        "groupWidth": 0.7,
-        "legend": {
-          "calcs": [
-            "value"
-          ],
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true
-        },
-        "orientation": "horizontal",
-        "pieType": "pie",
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/^Valor$/",
           "values": false
         },
-        "showValue": "auto",
-        "stacking": "none",
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        },
-        "xField": "Modelo",
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
       },
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT NMODELO AS [Modelo], COUNT(*) AS [Pruebas] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() GROUP BY NMODELO ORDER BY COUNT(*) DESC",
+          "rawSql": "\n        SELECT TOP 1 \n          COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Valor],\n          COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Min],\n          COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) AS [Max]\n        FROM LOG_TABLA \n        WHERE NBASTIDOR = '${selected_bastidor}'\n        ORDER BY fecha_creacion DESC\n        ",
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS POR MODELO DE MÁSTIL / MÁQUINA",
-      "type": "piechart"
+      "title": "Descenso Con Carga (Segundos)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Valor"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 3
+              },
+              {
+                "color": "#E32636",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 23
+      },
+      "id": 120,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        SELECT TOP 1 \n          COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Valor],\n          COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Min],\n          COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Max]\n        FROM LOG_TABLA \n        WHERE NBASTIDOR = '${selected_bastidor}'\n        ORDER BY fecha_creacion DESC\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Sin Carga (Segundos)",
+      "transformations": [
+        {
+          "id": "configFromData",
+          "options": {
+            "applyTo": {
+              "id": "byName",
+              "options": "Valor"
+            },
+            "configRefId": "A",
+            "mappings": [
+              {
+                "fieldName": "Min",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#2FD06A"
+                  }
+                },
+                "handlerKey": "threshold1"
+              },
+              {
+                "fieldName": "Max",
+                "handlerArguments": {
+                  "threshold": {
+                    "color": "#E32636"
+                  }
+                },
+                "handlerKey": "threshold2"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 121,
+      "panels": [],
+      "title": "📈 BLOQUE 3: ESTABILIDAD RECIENTE (Promedio Últimas 50 Carretillas OK)",
+      "type": "row"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "id": 122,
+      "panels": [],
+      "title": "⚡ Reciente - Familia M11",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 31
+      },
+      "id": 123,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Con Carga Reciente (M11)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 31
+      },
+      "id": 124,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Sin Carga Reciente (M11)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 31
+      },
+      "id": 125,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Con Carga Reciente (M11)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 31
+      },
+      "id": 126,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Sin Carga Reciente (M11)",
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 127,
+      "panels": [],
+      "title": "⚡ Reciente - Familia XL",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 38
+      },
+      "id": 128,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'XL%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Con Carga Reciente (XL)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 38
+      },
+      "id": 129,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'XL%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Sin Carga Reciente (XL)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 38
+      },
+      "id": 130,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'XL%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Con Carga Reciente (XL)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 38
+      },
+      "id": 131,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'XL%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Sin Carga Reciente (XL)",
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 132,
+      "panels": [],
+      "title": "⚡ Reciente - Familia M2",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 45
+      },
+      "id": 133,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'MX%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Con Carga Reciente (M2)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 45
+      },
+      "id": 134,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'MX%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Elevación Sin Carga Reciente (M2)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 45
+      },
+      "id": 135,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'MX%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Con Carga Reciente (M2)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "max": 200,
+          "min": -100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E32636",
+                "value": null
+              },
+              {
+                "color": "#2FD06A",
+                "value": 0
+              },
+              {
+                "color": "#E32636",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 45
+      },
+      "id": 136,
+      "options": {
+        "colorMode": "value",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Valor$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "\n        WITH Last50 AS (\n            SELECT TOP 50 *\n            FROM LOG_TABLA\n            WHERE OK_NOK = 'OK'\n              AND (NMODELO LIKE 'MX%')\n              ORDER BY fecha_creacion DESC\n        )\n        SELECT \n          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) \n            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 \n            ELSE 50.0 END) AS [Valor]\n        FROM Last50\n        ",
+          "refId": "A"
+        }
+      ],
+      "title": "Descenso Sin Carga Reciente (M2)",
+      "type": "gauge"
     }
   ],
-  "refresh": "10s",
   "schemaVersion": 39,
+  "style": "dark",
   "tags": [
-    "mes",
     "log",
-    "pruebas",
-    "oee"
+    "mes",
+    "oee",
+    "pruebas"
   ],
   "templating": {
     "list": [
       {
         "current": {
           "selected": true,
-          "text": "Último (Por defecto)",
-          "value": "latest"
+          "value": "SFB09E704641",
+          "text": "SFB09E704641"
         },
         "datasource": {
+          "type": "mssql",
           "uid": "mes_sqlserver"
         },
-        "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "definition": "SELECT NBASTIDOR FROM (SELECT DISTINCT NBASTIDOR, MAX(fecha_creacion) as max_f FROM LOG_TABLA GROUP BY NBASTIDOR) AS t ORDER BY max_f DESC",
         "hide": 0,
         "includeAll": false,
-        "label": "Filtro Prueba",
+        "label": "Bastidor",
         "multi": false,
-        "name": "selected_id",
+        "name": "selected_bastidor",
         "options": [],
-        "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "query": "SELECT NBASTIDOR FROM (SELECT DISTINCT NBASTIDOR, MAX(fecha_creacion) as max_f FROM LOG_TABLA GROUP BY NBASTIDOR) AS t ORDER BY max_f DESC",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "85",
-          "value": "85"
-        },
-        "hide": 0,
-        "label": "Objetivo OEE (%)",
-        "name": "objetivo_oee",
-        "options": [
-          {
-            "selected": true,
-            "text": "85",
-            "value": "85"
-          }
-        ],
-        "query": "85",
-        "skipUrlSync": false,
-        "type": "textbox"
       }
     ]
   },
@@ -1098,10 +2299,22 @@
     "from": "now-30d",
     "to": "now"
   },
-  "timepicker": {},
-  "timezone": "browser",
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "",
   "title": "LOGISNEXT — DISTRIBUIDOR",
   "uid": "mes-oee-v2",
-  "version": 16,
-  "weekStart": ""
+  "version": 18
 }

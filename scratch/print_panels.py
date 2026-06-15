@@ -1,23 +1,18 @@
 import json
-import urllib.request
-import base64
+import sys
 
-GRAFANA_URL = "http://localhost:3010"
-USER = "fran.jose.estella@gmail.com"
-PASS = "admin123"
+def main():
+    with open('grafana/provisioning/dashboards/distribuidor_dashboard.json', encoding='utf-8') as f:
+        d = json.load(f)
+    
+    p_ids = [10, 11, 16, 17, 18, 19]
+    for p in d.get('panels', []):
+        pid = p.get('id')
+        if pid in p_ids or p.get('type') == 'row':
+            print(f"=== Panel ID {pid}: {p.get('title')} ({p.get('type')}) ===")
+            sub = {k: v for k, v in p.items() if k in ('targets', 'transformations', 'fieldConfig', 'options')}
+            print(json.dumps(sub, indent=2))
+            print("\n" + "="*50 + "\n")
 
-auth = base64.b64encode(f"{USER}:{PASS}".encode()).decode()
-headers = {"Authorization": f"Basic {auth}"}
-
-req = urllib.request.Request(f"{GRAFANA_URL}/api/dashboards/uid/mes-log-v1", headers=headers)
-with urllib.request.urlopen(req) as resp:
-    dashboard_data = json.loads(resp.read().decode("utf-8"))
-
-dashboard = dashboard_data["dashboard"]
-for panel in dashboard.get("panels", []):
-    if panel.get("id") in [14, 15]:
-        print(f"--- Panel ID: {panel['id']} | Title: {panel.get('title')} ---")
-        print("fieldConfig defaults:")
-        print(json.dumps(panel.get("fieldConfig", {}).get("defaults", {}), indent=2))
-        print("transformations:")
-        print(json.dumps(panel.get("transformations", []), indent=2))
+if __name__ == '__main__':
+    main()
