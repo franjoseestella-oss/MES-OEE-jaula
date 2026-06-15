@@ -1,0 +1,614 @@
+=== alarmas_dashboard.json ===
+Panel: ALARMAS ACTIVAS
+SELECT COUNT(*) AS [Alarmas Activas] FROM LOG_ALARMAS WHERE DURACION = 'Activa' AND TIPO = 'Alarma'
+--------------------------------------------------------------------------------
+Panel: ADVERTENCIAS ACTIVAS
+SELECT COUNT(*) AS [Advertencias Activas] FROM LOG_ALARMAS WHERE DURACION = 'Activa' AND TIPO = 'Advertencia'
+--------------------------------------------------------------------------------
+Panel: HISTORIAL DE ALARMAS Y ADVERTENCIAS
+SELECT id AS [ID], DESCRIPCION AS [Descripcion], TIPO AS [Tipo], FECHA_Y_HORA AS [Fecha/Hora], DURACION AS [Duracion] FROM LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC
+--------------------------------------------------------------------------------
+=== distribuidor_dashboard.json ===
+Panel: OEE GLOBAL
+SELECT COALESCE((SELECT TOP 1 oee * 100 FROM mes_oee_snapshots WHERE oee IS NOT NULL ORDER BY ts DESC), 0.0) AS [OEE GLOBAL], TRY_CAST(COALESCE(NULLIF(TRIM('${objetivo_oee}'), ''), '85') AS FLOAT) AS [Objetivo OEE]
+--------------------------------------------------------------------------------
+Panel: METRICAS OEE
+SELECT COALESCE((SELECT TOP 1 availability * 100 FROM mes_oee_snapshots WHERE availability IS NOT NULL ORDER BY ts DESC), 0.0) AS [Disponibilidad], COALESCE((SELECT TOP 1 performance * 100 FROM mes_oee_snapshots WHERE performance IS NOT NULL ORDER BY ts DESC), 0.0) AS [Rendimiento], COALESCE((SELECT TOP 1 quality * 100 FROM mes_oee_snapshots WHERE quality IS NOT NULL ORDER BY ts DESC), 0.0) AS [Calidad]
+--------------------------------------------------------------------------------
+Panel: TASA DE APROBACIÓN (OK %)
+SELECT ROUND(CAST(SUM(CASE WHEN OK_NOK = 'OK' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 1) AS value FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())
+--------------------------------------------------------------------------------
+Panel: PRUEBAS OK (Últimos 30 días)
+SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE OK_NOK = 'OK' AND fecha_creacion >= DATEADD(day, -30, GETUTCDATE())
+--------------------------------------------------------------------------------
+Panel: Elevacion Sin Carga
+SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC
+--------------------------------------------------------------------------------
+Panel: Descenso Sin Carga
+SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC
+--------------------------------------------------------------------------------
+Panel: PRUEBAS NOK (Últimos 30 días)
+SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE OK_NOK <> 'OK' AND fecha_creacion >= DATEADD(day, -30, GETUTCDATE())
+--------------------------------------------------------------------------------
+Panel: Elevacion Con Carga
+SELECT TOP 1 COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 8.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC
+--------------------------------------------------------------------------------
+Panel: Descenso Con Carga
+SELECT TOP 1 COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Valor], COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Min], COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 8.0) AS [Max] FROM LOG_TABLA WHERE (CAST(id AS VARCHAR) = '${selected_id}' OR '${selected_id}' = 'latest') ORDER BY fecha_creacion DESC
+--------------------------------------------------------------------------------
+Panel: PRUEBAS TOTALES (Últimos 30 días)
+SELECT COUNT(*) AS value, GETUTCDATE() AS time FROM LOG_TABLA WHERE fecha_creacion >= DATEADD(day, -30, GETUTCDATE())
+--------------------------------------------------------------------------------
+Panel: PRUEBAS POR MODELO DE MÁSTIL / MÁQUINA
+SELECT NMODELO AS [Modelo], COUNT(*) AS [Pruebas] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() GROUP BY NMODELO ORDER BY COUNT(*) DESC
+--------------------------------------------------------------------------------
+=== home_dashboard.json ===
+=== plan_dashboard.json ===
+Panel: SECUENCIAS PLANIFICADAS (TEÓRICO)
+DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
+
+IF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)
+BEGIN
+    SET @ActiveDate = COALESCE(
+        (SELECT TOP 1 FECHA_MONTAJE FROM LOG_TABLA WHERE CAST(fecha_creacion AS DATE) = CAST(GETDATE() AS DATE) ORDER BY id DESC),
+        (SELECT MIN(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje >= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)
+    );
+END;
+
+DECLARE @DashboardDate DATE = CAST($__timeFrom() AS DATE);
+DECLARE @ShiftStart DATETIME = DATEADD(hour, 7, CAST(@DashboardDate AS DATETIME));
+DECLARE @ShiftEnd DATETIME = DATEADD(hour, 15, CAST(@DashboardDate AS DATETIME));
+DECLARE @EvalTime DATETIME;
+
+IF @DashboardDate = CAST(GETDATE() AS DATE)
+BEGIN
+    DECLARE @TimeOfDayDiff INT = DATEDIFF(second, DATEADD(hour, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), GETDATE());
+    IF @TimeOfDayDiff < 0 SET @TimeOfDayDiff = 0;
+    IF @TimeOfDayDiff > 28800 SET @TimeOfDayDiff = 28800;
+    SET @EvalTime = DATEADD(second, @TimeOfDayDiff, @ShiftStart);
+END
+ELSE IF @DashboardDate > CAST(GETDATE() AS DATE)
+BEGIN
+    SET @EvalTime = @ShiftStart;
+END
+ELSE
+BEGIN
+    SET @EvalTime = @ShiftEnd;
+END;
+
+WITH Start_Sec AS (
+    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)) AS Last_ERP_ID
+    FROM JAULA_ERP erp
+    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje
+    WHERE log.fecha_creacion < @ShiftStart
+      AND log.OK_NOK = 'OK'
+),
+Total_Sec AS (
+    SELECT COUNT(*) AS total_seqs
+    FROM JAULA_ERP
+    WHERE id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)
+      AND fecha_montaje = @ActiveDate
+),
+Params AS (
+    SELECT 
+        total_seqs,
+        CASE 
+            WHEN total_seqs > 0 THEN CAST(ROUND(CAST(total_seqs AS FLOAT) * 180.0 / 455.0, 0) AS INT)
+            ELSE 7
+        END AS seqs_before
+    FROM Total_Sec
+),
+Params2 AS (
+    SELECT 
+        total_seqs,
+        seqs_before,
+        CASE WHEN total_seqs - seqs_before > 0 THEN total_seqs - seqs_before ELSE 11 END AS seqs_after
+    FROM Params
+),
+Params3 AS (
+    SELECT
+        total_seqs,
+        seqs_before,
+        seqs_after,
+        CASE WHEN seqs_before > 0 THEN 180.0 * 60.0 / seqs_before ELSE 1542.857 END AS cycle_time_1,
+        CASE WHEN seqs_after > 0 THEN 275.0 * 60.0 / seqs_after ELSE 1500.0 END AS cycle_time_2
+    FROM Params2
+),
+Sec_Today AS (
+    SELECT 
+        j.id,
+        ROW_NUMBER() OVER (ORDER BY j.id) AS seq_idx,
+        p.seqs_before,
+        p.cycle_time_1,
+        p.cycle_time_2
+    FROM JAULA_ERP j
+    CROSS JOIN Params3 p
+    WHERE j.id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)
+      AND j.fecha_montaje = @ActiveDate
+),
+Planned_Times AS (
+    SELECT
+        seq_idx,
+        CASE 
+            WHEN seq_idx <= seqs_before 
+                THEN DATEADD(second, CAST(seq_idx * cycle_time_1 AS INT), @ShiftStart)
+            ELSE 
+                DATEADD(second, CAST((seq_idx - seqs_before) * cycle_time_2 AS INT), DATEADD(minute, 25, DATEADD(hour, 3, @ShiftStart)))
+        END AS [Fin Planificado]
+    FROM Sec_Today
+)
+SELECT COALESCE(MAX(seq_idx), 0) AS [Teórico]
+FROM Planned_Times
+WHERE [Fin Planificado] <= @EvalTime
+--------------------------------------------------------------------------------
+Panel: SECUENCIAS COMPLETADAS (REAL)
+DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
+
+IF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)
+BEGIN
+    SET @ActiveDate = COALESCE(
+        (SELECT TOP 1 FECHA_MONTAJE FROM LOG_TABLA WHERE CAST(fecha_creacion AS DATE) = CAST(GETDATE() AS DATE) ORDER BY id DESC),
+        (SELECT MIN(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje >= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)
+    );
+END;
+
+DECLARE @DashboardDate DATE = CAST($__timeFrom() AS DATE);
+DECLARE @ShiftStart DATETIME = DATEADD(hour, 7, CAST(@DashboardDate AS DATETIME));
+DECLARE @ShiftEnd DATETIME = DATEADD(hour, 15, CAST(@DashboardDate AS DATETIME));
+DECLARE @EvalTime DATETIME;
+
+IF @DashboardDate = CAST(GETDATE() AS DATE)
+BEGIN
+    DECLARE @TimeOfDayDiff INT = DATEDIFF(second, DATEADD(hour, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), GETDATE());
+    IF @TimeOfDayDiff < 0 SET @TimeOfDayDiff = 0;
+    IF @TimeOfDayDiff > 28800 SET @TimeOfDayDiff = 28800;
+    SET @EvalTime = DATEADD(second, @TimeOfDayDiff, @ShiftStart);
+END
+ELSE IF @DashboardDate > CAST(GETDATE() AS DATE)
+BEGIN
+    SET @EvalTime = @ShiftStart;
+END
+ELSE
+BEGIN
+    SET @EvalTime = @ShiftEnd;
+END;
+
+SELECT COUNT(*) AS [Real]
+FROM LOG_TABLA
+WHERE fecha_creacion >= @ShiftStart
+  AND fecha_creacion <= @EvalTime
+  AND OK_NOK = 'OK'
+--------------------------------------------------------------------------------
+Panel: DESVIACIÓN (REAL - TEÓRICO)
+DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
+
+IF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)
+BEGIN
+    SET @ActiveDate = COALESCE(
+        (SELECT TOP 1 FECHA_MONTAJE FROM LOG_TABLA WHERE CAST(fecha_creacion AS DATE) = CAST(GETDATE() AS DATE) ORDER BY id DESC),
+        (SELECT MIN(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje >= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)
+    );
+END;
+
+DECLARE @DashboardDate DATE = CAST($__timeFrom() AS DATE);
+DECLARE @ShiftStart DATETIME = DATEADD(hour, 7, CAST(@DashboardDate AS DATETIME));
+DECLARE @ShiftEnd DATETIME = DATEADD(hour, 15, CAST(@DashboardDate AS DATETIME));
+DECLARE @EvalTime DATETIME;
+
+IF @DashboardDate = CAST(GETDATE() AS DATE)
+BEGIN
+    DECLARE @TimeOfDayDiff INT = DATEDIFF(second, DATEADD(hour, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), GETDATE());
+    IF @TimeOfDayDiff < 0 SET @TimeOfDayDiff = 0;
+    IF @TimeOfDayDiff > 28800 SET @TimeOfDayDiff = 28800;
+    SET @EvalTime = DATEADD(second, @TimeOfDayDiff, @ShiftStart);
+END
+ELSE IF @DashboardDate > CAST(GETDATE() AS DATE)
+BEGIN
+    SET @EvalTime = @ShiftStart;
+END
+ELSE
+BEGIN
+    SET @EvalTime = @ShiftEnd;
+END;
+
+WITH Start_Sec AS (
+    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)) AS Last_ERP_ID
+    FROM JAULA_ERP erp
+    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje
+    WHERE log.fecha_creacion < @ShiftStart
+      AND log.OK_NOK = 'OK'
+),
+Total_Sec AS (
+    SELECT COUNT(*) AS total_seqs
+    FROM JAULA_ERP
+    WHERE id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)
+      AND fecha_montaje = @ActiveDate
+),
+Params AS (
+    SELECT 
+        total_seqs,
+        CASE 
+            WHEN total_seqs > 0 THEN CAST(ROUND(CAST(total_seqs AS FLOAT) * 180.0 / 455.0, 0) AS INT)
+            ELSE 7
+        END AS seqs_before
+    FROM Total_Sec
+),
+Params2 AS (
+    SELECT 
+        total_seqs,
+        seqs_before,
+        CASE WHEN total_seqs - seqs_before > 0 THEN total_seqs - seqs_before ELSE 11 END AS seqs_after
+    FROM Params
+),
+Params3 AS (
+    SELECT
+        total_seqs,
+        seqs_before,
+        seqs_after,
+        CASE WHEN seqs_before > 0 THEN 180.0 * 60.0 / seqs_before ELSE 1542.857 END AS cycle_time_1,
+        CASE WHEN seqs_after > 0 THEN 275.0 * 60.0 / seqs_after ELSE 1500.0 END AS cycle_time_2
+    FROM Params2
+),
+Sec_Today AS (
+    SELECT 
+        j.id,
+        ROW_NUMBER() OVER (ORDER BY j.id) AS seq_idx,
+        p.seqs_before,
+        p.cycle_time_1,
+        p.cycle_time_2
+    FROM JAULA_ERP j
+    CROSS JOIN Params3 p
+    WHERE j.id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)
+      AND j.fecha_montaje = @ActiveDate
+),
+Planned_Times AS (
+    SELECT
+        seq_idx,
+        CASE 
+            WHEN seq_idx <= seqs_before 
+                THEN DATEADD(second, CAST(seq_idx * cycle_time_1 AS INT), @ShiftStart)
+            ELSE 
+                DATEADD(second, CAST((seq_idx - seqs_before) * cycle_time_2 AS INT), DATEADD(minute, 25, DATEADD(hour, 3, @ShiftStart)))
+        END AS [Fin Planificado]
+    FROM Sec_Today
+),
+Teorico_Count AS (
+    SELECT COALESCE(MAX(seq_idx), 0) AS teorico
+    FROM Planned_Times
+    WHERE [Fin Planificado] <= @EvalTime
+),
+Real_Count AS (
+    SELECT COUNT(*) AS real
+    FROM LOG_TABLA
+    WHERE fecha_creacion >= @ShiftStart
+      AND fecha_creacion <= @EvalTime
+      AND OK_NOK = 'OK'
+)
+SELECT 
+    r.real - t.teorico AS [Desviación]
+FROM Real_Count r, Teorico_Count t
+--------------------------------------------------------------------------------
+Panel: EVOLUCIÓN PLAN DE PRODUCCIÓN (PLAN vs REAL)
+DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
+
+IF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)
+BEGIN
+    SET @ActiveDate = COALESCE(
+        (SELECT TOP 1 FECHA_MONTAJE FROM LOG_TABLA WHERE CAST(fecha_creacion AS DATE) = CAST(GETDATE() AS DATE) ORDER BY id DESC),
+        (SELECT MIN(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje >= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)
+    );
+END;
+
+DECLARE @DashboardDate DATE = CAST($__timeFrom() AS DATE);
+DECLARE @ShiftStartActive DATETIME = DATEADD(hour, 7, CAST(@DashboardDate AS DATETIME));
+
+WITH Start_Sec AS (
+    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)) AS Last_ERP_ID
+    FROM JAULA_ERP erp
+    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje
+    WHERE log.fecha_creacion < @ShiftStartActive
+      AND log.OK_NOK = 'OK'
+),
+Total_Sec AS (
+    SELECT COUNT(*) AS total_seqs
+    FROM JAULA_ERP
+    WHERE id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)
+      AND fecha_montaje = @ActiveDate
+),
+Params AS (
+    SELECT 
+        total_seqs,
+        CASE 
+            WHEN total_seqs > 0 THEN CAST(ROUND(CAST(total_seqs AS FLOAT) * 180.0 / 455.0, 0) AS INT)
+            ELSE 7
+        END AS seqs_before
+    FROM Total_Sec
+),
+Params2 AS (
+    SELECT 
+        total_seqs,
+        seqs_before,
+        CASE WHEN total_seqs - seqs_before > 0 THEN total_seqs - seqs_before ELSE 11 END AS seqs_after
+    FROM Params
+),
+Params3 AS (
+    SELECT
+        total_seqs,
+        seqs_before,
+        seqs_after,
+        CASE WHEN seqs_before > 0 THEN 180.0 * 60.0 / seqs_before ELSE 1542.857 END AS cycle_time_1,
+        CASE WHEN seqs_after > 0 THEN 275.0 * 60.0 / seqs_after ELSE 1500.0 END AS cycle_time_2
+    FROM Params2
+),
+Sec_Today AS (
+    SELECT 
+        j.id,
+        ROW_NUMBER() OVER (ORDER BY j.id) AS seq_idx,
+        p.seqs_before,
+        p.cycle_time_1,
+        p.cycle_time_2
+    FROM JAULA_ERP j
+    CROSS JOIN Params3 p
+    WHERE j.id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)
+      AND j.fecha_montaje = @ActiveDate
+),
+Planned_Times AS (
+    SELECT
+        seq_idx,
+        CASE 
+            WHEN seq_idx <= seqs_before 
+                THEN DATEADD(second, CAST(seq_idx * cycle_time_1 AS INT), @ShiftStartActive)
+            ELSE 
+                DATEADD(second, CAST((seq_idx - seqs_before) * cycle_time_2 AS INT), DATEADD(minute, 25, DATEADD(hour, 3, @ShiftStartActive)))
+        END AS [Fin Planificado]
+    FROM Sec_Today
+)
+SELECT time, [Teórico] FROM (
+    SELECT 
+        DATEADD(hour, 7, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)) AS time,
+        0 AS [Teórico]
+    UNION ALL
+    SELECT 
+        [Fin Planificado] AS time,
+        seq_idx AS [Teórico]
+    FROM Planned_Times
+    WHERE [Fin Planificado] <= DATEADD(hour, 15, CAST(CAST($__timeFrom() AS DATE) AS DATETIME))
+) t
+ORDER BY time
+--------------------------------------------------------------------------------
+Panel: EVOLUCIÓN PLAN DE PRODUCCIÓN (PLAN vs REAL)
+DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
+
+IF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)
+BEGIN
+    SET @ActiveDate = COALESCE(
+        (SELECT TOP 1 FECHA_MONTAJE FROM LOG_TABLA WHERE CAST(fecha_creacion AS DATE) = CAST(GETDATE() AS DATE) ORDER BY id DESC),
+        (SELECT MIN(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje >= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)
+    );
+END;
+
+DECLARE @DashboardDate DATE = CAST($__timeFrom() AS DATE);
+DECLARE @ShiftStartActive DATETIME = DATEADD(hour, 7, CAST(@DashboardDate AS DATETIME));
+DECLARE @ShiftEndActive DATETIME = DATEADD(hour, 15, CAST(@DashboardDate AS DATETIME));
+DECLARE @EvalTimeActive DATETIME;
+
+IF @DashboardDate = CAST(GETDATE() AS DATE)
+BEGIN
+    DECLARE @TimeOfDayDiff INT = DATEDIFF(second, DATEADD(hour, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), GETDATE());
+    IF @TimeOfDayDiff < 0 SET @TimeOfDayDiff = 0;
+    IF @TimeOfDayDiff > 28800 SET @TimeOfDayDiff = 28800;
+    SET @EvalTimeActive = DATEADD(second, @TimeOfDayDiff, @ShiftStartActive);
+END
+ELSE IF @DashboardDate > CAST(GETDATE() AS DATE)
+BEGIN
+    SET @EvalTimeActive = @ShiftStartActive;
+END
+ELSE
+BEGIN
+    SET @EvalTimeActive = @ShiftEndActive;
+END;
+
+SELECT time, [Real] FROM (
+    SELECT 
+        DATEADD(hour, 7, CAST(CAST($__timeFrom() AS DATE) AS DATETIME)) AS time,
+        0 AS [Real]
+    UNION ALL
+    SELECT 
+        fecha_creacion AS time,
+        ROW_NUMBER() OVER (ORDER BY fecha_creacion) AS [Real]
+    FROM LOG_TABLA
+    WHERE fecha_creacion >= @ShiftStartActive
+      AND fecha_creacion <= @EvalTimeActive
+      AND OK_NOK = 'OK'
+) t
+ORDER BY time
+--------------------------------------------------------------------------------
+Panel: LISTADO DE SECUENCIAS (PLAN vs REAL)
+DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
+
+IF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)
+BEGIN
+    SET @ActiveDate = COALESCE(
+        (SELECT TOP 1 FECHA_MONTAJE FROM LOG_TABLA WHERE CAST(fecha_creacion AS DATE) = CAST(GETDATE() AS DATE) ORDER BY id DESC),
+        (SELECT MIN(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje >= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),
+        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)
+    );
+END;
+
+DECLARE @DashboardDate DATE = CAST($__timeFrom() AS DATE);
+DECLARE @ShiftStartActive DATETIME = DATEADD(hour, 7, CAST(@DashboardDate AS DATETIME));
+
+WITH Start_Sec AS (
+    SELECT COALESCE(MAX(erp.id), (SELECT MIN(id) FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)) AS Last_ERP_ID
+    FROM JAULA_ERP erp
+    INNER JOIN LOG_TABLA log ON log.NSECUENCIA = erp.secuencia AND log.FECHA_MONTAJE = erp.fecha_montaje
+    WHERE log.fecha_creacion < @ShiftStartActive
+      AND log.OK_NOK = 'OK'
+),
+Total_Sec AS (
+    SELECT COUNT(*) AS total_seqs
+    FROM JAULA_ERP
+    WHERE id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)
+      AND fecha_montaje = @ActiveDate
+),
+Params AS (
+    SELECT 
+        total_seqs,
+        CASE 
+            WHEN total_seqs > 0 THEN CAST(ROUND(CAST(total_seqs AS FLOAT) * 180.0 / 455.0, 0) AS INT)
+            ELSE 7
+        END AS seqs_before
+    FROM Total_Sec
+),
+Params2 AS (
+    SELECT 
+        total_seqs,
+        seqs_before,
+        CASE WHEN total_seqs - seqs_before > 0 THEN total_seqs - seqs_before ELSE 11 END AS seqs_after
+    FROM Params
+),
+Params3 AS (
+    SELECT
+        total_seqs,
+        seqs_before,
+        seqs_after,
+        CASE WHEN seqs_before > 0 THEN 180.0 * 60.0 / seqs_before ELSE 1542.857 END AS cycle_time_1,
+        CASE WHEN seqs_after > 0 THEN 275.0 * 60.0 / seqs_after ELSE 1500.0 END AS cycle_time_2
+    FROM Params2
+),
+Sec_Today AS (
+    SELECT 
+        id,
+        secuencia,
+        bastidor,
+        modelo,
+        ROW_NUMBER() OVER (ORDER BY id) AS seq_idx,
+        p.seqs_before,
+        p.cycle_time_1,
+        p.cycle_time_2
+    FROM JAULA_ERP j
+    CROSS JOIN Params3 p
+    WHERE j.id >= (SELECT Last_ERP_ID + 1 FROM Start_Sec)
+      AND j.fecha_montaje = @ActiveDate
+),
+Planned_Times AS (
+    SELECT
+        id,
+        secuencia,
+        bastidor,
+        modelo,
+        seq_idx,
+        CASE 
+            WHEN seq_idx <= seqs_before 
+                THEN DATEADD(second, CAST((seq_idx - 1) * cycle_time_1 AS INT), @ShiftStartActive)
+            ELSE 
+                DATEADD(second, CAST((seq_idx - seqs_before - 1) * cycle_time_2 AS INT), DATEADD(minute, 25, DATEADD(hour, 3, @ShiftStartActive)))
+        END AS [Inicio Planificado],
+        CASE 
+            WHEN seq_idx <= seqs_before 
+                THEN DATEADD(second, CAST(seq_idx * cycle_time_1 AS INT), @ShiftStartActive)
+            ELSE 
+                DATEADD(second, CAST((seq_idx - seqs_before) * cycle_time_2 AS INT), DATEADD(minute, 25, DATEADD(hour, 3, @ShiftStartActive)))
+        END AS [Fin Planificado]
+    FROM Sec_Today
+),
+Latest_Log AS (
+    SELECT 
+        NBASTIDOR,
+        FECHA_MONTAJE,
+        OK_NOK,
+        FECHA_HORA_INICIO_SEC,
+        FECHA_HORA_FIN_SEC,
+        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR, FECHA_MONTAJE ORDER BY id DESC) as rn
+    FROM LOG_TABLA
+)
+SELECT 
+    j.secuencia AS [Secuencia],
+    j.bastidor AS [Bastidor],
+    j.modelo AS [Modelo],
+    COALESCE(CONVERT(varchar(10), TRY_CAST(j.fecha_montaje AS DATE), 103), '') AS [Fecha Montaje],
+    CONVERT(varchar(8), p.[Inicio Planificado], 108) AS [Inicio Planificado],
+    CONVERT(varchar(8), p.[Fin Planificado], 108) AS [Fin Planificado],
+    CONVERT(varchar(8), CAST(l.FECHA_HORA_INICIO_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Inicio Real],
+    CONVERT(varchar(8), CAST(l.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Fin Real],
+    CASE 
+        WHEN l.FECHA_HORA_FIN_SEC IS NULL THEN '-'
+        ELSE 
+            CASE 
+                WHEN DATEDIFF(minute, p.[Fin Planificado], CAST(CAST(l.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)) > 0 
+                    THEN '+' + CAST(DATEDIFF(minute, p.[Fin Planificado], CAST(CAST(l.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)) AS VARCHAR) + ' min'
+                ELSE 
+                    CAST(DATEDIFF(minute, p.[Fin Planificado], CAST(CAST(l.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)) AS VARCHAR) + ' min'
+            END
+    END AS [Desviación],
+    COALESCE(l.OK_NOK, 'Pendiente') AS [Estado]
+FROM JAULA_ERP j
+LEFT JOIN Planned_Times p ON j.id = p.id
+LEFT JOIN Latest_Log l ON j.bastidor = l.NBASTIDOR AND l.FECHA_MONTAJE = j.fecha_montaje AND l.rn = 1
+WHERE j.fecha_montaje = @ActiveDate
+ORDER BY j.id ASC
+--------------------------------------------------------------------------------
+=== registro_dashboard.json ===
+Panel: 🟢 REGISTRO DETALLADO DE PRUEBAS OK
+SELECT id AS [ID], OK_NOK AS [Resultado], fecha_creacion AS [Fecha Creación], COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS [Fecha Montaje], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA    AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA    AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA    AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA    AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND OK_NOK = 'OK' ORDER BY fecha_creacion DESC
+--------------------------------------------------------------------------------
+Panel: 🔴 REGISTRO DETALLADO DE PRUEBAS NOK
+SELECT id AS [ID], OK_NOK AS [Resultado], fecha_creacion AS [Fecha Creación], COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS [Fecha Montaje], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA    AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA    AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA    AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA    AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND OK_NOK = 'NOK' ORDER BY fecha_creacion DESC
+--------------------------------------------------------------------------------
+=== turno_actual_dashboard.json ===
+Panel: OEE Global (%)
+SELECT TOP 1 oee AS [OEE] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND oee IS NOT NULL ORDER BY ts DESC
+--------------------------------------------------------------------------------
+Panel: Disponibilidad (%)
+SELECT TOP 1 availability AS [Disponibilidad] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND availability IS NOT NULL ORDER BY ts DESC
+--------------------------------------------------------------------------------
+Panel: Rendimiento (%)
+SELECT TOP 1 performance AS [Rendimiento] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND performance IS NOT NULL ORDER BY ts DESC
+--------------------------------------------------------------------------------
+Panel: Calidad (%)
+SELECT TOP 1 quality AS [Calidad] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND quality IS NOT NULL ORDER BY ts DESC
+--------------------------------------------------------------------------------
+Panel: Línea de Tiempo de Estados
+SELECT timestamp AS time, CASE state WHEN 'Running' THEN 1 WHEN 'Stopped' THEN 0 WHEN 'Setup' THEN 2 WHEN 'Micro-stop' THEN 3 WHEN 'Break' THEN 4 ELSE -1 END AS [Estado] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= $__timeFrom() AND timestamp <= $__timeTo() ORDER BY timestamp
+--------------------------------------------------------------------------------
+Panel: Producción Total
+SELECT TOP 1 total_pieces AS [Producción Total] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND total_pieces IS NOT NULL ORDER BY ts DESC
+--------------------------------------------------------------------------------
+Panel: Piezas Buenas
+SELECT TOP 1 good_pieces AS [Piezas Buenas] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND good_pieces IS NOT NULL ORDER BY ts DESC
+--------------------------------------------------------------------------------
+Panel: Piezas Defectuosas
+SELECT TOP 1 (total_pieces - good_pieces) AS [Piezas Defectuosas] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND total_pieces IS NOT NULL ORDER BY ts DESC
+--------------------------------------------------------------------------------
+Panel: Objetivo vs Desviación
+SELECT TOP 1 800 AS [Objetivo], (total_pieces - 800) AS [Desviación] FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND total_pieces IS NOT NULL ORDER BY ts DESC
+--------------------------------------------------------------------------------
+Panel: Top 5 Motivos de Parada (Diagrama de Pareto)
+SELECT TOP 5 reason AS [Motivo], SUM(duration_s) AS [Duración (s)] FROM mes_stop_reasons WHERE machine_id = 'MAQ-01' AND start_time >= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(duration_s) DESC
+--------------------------------------------------------------------------------
+Panel: MTBF (Tiempo Medio Entre Fallos)
+SELECT CAST(SUM(CASE WHEN state = 'Running' THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 15, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state = 'Stopped' THEN 1 ELSE 0 END), 0) AS [MTBF] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME)
+--------------------------------------------------------------------------------
+Panel: MTTR (Tiempo Medio de Reparación)
+SELECT CAST(SUM(CASE WHEN state = 'Stopped' THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 10, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state = 'Stopped' THEN 1 ELSE 0 END), 0) AS [MTTR] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME)
+--------------------------------------------------------------------------------
+Panel: Top 5 Motivos de Rechazo
+SELECT reason AS [Motivo], SUM(quantity) AS [Cantidad] FROM mes_reject_reasons WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(quantity) DESC
+--------------------------------------------------------------------------------

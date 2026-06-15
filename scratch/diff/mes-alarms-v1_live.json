@@ -15,11 +15,10 @@
       }
     ]
   },
-  "description": "Panel de control y visualización de alarmas y advertencias del sistema MES",
+  "description": "Panel de control y visualizaci\u00f3n de alarmas y advertencias del sistema MES",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 6,
   "links": [
     {
       "asDropdown": false,
@@ -41,29 +40,7 @@
       "targetBlank": false,
       "title": "OEE/MES",
       "type": "link",
-      "url": "/d/panel-oee-mes-fabrica"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": false,
-      "keepTime": false,
-      "tags": [],
-      "targetBlank": false,
-      "title": "DISTRIBUIDOR",
-      "type": "link",
-      "url": "/d/mes-oee-v2"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "PLAN PRODUCCIÓN",
-      "type": "link",
-      "url": "/d/mes-plan-v1"
+      "url": "/d/mes-oee-v1"
     },
     {
       "asDropdown": false,
@@ -118,7 +95,6 @@
         "x": 0,
         "y": 0
       },
-      "id": 1,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -175,7 +151,6 @@
         "x": 12,
         "y": 0
       },
-      "id": 2,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -290,7 +265,6 @@
         "x": 0,
         "y": 4
       },
-      "id": 3,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -337,8 +311,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "LOGISNEXT — ALARMAS",
+  "title": "LOGISNEXT \u2014 ALARMAS",
   "uid": "mes-alarms-v1",
-  "version": 24,
   "weekStart": ""
 }

@@ -15,11 +15,10 @@
       }
     ]
   },
-  "description": "Historial de pruebas de la jaula de elevación, tiempos registrados y KPIs de OEE",
+  "description": "Historial de pruebas de la jaula de elevaci\u00f3n, tiempos registrados y KPIs de OEE",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 12,
   "links": [
     {
       "asDropdown": false,
@@ -41,29 +40,7 @@
       "targetBlank": false,
       "title": "OEE/MES",
       "type": "link",
-      "url": "/d/panel-oee-mes-fabrica"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": false,
-      "keepTime": false,
-      "tags": [],
-      "targetBlank": false,
-      "title": "DISTRIBUIDOR",
-      "type": "link",
-      "url": "/d/mes-oee-v2"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "PLAN PRODUCCIÓN",
-      "type": "link",
-      "url": "/d/mes-plan-v1"
+      "url": "/d/mes-oee-v1"
     },
     {
       "asDropdown": false,
@@ -126,7 +103,6 @@
         "x": 0,
         "y": 0
       },
-      "id": 10,
       "options": {
         "minVizHeight": 75,
         "minVizWidth": 75,
@@ -262,7 +238,6 @@
         "x": 6,
         "y": 0
       },
-      "id": 11,
       "options": {
         "displayMode": "basic",
         "maxVizHeight": 300,
@@ -338,7 +313,6 @@
         "x": 0,
         "y": 14
       },
-      "id": 4,
       "options": {
         "minVizHeight": 75,
         "minVizWidth": 75,
@@ -362,7 +336,7 @@
           "refId": "A"
         }
       ],
-      "title": "TASA DE APROBACIÓN (OK %)",
+      "title": "TASA DE APROBACI\u00d3N (OK %)",
       "type": "gauge"
     },
     {
@@ -399,7 +373,6 @@
         "x": 6,
         "y": 14
       },
-      "id": 2,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -424,7 +397,7 @@
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS OK (Últimos 30 días)",
+      "title": "PRUEBAS OK (\u00daltimos 30 d\u00edas)",
       "type": "stat"
     },
     {
@@ -467,7 +440,6 @@
         "x": 12,
         "y": 14
       },
-      "id": 16,
       "options": {
         "colorMode": "value",
         "minVizHeight": 75,
@@ -568,7 +540,6 @@
         "x": 18,
         "y": 14
       },
-      "id": 17,
       "options": {
         "colorMode": "value",
         "minVizHeight": 75,
@@ -663,7 +634,6 @@
         "x": 6,
         "y": 19
       },
-      "id": 3,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -688,7 +658,7 @@
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS NOK (Últimos 30 días)",
+      "title": "PRUEBAS NOK (\u00daltimos 30 d\u00edas)",
       "type": "stat"
     },
     {
@@ -731,7 +701,6 @@
         "x": 12,
         "y": 22
       },
-      "id": 18,
       "options": {
         "colorMode": "value",
         "minVizHeight": 75,
@@ -832,7 +801,6 @@
         "x": 18,
         "y": 22
       },
-      "id": 19,
       "options": {
         "colorMode": "value",
         "minVizHeight": 75,
@@ -927,7 +895,6 @@
         "x": 6,
         "y": 23
       },
-      "id": 1,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -952,7 +919,7 @@
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS TOTALES (Últimos 30 días)",
+      "title": "PRUEBAS TOTALES (\u00daltimos 30 d\u00edas)",
       "type": "stat"
     },
     {
@@ -962,13 +929,28 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "fixedColor": "#25C9D6",
+            "mode": "fixed"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
           "mappings": [],
@@ -978,6 +960,10 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           },
@@ -991,33 +977,18 @@
         "x": 1,
         "y": 31
       },
-      "id": 7,
       "options": {
         "barRadius": 0,
         "barWidth": 0.97,
-        "displayLabels": [
-          "name",
-          "percent"
-        ],
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "value"
-          ],
-          "displayMode": "list",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "bottom",
           "showLegend": true
         },
         "orientation": "horizontal",
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
         "showValue": "auto",
         "stacking": "none",
         "tooltip": {
@@ -1035,8 +1006,8 @@
           "refId": "A"
         }
       ],
-      "title": "PRUEBAS POR MODELO DE MÁSTIL / MÁQUINA",
-      "type": "piechart"
+      "title": "PRUEBAS POR MODELO DE M\u00c1STIL / M\u00c1QUINA",
+      "type": "barchart"
     }
   ],
   "refresh": "10s",
@@ -1052,20 +1023,20 @@
       {
         "current": {
           "selected": true,
-          "text": "Último (Por defecto)",
+          "text": "\u00daltimo (Por defecto)",
           "value": "latest"
         },
         "datasource": {
           "uid": "mes_sqlserver"
         },
-        "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], '\u00daltimo (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
         "hide": 0,
         "includeAll": false,
         "label": "Filtro Prueba",
         "multi": false,
         "name": "selected_id",
         "options": [],
-        "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], '\u00daltimo (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1100,8 +1071,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "LOGISNEXT — DISTRIBUIDOR",
-  "uid": "mes-oee-v2",
-  "version": 16,
+  "title": "LOGISNEXT \u2014 OEE / MES",
+  "uid": "mes-oee-v1",
   "weekStart": ""
 }

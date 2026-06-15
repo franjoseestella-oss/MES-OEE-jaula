@@ -15,11 +15,10 @@
       }
     ]
   },
-  "description": "Panel de control y visualización de alarmas y advertencias del sistema MES",
+  "description": "Panel de control y visualizaci\u00f3n de alarmas y advertencias del sistema MES",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 6,
   "links": [
     {
       "asDropdown": false,
@@ -41,29 +40,7 @@
       "targetBlank": false,
       "title": "OEE/MES",
       "type": "link",
-      "url": "/d/panel-oee-mes-fabrica"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": false,
-      "keepTime": false,
-      "tags": [],
-      "targetBlank": false,
-      "title": "DISTRIBUIDOR",
-      "type": "link",
-      "url": "/d/mes-oee-v2"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "PLAN PRODUCCIÓN",
-      "type": "link",
-      "url": "/d/mes-plan-v1"
+      "url": "/d/mes-oee-v1"
     },
     {
       "asDropdown": false,
@@ -109,8 +86,7 @@
               }
             ]
           }
-        },
-        "overrides": []
+        }
       },
       "gridPos": {
         "h": 4,
@@ -118,7 +94,6 @@
         "x": 0,
         "y": 0
       },
-      "id": 1,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -131,11 +106,8 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "value",
-        "wideLayout": true
+        "textMode": "value"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -166,8 +138,7 @@
               }
             ]
           }
-        },
-        "overrides": []
+        }
       },
       "gridPos": {
         "h": 4,
@@ -175,7 +146,6 @@
         "x": 12,
         "y": 0
       },
-      "id": 2,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -188,11 +158,8 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "value",
-        "wideLayout": true
+        "textMode": "value"
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
@@ -234,7 +201,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Tipo"
+              "options": "TIPO"
             },
             "properties": [
               {
@@ -269,18 +236,6 @@
                 ]
               }
             ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Descripcion"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 605
-              }
-            ]
           }
         ]
       },
@@ -290,30 +245,21 @@
         "x": 0,
         "y": 4
       },
-      "id": 3,
       "options": {
-        "cellHeight": "sm",
         "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
           "show": false
         },
-        "showHeader": true,
         "sortBy": [
           {
             "desc": true,
-            "displayName": "Fecha/Hora"
+            "displayName": "FECHA_Y_HORA"
           }
         ]
       },
-      "pluginVersion": "10.4.2",
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT id AS [ID], DESCRIPCION AS [Descripcion], TIPO AS [Tipo], FECHA_Y_HORA AS [Fecha/Hora], DURACION AS [Duracion] FROM LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC",
+          "rawSql": "SELECT id, FECHA_Y_HORA, TIPO, DESCRIPCION, DURACION FROM LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC",
           "refId": "A"
         }
       ],
@@ -328,17 +274,13 @@
     "alarms",
     "log"
   ],
-  "templating": {
-    "list": []
-  },
   "time": {
     "from": "now-30d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "LOGISNEXT — ALARMAS",
+  "title": "LOGISNEXT \u2014 ALARMAS",
   "uid": "mes-alarms-v1",
-  "version": 24,
   "weekStart": ""
 }

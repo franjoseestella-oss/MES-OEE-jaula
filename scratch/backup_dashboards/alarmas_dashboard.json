@@ -41,29 +41,7 @@
       "targetBlank": false,
       "title": "OEE/MES",
       "type": "link",
-      "url": "/d/panel-oee-mes-fabrica"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": false,
-      "keepTime": false,
-      "tags": [],
-      "targetBlank": false,
-      "title": "DISTRIBUIDOR",
-      "type": "link",
-      "url": "/d/mes-oee-v2"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "PLAN PRODUCCIÓN",
-      "type": "link",
-      "url": "/d/mes-plan-v1"
+      "url": "/d/mes-oee-v1"
     },
     {
       "asDropdown": false,
@@ -339,6 +317,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — ALARMAS",
   "uid": "mes-alarms-v1",
-  "version": 24,
+  "version": 8,
   "weekStart": ""
 }

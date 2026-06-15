@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 12,
+  "id": 3,
   "links": [
     {
       "asDropdown": false,
@@ -41,29 +41,7 @@
       "targetBlank": false,
       "title": "OEE/MES",
       "type": "link",
-      "url": "/d/panel-oee-mes-fabrica"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": false,
-      "keepTime": false,
-      "tags": [],
-      "targetBlank": false,
-      "title": "DISTRIBUIDOR",
-      "type": "link",
-      "url": "/d/mes-oee-v2"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "PLAN PRODUCCIÓN",
-      "type": "link",
-      "url": "/d/mes-plan-v1"
+      "url": "/d/mes-oee-v1"
     },
     {
       "asDropdown": false,
@@ -1100,8 +1078,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "LOGISNEXT — DISTRIBUIDOR",
-  "uid": "mes-oee-v2",
-  "version": 16,
+  "title": "LOGISNEXT — OEE / MES",
+  "uid": "mes-oee-v1",
+  "version": 28,
   "weekStart": ""
 }

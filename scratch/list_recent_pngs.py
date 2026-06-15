@@ -1,11 +1,12 @@
-import glob
 import os
+import glob
 
-brain_dir = r"C:\Users\franj\.gemini\antigravity\brain\70912b51-1041-4be2-9d46-655465e25ab2"
-png_files = glob.glob(os.path.join(brain_dir, "**", "*.png"), recursive=True)
+media_dir = r"C:\Users\franj\.gemini\antigravity\brain\9ddfdb95-2f21-4ff6-ae75-1d9ff0ae28e3\.tempmediaStorage"
+files = glob.glob(os.path.join(media_dir, "*"))
+files.sort(key=os.path.getmtime)
 
-# sort by modification time
-png_files.sort(key=os.path.getmtime, reverse=True)
-
-for f in png_files[:10]:
-    print(f, os.path.getmtime(f))
+print("=== MEDIA STORAGE FILES (Oldest to Newest) ===")
+for f in files:
+    size = os.path.getsize(f)
+    mtime = os.path.getmtime(f)
+    print(f"{os.path.basename(f)} | Size: {size} bytes | Mtime: {mtime}")

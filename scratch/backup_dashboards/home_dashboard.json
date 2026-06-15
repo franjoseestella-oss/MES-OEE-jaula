@@ -1,0 +1,107 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Historial de pruebas de la jaula de elevación, tiempos registrados y KPIs de OEE",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 4,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "home",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Inicio",
+      "type": "link",
+      "url": "/d/mes-home-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "OEE/MES",
+      "type": "link",
+      "url": "/d/mes-oee-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "LOG_SECUENCIAS",
+      "type": "link",
+      "url": "/d/mes-reg-v1"
+    },
+    {
+      "asDropdown": false,
+      "icon": "alert",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "ALARMAS",
+      "type": "link",
+      "url": "/d/mes-alarms-v1"
+    }
+  ],
+  "panels": [
+    {
+      "gridPos": {
+        "h": 22,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "content": "<div style=\"display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 480px; font-family: 'Inter', -apple-system, sans-serif; background: radial-gradient(circle at 50% 50%, #1a1d24 0%, #0e1014 100%); padding: 40px; border-radius: 8px; border: 1px solid #2d3139;\">\n  <h1 style=\"color: #ffffff; font-size: 2.6rem; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; text-shadow: 0 4px 10px rgba(0,0,0,0.5);\">SISTEMA MES — JAULA DE ELEVACIÓN</h1>\n  <p style=\"color: #8e96a5; font-size: 1.1rem; margin-bottom: 48px; text-align: center; max-width: 600px;\">Seleccione uno de los módulos principales para acceder al panel correspondiente.</p>\n  \n  <div style=\"display: flex; gap: 24px; width: 100%; max-width: 1100px; justify-content: center;\">\n    <a href=\"/d/mes-oee-v1\" style=\"flex: 1; max-width: 340px; text-decoration: none;\">\n      <div style=\"background: linear-gradient(135deg, rgba(37, 201, 214, 0.08) 0%, rgba(37, 201, 214, 0.03) 100%); border: 1px solid rgba(37, 201, 214, 0.35); border-radius: 12px; padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.25s ease-in-out; box-shadow: 0 4px 20px rgba(0,0,0,0.25);\"\n           onmouseover=\"this.style.transform='translateY(-5px)'; this.style.borderColor='rgba(37, 201, 214, 0.8)'; this.style.boxShadow='0 10px 25px rgba(37, 201, 214, 0.2)';\" \n           onmouseout=\"this.style.transform='translateY(0)'; this.style.borderColor='rgba(37, 201, 214, 0.35)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.25)';\">\n        <div style=\"font-size: 3.5rem; margin-bottom: 20px; color: #25C9D6;\">📊</div>\n        <h2 style=\"color: #ffffff; font-size: 1.5rem; font-weight: 600; margin: 0 0 12px 0;\">OEE / MES</h2>\n        <p style=\"color: #a2aab7; font-size: 0.9rem; margin: 0; line-height: 1.45;\">Indicadores OEE en tiempo real, tasas de disponibilidad, rendimiento, calidad y estado de máquina.</p>\n      </div>\n    </a>\n    \n    <a href=\"/d/mes-reg-v1\" style=\"flex: 1; max-width: 340px; text-decoration: none;\">\n      <div style=\"background: linear-gradient(135deg, rgba(47, 208, 106, 0.08) 0%, rgba(47, 208, 106, 0.03) 100%); border: 1px solid rgba(47, 208, 106, 0.35); border-radius: 12px; padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.25s ease-in-out; box-shadow: 0 4px 20px rgba(0,0,0,0.25);\"\n           onmouseover=\"this.style.transform='translateY(-5px)'; this.style.borderColor='rgba(47, 208, 106, 0.8)'; this.style.boxShadow='0 10px 25px rgba(47, 208, 106, 0.2)';\" \n           onmouseout=\"this.style.transform='translateY(0)'; this.style.borderColor='rgba(47, 208, 106, 0.35)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.25)';\">\n        <div style=\"font-size: 3.5rem; margin-bottom: 20px; color: #2FD06A;\">⚙️</div>\n        <h2 style=\"color: #ffffff; font-size: 1.5rem; font-weight: 600; margin: 0 0 12px 0;\">LOG SECUENCIAS</h2>\n        <p style=\"color: #a2aab7; font-size: 0.9rem; margin: 0; line-height: 1.45;\">Historial de pruebas, tiempos y márgenes de elevación y descenso con detalle por modelo.</p>\n      </div>\n    </a>\n\n    <a href=\"/d/mes-alarms-v1\" style=\"flex: 1; max-width: 340px; text-decoration: none;\">\n      <div style=\"background: linear-gradient(135deg, rgba(227, 38, 54, 0.08) 0%, rgba(227, 38, 54, 0.03) 100%); border: 1px solid rgba(227, 38, 54, 0.35); border-radius: 12px; padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.25s ease-in-out; box-shadow: 0 4px 20px rgba(0,0,0,0.25);\"\n           onmouseover=\"this.style.transform='translateY(-5px)'; this.style.borderColor='rgba(227, 38, 54, 0.8)'; this.style.boxShadow='0 10px 25px rgba(227, 38, 54, 0.2)';\" \n           onmouseout=\"this.style.transform='translateY(0)'; this.style.borderColor='rgba(227, 38, 54, 0.35)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.25)';\">\n        <div style=\"font-size: 3.5rem; margin-bottom: 20px; color: #E32636;\">🚨</div>\n        <h2 style=\"color: #ffffff; font-size: 1.5rem; font-weight: 600; margin: 0 0 12px 0;\">ALARMAS</h2>\n        <p style=\"color: #a2aab7; font-size: 0.9rem; margin: 0; line-height: 1.45;\">Monitoreo en tiempo real de alarmas activas, advertencias del sistema e historial detallado de incidencias.</p>\n      </div>\n    </a>\n  </div>\n</div>",
+        "mode": "html"
+      },
+      "title": "",
+      "type": "text"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": [
+    "mes",
+    "log",
+    "pruebas",
+    "oee"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "LOGISNEXT — INICIO",
+  "uid": "mes-home-v1",
+  "version": 8,
+  "weekStart": ""
+}
