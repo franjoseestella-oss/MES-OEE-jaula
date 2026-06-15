@@ -159,6 +159,8 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
+                                                            "max":  100,
+                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -168,7 +170,7 @@
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#2FD06A",
-                                                                                                 "value":  40
+                                                                                                 "value":  30
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#E32636",
@@ -263,6 +265,8 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
+                                                            "max":  100,
+                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -272,7 +276,7 @@
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#2FD06A",
-                                                                                                 "value":  40
+                                                                                                 "value":  30
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#E32636",
@@ -367,6 +371,8 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
+                                                            "max":  100,
+                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -376,7 +382,7 @@
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#2FD06A",
-                                                                                                 "value":  40
+                                                                                                 "value":  30
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#E32636",
@@ -688,6 +694,8 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
+                                                            "max":  100,
+                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -697,7 +705,7 @@
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#2FD06A",
-                                                                                                 "value":  40
+                                                                                                 "value":  30
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#E32636",
@@ -767,6 +775,8 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
+                                                            "max":  100,
+                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -776,7 +786,7 @@
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#2FD06A",
-                                                                                                 "value":  40
+                                                                                                 "value":  30
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#E32636",
@@ -846,6 +856,8 @@
                                       },
                        "fieldConfig":  {
                                            "defaults":  {
+                                                            "max":  100,
+                                                            "min":  0,
                                                             "thresholds":  {
                                                                                "mode":  "absolute",
                                                                                "steps":  [
@@ -855,7 +867,7 @@
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#2FD06A",
-                                                                                                 "value":  40
+                                                                                                 "value":  30
                                                                                              },
                                                                                              {
                                                                                                  "color":  "#E32636",
@@ -962,6 +974,6 @@
     "timezone":  "",
     "title":  "LOGISNEXT â DISTRIBUIDOR",
     "uid":  "mes-oee-v2",
-    "version":  141,
+    "version":  147,
     "weekStart":  ""
 }
