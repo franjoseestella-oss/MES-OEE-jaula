@@ -154,7 +154,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636"
+                "color": "#E32636",
+                "value": null
               },
               {
                 "color": "#2FD06A",
@@ -248,7 +249,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -287,7 +288,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636"
+                "color": "#E32636",
+                "value": null
               },
               {
                 "color": "#2FD06A",
@@ -381,7 +383,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -420,7 +422,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#E32636"
+                "color": "#E32636",
+                "value": null
               },
               {
                 "color": "#2FD06A",
@@ -514,7 +517,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -626,7 +629,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -656,7 +659,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -686,7 +689,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -716,7 +719,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -839,7 +842,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -949,7 +952,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -1059,7 +1062,7 @@
                     "color": "#E32636"
                   }
                 },
-                "handlerKey": "threshold2"
+                "handlerKey": "threshold1"
               }
             ]
           }
@@ -1112,7 +1115,7 @@
         "name": "min_pct",
         "options": [
           {
-            "selected": false,
+            "selected": true,
             "text": "0",
             "value": "0"
           }
@@ -1132,7 +1135,7 @@
         "name": "max_pct",
         "options": [
           {
-            "selected": false,
+            "selected": true,
             "text": "100",
             "value": "100"
           }
@@ -1164,6 +1167,6 @@
   "timezone": "",
   "title": "LOGISNEXT — DISTRIBUIDOR",
   "uid": "mes-oee-v2",
-  "version": 49,
+  "version": 54,
   "weekStart": ""
 }
