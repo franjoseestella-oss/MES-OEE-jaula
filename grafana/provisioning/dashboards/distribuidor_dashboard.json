@@ -143,8 +143,8 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 200,
-          "min": -100,
+          "max": "$max_pct",
+          "min": "$min_pct",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -225,8 +225,8 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 200,
-          "min": -100,
+          "max": "$max_pct",
+          "min": "$min_pct",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -307,8 +307,8 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 200,
-          "min": -100,
+          "max": "$max_pct",
+          "min": "$min_pct",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -604,8 +604,8 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 200,
-          "min": -100,
+          "max": "$max_pct",
+          "min": "$min_pct",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -686,8 +686,8 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 200,
-          "min": -100,
+          "max": "$max_pct",
+          "min": "$min_pct",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -768,8 +768,8 @@
           },
           "decimals": 1,
           "mappings": [],
-          "max": 200,
-          "min": -100,
+          "max": "$max_pct",
+          "min": "$min_pct",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -859,6 +859,46 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "value": "0",
+          "text": "0"
+        },
+        "hide": 0,
+        "label": "Mínimo %",
+        "name": "min_pct",
+        "options": [
+          {
+            "selected": true,
+            "value": "0",
+            "text": "0"
+          }
+        ],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": true,
+          "value": "100",
+          "text": "100"
+        },
+        "hide": 0,
+        "label": "Máximo %",
+        "name": "max_pct",
+        "options": [
+          {
+            "selected": true,
+            "value": "100",
+            "text": "100"
+          }
+        ],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
       }
     ]
   },
