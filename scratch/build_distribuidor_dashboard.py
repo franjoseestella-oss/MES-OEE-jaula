@@ -11,7 +11,7 @@ DASHBOARD_UID = "mes-oee-v2"
 DATASOURCE_UID = "mes_sqlserver"
 
 # Helper to build percentage gauge panel displaying all 4 gauges side-by-side
-def build_pct_gauge_panel(panel_id, title, sql_query, grid_pos):
+def build_pct_gauge_panel(panel_id, title, sql_query, grid_pos, ok_color="#2FD06A"):
     return {
         "datasource": {
             "type": "mssql",
@@ -34,7 +34,7 @@ def build_pct_gauge_panel(panel_id, title, sql_query, grid_pos):
                             "value": None
                         },
                         {
-                            "color": "#2FD06A", # Green (0-100%)
+                            "color": ok_color, # Dynamic color (0-100%)
                             "value": 0
                         },
                         {
@@ -354,13 +354,71 @@ def main():
     panels = []
     pid_counter = 100
 
+    # 1. Custom CSS panel to color card containers and row backgrounds per block
+    css_content = """<style>
+    /* Custom CSS to differentiate blocks by color */
+    
+    /* --- BLOQUE 1: HISTÓRICO (BLUE THEME) --- */
+    div[data-panelid="100"] {
+      border-left: 6px solid #3274d9 !important;
+      background: rgba(50, 116, 217, 0.05) !important;
+    }
+    div[data-panelid="102"] .panel-container,
+    div[data-panelid="104"] .panel-container,
+    div[data-panelid="106"] .panel-container {
+      border-top: 4px solid #3274d9 !important;
+      border-left: 2px solid #3274d9 !important;
+      background: linear-gradient(135deg, rgba(50, 116, 217, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* --- BLOQUE 2: BASTIDOR (GREEN THEME) --- */
+    div[data-panelid="107"] {
+      border-left: 6px solid #2fd06a !important;
+      background: rgba(47, 208, 106, 0.05) !important;
+    }
+    div[data-panelid="108"] .panel-container {
+      border-top: 4px solid #2fd06a !important;
+      border-left: 2px solid #2fd06a !important;
+      background: linear-gradient(135deg, rgba(47, 208, 106, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* --- BLOQUE 3: ESTABILIDAD RECIENTE (PURPLE THEME) --- */
+    div[data-panelid="109"] {
+      border-left: 6px solid #a352cc !important;
+      background: rgba(163, 82, 204, 0.05) !important;
+    }
+    div[data-panelid="111"] .panel-container,
+    div[data-panelid="113"] .panel-container,
+    div[data-panelid="115"] .panel-container {
+      border-top: 4px solid #a352cc !important;
+      border-left: 2px solid #a352cc !important;
+      background: linear-gradient(135deg, rgba(163, 82, 204, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    </style>"""
+
+    css_panel = {
+        "id": 99,
+        "type": "text",
+        "title": "",
+        "transparent": True,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+        "options": {
+            "mode": "html",
+            "content": css_content
+        }
+    }
+    panels.append(css_panel)
+
     # ─────────────────────────────────────────────────────────────────────────
     # BLOQUE 1: ANALISIS GENERAL POR HISTORICO
     # ─────────────────────────────────────────────────────────────────────────
-    panels.append(build_row(pid_counter, "📊 BLOQUE 1: ANÁLISIS GENERAL POR HISTÓRICO Y PERIODO (Filtro por Fecha - Solo OK)", {"h": 1, "w": 24, "x": 0, "y": 0}))
+    panels.append(build_row(pid_counter, "📊 BLOQUE 1: ANÁLISIS GENERAL POR HISTÓRICO Y PERIODO (Filtro por Fecha - Solo OK)", {"h": 1, "w": 24, "x": 0, "y": 1}))
     pid_counter += 1
 
-    y_pos = 1
+    y_pos = 2
     for fam_name, fam_cond in families.items():
         panels.append(build_row(pid_counter, f"⚙️ Histórico - Familia {fam_name}", {"h": 1, "w": 24, "x": 0, "y": y_pos}))
         pid_counter += 1

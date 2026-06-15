@@ -90,12 +90,28 @@
   ],
   "panels": [
     {
-      "collapsed": false,
+      "id": 99,
+      "type": "text",
+      "title": "",
+      "transparent": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "<style>\n    /* Custom CSS to differentiate blocks by color */\n    \n    /* --- BLOQUE 1: HISTÓRICO (BLUE THEME) --- */\n    div[data-panelid=\"100\"] {\n      border-left: 6px solid #3274d9 !important;\n      background: rgba(50, 116, 217, 0.05) !important;\n    }\n    div[data-panelid=\"102\"] .panel-container,\n    div[data-panelid=\"104\"] .panel-container,\n    div[data-panelid=\"106\"] .panel-container {\n      border-top: 4px solid #3274d9 !important;\n      border-left: 2px solid #3274d9 !important;\n      background: linear-gradient(135deg, rgba(50, 116, 217, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 2: BASTIDOR (GREEN THEME) --- */\n    div[data-panelid=\"107\"] {\n      border-left: 6px solid #2fd06a !important;\n      background: rgba(47, 208, 106, 0.05) !important;\n    }\n    div[data-panelid=\"108\"] .panel-container {\n      border-top: 4px solid #2fd06a !important;\n      border-left: 2px solid #2fd06a !important;\n      background: linear-gradient(135deg, rgba(47, 208, 106, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    \n    /* --- BLOQUE 3: ESTABILIDAD RECIENTE (PURPLE THEME) --- */\n    div[data-panelid=\"109\"] {\n      border-left: 6px solid #a352cc !important;\n      background: rgba(163, 82, 204, 0.05) !important;\n    }\n    div[data-panelid=\"111\"] .panel-container,\n    div[data-panelid=\"113\"] .panel-container,\n    div[data-panelid=\"115\"] .panel-container {\n      border-top: 4px solid #a352cc !important;\n      border-left: 2px solid #a352cc !important;\n      background: linear-gradient(135deg, rgba(163, 82, 204, 0.08) 0%, rgba(11, 15, 20, 0.6) 100%) !important;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;\n    }\n    </style>"
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 1
       },
       "id": 100,
       "panels": [],
@@ -108,7 +124,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 1
+        "y": 2
       },
       "id": 101,
       "panels": [],
@@ -154,7 +170,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 3
       },
       "id": 102,
       "options": {
@@ -190,7 +206,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 9
       },
       "id": 103,
       "panels": [],
@@ -236,7 +252,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 10
       },
       "id": 104,
       "options": {
@@ -272,7 +288,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 16
       },
       "id": 105,
       "panels": [],
@@ -318,7 +334,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 17
       },
       "id": 106,
       "options": {
@@ -354,7 +370,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 23
       },
       "id": 107,
       "panels": [],
@@ -398,7 +414,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 24
       },
       "id": 108,
       "options": {
@@ -556,7 +572,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 30
       },
       "id": 109,
       "panels": [],
@@ -569,7 +585,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 31
       },
       "id": 110,
       "panels": [],
@@ -615,7 +631,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 32
       },
       "id": 111,
       "options": {
@@ -651,7 +667,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 38
       },
       "id": 112,
       "panels": [],
@@ -697,7 +713,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 39
       },
       "id": 113,
       "options": {
@@ -733,7 +749,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 45
       },
       "id": 114,
       "panels": [],
@@ -779,7 +795,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 46
       },
       "id": 115,
       "options": {
@@ -867,5 +883,5 @@
   "timezone": "",
   "title": "LOGISNEXT — DISTRIBUIDOR",
   "uid": "mes-oee-v2",
-  "version": 21
+  "version": 23
 }
