@@ -10,8 +10,8 @@ GRAFANA_PASS = "admin123"
 DASHBOARD_UID = "mes-oee-v2"
 DATASOURCE_UID = "mes_sqlserver"
 
-# Helper to build percentage gauge config
-def build_pct_gauge(panel_id, title, sql_query, grid_pos):
+# Helper to build percentage gauge panel displaying all 4 gauges side-by-side
+def build_pct_gauge_panel(panel_id, title, sql_query, grid_pos):
     return {
         "datasource": {
             "type": "mssql",
@@ -58,7 +58,7 @@ def build_pct_gauge(panel_id, title, sql_query, grid_pos):
                 "calcs": [
                     "lastNotNull"
                 ],
-                "fields": "/^Valor$/",
+                "fields": "/^(Elevación|Descenso) (Con|Sin) Carga$/",
                 "values": False
             },
             "showThresholdLabels": False,
@@ -77,8 +77,8 @@ def build_pct_gauge(panel_id, title, sql_query, grid_pos):
         "type": "gauge"
     }
 
-# Helper to build seconds gauge with configFromData thresholds (dynamic Min/Max)
-def build_sec_gauge(panel_id, title, sql_query, grid_pos):
+# Helper to build seconds gauge panel displaying 4 gauges side-by-side with dynamic thresholds
+def build_sec_gauge_panel(panel_id, title, sql_query, grid_pos):
     return {
         "datasource": {
             "type": "mssql",
@@ -123,7 +123,7 @@ def build_sec_gauge(panel_id, title, sql_query, grid_pos):
                 "calcs": [
                     "lastNotNull"
                 ],
-                "fields": "/^Valor$/",
+                "fields": "/^(Elevación|Descenso) (Con|Sin) Carga$/",
                 "values": False
             },
             "showThresholdLabels": True,
@@ -138,19 +138,18 @@ def build_sec_gauge(panel_id, title, sql_query, grid_pos):
                 "refId": "A"
             }
         ],
-        "title": title,
         "transformations": [
             {
                 "id": "configFromData",
                 "options": {
                     "applyTo": {
                         "id": "byName",
-                        "options": "Valor"
+                        "options": "Elevación Con Carga"
                     },
                     "configRefId": "A",
                     "mappings": [
                         {
-                            "fieldName": "Min",
+                            "fieldName": "Elevación Con Carga Min",
                             "handlerArguments": {
                                 "threshold": {
                                     "color": "#2FD06A"
@@ -159,7 +158,97 @@ def build_sec_gauge(panel_id, title, sql_query, grid_pos):
                             "handlerKey": "threshold1"
                         },
                         {
-                            "fieldName": "Max",
+                            "fieldName": "Elevación Con Carga Max",
+                            "handlerArguments": {
+                                "threshold": {
+                                    "color": "#E32636"
+                                }
+                            },
+                            "handlerKey": "threshold2"
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "configFromData",
+                "options": {
+                    "applyTo": {
+                        "id": "byName",
+                        "options": "Elevación Sin Carga"
+                    },
+                    "configRefId": "A",
+                    "mappings": [
+                        {
+                            "fieldName": "Elevación Sin Carga Min",
+                            "handlerArguments": {
+                                "threshold": {
+                                    "color": "#2FD06A"
+                                }
+                            },
+                            "handlerKey": "threshold1"
+                        },
+                        {
+                            "fieldName": "Elevación Sin Carga Max",
+                            "handlerArguments": {
+                                "threshold": {
+                                    "color": "#E32636"
+                                }
+                            },
+                            "handlerKey": "threshold2"
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "configFromData",
+                "options": {
+                    "applyTo": {
+                        "id": "byName",
+                        "options": "Descenso Con Carga"
+                    },
+                    "configRefId": "A",
+                    "mappings": [
+                        {
+                            "fieldName": "Descenso Con Carga Min",
+                            "handlerArguments": {
+                                "threshold": {
+                                    "color": "#2FD06A"
+                                }
+                            },
+                            "handlerKey": "threshold1"
+                        },
+                        {
+                            "fieldName": "Descenso Con Carga Max",
+                            "handlerArguments": {
+                                "threshold": {
+                                    "color": "#E32636"
+                                }
+                            },
+                            "handlerKey": "threshold2"
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "configFromData",
+                "options": {
+                    "applyTo": {
+                        "id": "byName",
+                        "options": "Descenso Sin Carga"
+                    },
+                    "configRefId": "A",
+                    "mappings": [
+                        {
+                            "fieldName": "Descenso Sin Carga Min",
+                            "handlerArguments": {
+                                "threshold": {
+                                    "color": "#2FD06A"
+                                }
+                            },
+                            "handlerKey": "threshold1"
+                        },
+                        {
+                            "fieldName": "Descenso Sin Carga Max",
                             "handlerArguments": {
                                 "threshold": {
                                     "color": "#E32636"
@@ -187,19 +276,28 @@ def build_row(panel_id, title, grid_pos):
 
 def main():
     # 1. Base query blocks for percentage calculations
-    def get_hist_pct_query(family_cond, measured, min_col, max_col):
+    def get_hist_pct_query(family_cond):
         return f"""
         SELECT 
-          AVG(CASE WHEN COALESCE({max_col}, 6.0) > COALESCE({min_col}, 1.0) 
-            THEN (COALESCE({measured}, 0.0) - COALESCE({min_col}, 1.0)) / (COALESCE({max_col}, 6.0) - COALESCE({min_col}, 1.0)) * 100.0 
-            ELSE 50.0 END) AS [Valor]
+          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) 
+            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 
+            ELSE 50.0 END) AS [Elevación Con Carga],
+          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) 
+            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 
+            ELSE 50.0 END) AS [Elevación Sin Carga],
+          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) 
+            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 
+            ELSE 50.0 END) AS [Descenso Con Carga],
+          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) 
+            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 
+            ELSE 50.0 END) AS [Descenso Sin Carga]
         FROM LOG_TABLA 
         WHERE OK_NOK = 'OK'
           AND {family_cond}
           AND $__timeFilter(fecha_creacion)
         """
 
-    def get_recent_pct_query(family_cond, measured, min_col, max_col):
+    def get_recent_pct_query(family_cond):
         return f"""
         WITH Last50 AS (
             SELECT TOP 50 *
@@ -209,20 +307,41 @@ def main():
               ORDER BY fecha_creacion DESC
         )
         SELECT 
-          AVG(CASE WHEN COALESCE({max_col}, 6.0) > COALESCE({min_col}, 1.0) 
-            THEN (COALESCE({measured}, 0.0) - COALESCE({min_col}, 1.0)) / (COALESCE({max_col}, 6.0) - COALESCE({min_col}, 1.0)) * 100.0 
-            ELSE 50.0 END) AS [Valor]
+          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) 
+            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0)) * 100.0 
+            ELSE 50.0 END) AS [Elevación Con Carga],
+          AVG(CASE WHEN COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) 
+            THEN (COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0)) * 100.0 
+            ELSE 50.0 END) AS [Elevación Sin Carga],
+          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) 
+            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0)) * 100.0 
+            ELSE 50.0 END) AS [Descenso Con Carga],
+          AVG(CASE WHEN COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) > COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) 
+            THEN (COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) / (COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) - COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0)) * 100.0 
+            ELSE 50.0 END) AS [Descenso Sin Carga]
         FROM Last50
         """
 
-    def get_bastidor_sec_query(measured, min_col, max_col):
-        return f"""
-        SELECT TOP 1 
-          COALESCE({measured}, 0.0) AS [Valor],
-          COALESCE({min_col}, 1.0) AS [Min],
-          COALESCE({max_col}, 6.0) AS [Max]
-        FROM LOG_TABLA 
-        WHERE NBASTIDOR = '${{selected_bastidor}}'
+    def get_bastidor_sec_query():
+        return """
+        SELECT TOP 1
+          COALESCE(TIEMPO_ELEVACION_MEDIDO_CARGA, 0.0) AS [Elevación Con Carga],
+          COALESCE(TIEMPO_ELEVACION_MIN_CARGA, 1.0) AS [Elevación Con Carga Min],
+          COALESCE(TIEMPO_ELEVACION_MAX_CARGA, 6.0) AS [Elevación Con Carga Max],
+          
+          COALESCE(TIEMPO_ELEVACION_MEDIDO_SINCARGA, 0.0) AS [Elevación Sin Carga],
+          COALESCE(TIEMPO_ELEVACION_MIN_SINCARGA, 1.0) AS [Elevación Sin Carga Min],
+          COALESCE(TIEMPO_ELEVACION_MAX_SINCARGA, 6.0) AS [Elevación Sin Carga Max],
+          
+          COALESCE(TIEMPO_DESCENSO_MEDIDO_CARGA, 0.0) AS [Descenso Con Carga],
+          COALESCE(TIEMPO_DESCENSO_MIN_CARGA, 1.0) AS [Descenso Con Carga Min],
+          COALESCE(TIEMPO_DESCENSO_MAX_CARGA, 6.0) AS [Descenso Con Carga Max],
+          
+          COALESCE(TIEMPO_DESCENSO_MEDIDO_SINCARGA, 0.0) AS [Descenso Sin Carga],
+          COALESCE(TIEMPO_DESCENSO_MIN_SINCARGA, 1.0) AS [Descenso Sin Carga Min],
+          COALESCE(TIEMPO_DESCENSO_MAX_SINCARGA, 6.0) AS [Descenso Sin Carga Max]
+        FROM LOG_TABLA
+        WHERE NBASTIDOR = '${selected_bastidor}'
         ORDER BY fecha_creacion DESC
         """
 
@@ -231,14 +350,6 @@ def main():
         "XL": "(NMODELO LIKE 'XL%')",
         "M2": "(NMODELO LIKE 'MX%')"
     }
-
-    metrics = [
-        # (name, measured, min_col, max_col)
-        ("Elevación Con Carga", "TIEMPO_ELEVACION_MEDIDO_CARGA", "TIEMPO_ELEVACION_MIN_CARGA", "TIEMPO_ELEVACION_MAX_CARGA"),
-        ("Elevación Sin Carga", "TIEMPO_ELEVACION_MEDIDO_SINCARGA", "TIEMPO_ELEVACION_MIN_SINCARGA", "TIEMPO_ELEVACION_MAX_SINCARGA"),
-        ("Descenso Con Carga", "TIEMPO_DESCENSO_MEDIDO_CARGA", "TIEMPO_DESCENSO_MIN_CARGA", "TIEMPO_DESCENSO_MAX_CARGA"),
-        ("Descenso Sin Carga", "TIEMPO_DESCENSO_MEDIDO_SINCARGA", "TIEMPO_DESCENSO_MIN_SINCARGA", "TIEMPO_DESCENSO_MAX_SINCARGA"),
-    ]
 
     panels = []
     pid_counter = 100
@@ -255,12 +366,10 @@ def main():
         pid_counter += 1
         y_pos += 1
 
-        for i, (m_name, measured, min_col, max_col) in enumerate(metrics):
-            sql = get_hist_pct_query(fam_cond, measured, min_col, max_col)
-            grid = {"h": 6, "w": 6, "x": i * 6, "y": y_pos}
-            panels.append(build_pct_gauge(pid_counter, f"{m_name} ({fam_name})", sql, grid))
-            pid_counter += 1
-        
+        sql = get_hist_pct_query(fam_cond)
+        grid = {"h": 6, "w": 24, "x": 0, "y": y_pos}
+        panels.append(build_pct_gauge_panel(pid_counter, f"Regulación de Ciclos - {fam_name} (%)", sql, grid))
+        pid_counter += 1
         y_pos += 6
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -270,12 +379,10 @@ def main():
     pid_counter += 1
     y_pos += 1
 
-    for i, (m_name, measured, min_col, max_col) in enumerate(metrics):
-        sql = get_bastidor_sec_query(measured, min_col, max_col)
-        grid = {"h": 6, "w": 6, "x": i * 6, "y": y_pos}
-        panels.append(build_sec_gauge(pid_counter, f"{m_name} (Segundos)", sql, grid))
-        pid_counter += 1
-    
+    sql = get_bastidor_sec_query()
+    grid = {"h": 6, "w": 24, "x": 0, "y": y_pos}
+    panels.append(build_sec_gauge_panel(pid_counter, "Tiempos Medidos y Límites (Segundos)", sql, grid))
+    pid_counter += 1
     y_pos += 6
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -290,12 +397,10 @@ def main():
         pid_counter += 1
         y_pos += 1
 
-        for i, (m_name, measured, min_col, max_col) in enumerate(metrics):
-            sql = get_recent_pct_query(fam_cond, measured, min_col, max_col)
-            grid = {"h": 6, "w": 6, "x": i * 6, "y": y_pos}
-            panels.append(build_pct_gauge(pid_counter, f"{m_name} Reciente ({fam_name})", sql, grid))
-            pid_counter += 1
-        
+        sql = get_recent_pct_query(fam_cond)
+        grid = {"h": 6, "w": 24, "x": 0, "y": y_pos}
+        panels.append(build_pct_gauge_panel(pid_counter, f"Estabilidad de Ciclos - {fam_name} (%)", sql, grid))
+        pid_counter += 1
         y_pos += 6
 
     # Load existing template to preserve metadata like links, tags, etc.
@@ -380,7 +485,7 @@ def main():
         "dashboard": dashboard,
         "folderId": 13, # Folder "Logisnext MES" has id 13
         "overwrite": True,
-        "message": "Rediseño completo de distribuidor con bloques 1, 2, 3"
+        "message": "Agrupamiento de gauges dentro de la misma ventana"
     }
     
     req = urllib.request.Request(
