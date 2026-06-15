@@ -294,7 +294,7 @@ def main():
         FROM LOG_TABLA 
         WHERE OK_NOK = 'OK'
           AND {family_cond}
-          AND CAST(fecha_creacion AS DATE) BETWEEN '${{fecha_desde}}' AND '${{fecha_hasta}}'
+          AND $__timeFilter(fecha_creacion)
         """
 
     def get_recent_pct_query(family_cond):
@@ -440,54 +440,6 @@ def main():
                     "name": "selected_bastidor",
                     "options": [],
                     "query": "SELECT NBASTIDOR FROM (SELECT DISTINCT NBASTIDOR, MAX(fecha_creacion) as max_f FROM LOG_TABLA GROUP BY NBASTIDOR) AS t ORDER BY max_f DESC",
-                    "refresh": 1,
-                    "regex": "",
-                    "skipUrlSync": False,
-                    "sort": 0,
-                    "type": "query"
-                },
-                {
-                    "current": {
-                        "selected": True,
-                        "value": "2026-06-01",
-                        "text": "2026-06-01"
-                    },
-                    "datasource": {
-                        "type": "mssql",
-                        "uid": DATASOURCE_UID
-                    },
-                    "definition": "SELECT DISTINCT CONVERT(VARCHAR(10), fecha_creacion, 120) FROM LOG_TABLA ORDER BY 1 ASC",
-                    "hide": 0,
-                    "includeAll": False,
-                    "label": "Fecha Desde",
-                    "multi": False,
-                    "name": "fecha_desde",
-                    "options": [],
-                    "query": "SELECT DISTINCT CONVERT(VARCHAR(10), fecha_creacion, 120) FROM LOG_TABLA ORDER BY 1 ASC",
-                    "refresh": 1,
-                    "regex": "",
-                    "skipUrlSync": False,
-                    "sort": 0,
-                    "type": "query"
-                },
-                {
-                    "current": {
-                        "selected": True,
-                        "value": "2026-06-15",
-                        "text": "2026-06-15"
-                    },
-                    "datasource": {
-                        "type": "mssql",
-                        "uid": DATASOURCE_UID
-                    },
-                    "definition": "SELECT DISTINCT CONVERT(VARCHAR(10), fecha_creacion, 120) FROM LOG_TABLA ORDER BY 1 DESC",
-                    "hide": 0,
-                    "includeAll": False,
-                    "label": "Fecha Hasta",
-                    "multi": False,
-                    "name": "fecha_hasta",
-                    "options": [],
-                    "query": "SELECT DISTINCT CONVERT(VARCHAR(10), fecha_creacion, 120) FROM LOG_TABLA ORDER BY 1 DESC",
                     "refresh": 1,
                     "regex": "",
                     "skipUrlSync": False,
