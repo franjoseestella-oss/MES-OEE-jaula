@@ -19,7 +19,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 5,
   "links": [
     {
       "asDropdown": false,
@@ -180,9 +179,9 @@
       },
       "gridPos": {
         "h": 20,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 0
+        "y": 9
       },
       "id": 9,
       "options": {
@@ -210,7 +209,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT id AS [ID], OK_NOK AS [Resultado], fecha_creacion AS [Fecha Creación], COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS [Fecha Montaje], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA    AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA    AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA    AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA    AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND OK_NOK = 'OK' ORDER BY fecha_creacion DESC",
+          "rawSql": "SELECT id AS [ID], OK_NOK AS [Resultado], fecha_creacion AS [Fecha Creación], COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS [Fecha Montaje], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA    AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA    AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA    AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA    AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND OK_NOK = 'OK' AND ('${selected_bastidor}' = 'ALL' OR NBASTIDOR = '${selected_bastidor}') ORDER BY fecha_creacion DESC",
           "refId": "A"
         }
       ],
@@ -308,9 +307,9 @@
       },
       "gridPos": {
         "h": 20,
-        "w": 12,
-        "x": 12,
-        "y": 0
+        "w": 24,
+        "x": 0,
+        "y": 29
       },
       "id": 16,
       "options": {
@@ -338,11 +337,147 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT id AS [ID], OK_NOK AS [Resultado], fecha_creacion AS [Fecha Creación], COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS [Fecha Montaje], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA    AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA    AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA    AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA    AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND OK_NOK = 'NOK' ORDER BY fecha_creacion DESC",
+          "rawSql": "SELECT id AS [ID], OK_NOK AS [Resultado], fecha_creacion AS [Fecha Creación], COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS [Fecha Montaje], OPERARIO AS [Operario], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], NMASTIL AS [Mástil], PESO_PRUEBA AS [Peso (kg)], CARGA_GET AS [Carga Medida], TIEMPO_ELEVACION_MIN_SINCARGA AS [Elev Sin Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA    AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Sin Carga (s)], TIEMPO_ELEVACION_MAX_SINCARGA AS [Elev Sin Carga Máx (s)], TIEMPO_DESCENSO_MIN_SINCARGA AS [Desc Sin Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA    AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Sin Carga (s)], TIEMPO_DESCENSO_MAX_SINCARGA AS [Desc Sin Carga Máx (s)], TIEMPO_ELEVACION_MIN_CARGA AS [Elev Carga Mín (s)], CASE   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA    AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Elev Carga (s)], TIEMPO_ELEVACION_MAX_CARGA AS [Elev Carga Máx (s)], TIEMPO_DESCENSO_MIN_CARGA AS [Desc Carga Mín (s)], CASE   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''   WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL   THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA    AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA   THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'   ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s' END AS [Desc Carga (s)], TIEMPO_DESCENSO_MAX_CARGA AS [Desc Carga Máx (s)], DURACION_SEC AS [Duración] FROM LOG_TABLA WHERE fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() AND OK_NOK = 'NOK' AND ('${selected_bastidor}' = 'ALL' OR NBASTIDOR = '${selected_bastidor}') ORDER BY fecha_creacion DESC",
           "refId": "A"
         }
       ],
       "title": "🔴 REGISTRO DETALLADO DE PRUEBAS NOK",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Resultado"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "OK": {
+                        "color": "#2FD06A",
+                        "text": "OK"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "NOK": {
+                        "color": "#E32636",
+                        "text": "NOK"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Nº Sec"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ID"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 50
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 20,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": true,
+          "enablePagination": true,
+          "fields": [
+            ""
+          ],
+          "reducer": [
+            "count"
+          ],
+          "show": true
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Nº Sec"
+          },
+          {
+            "desc": true,
+            "displayName": "Fecha Creación"
+          }
+        ]
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT id AS [ID], NSECUENCIA AS [Nº Sec], NBASTIDOR AS [Bastidor], NMODELO AS [Modelo], OK_NOK AS [Resultado], fecha_creacion AS [Fecha Creación], COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS [Fecha Montaje], OPERARIO AS [Operario], DURACION_SEC AS [Duración], REPETICIONES_SECUENCIA AS [Repeticiones] FROM LOG_TABLA WHERE ('${selected_bastidor}' = 'ALL' OR NBASTIDOR = '${selected_bastidor}') AND fecha_creacion >= $__timeFrom() AND fecha_creacion <= $__timeTo() ORDER BY NSECUENCIA ASC, fecha_creacion DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "📋 LISTADO DE SECUENCIAS",
       "type": "table"
     }
   ],
@@ -357,47 +492,29 @@
   "templating": {
     "list": [
       {
+        "allValue": "ALL",
         "current": {
-          "selected": true,
-          "text": "Último (Por defecto)",
-          "value": "latest"
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
+          "type": "mssql",
           "uid": "mes_sqlserver"
         },
-        "definition": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "definition": "SELECT DISTINCT NBASTIDOR FROM LOG_TABLA ORDER BY NBASTIDOR",
         "hide": 0,
-        "includeAll": false,
-        "label": "Filtro Prueba",
+        "includeAll": true,
+        "label": "Bastidor",
         "multi": false,
-        "name": "selected_id",
+        "name": "selected_bastidor",
         "options": [],
-        "query": "SELECT [__value], [__text] FROM (SELECT 'latest' AS [__value], 'Último (Por defecto)' AS [__text], 999999999 AS [sort_order] UNION ALL SELECT CAST(id AS VARCHAR) AS [__value], CONCAT('Prueba #', id, ' (', NBASTIDOR, ')') AS [__text], id AS [sort_order] FROM LOG_TABLA) AS t ORDER BY sort_order DESC",
+        "query": "SELECT DISTINCT NBASTIDOR FROM LOG_TABLA ORDER BY NBASTIDOR",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
+        "sort": 1,
         "type": "query"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "85",
-          "value": "85"
-        },
-        "hide": 0,
-        "label": "Objetivo OEE (%)",
-        "name": "objetivo_oee",
-        "options": [
-          {
-            "selected": true,
-            "text": "85",
-            "value": "85"
-          }
-        ],
-        "query": "85",
-        "skipUrlSync": false,
-        "type": "textbox"
       }
     ]
   },
@@ -409,6 +526,5 @@
   "timezone": "browser",
   "title": "LOGISNEXT — REGISTRO",
   "uid": "mes-reg-v1",
-  "version": 26,
   "weekStart": ""
 }
