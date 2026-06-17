@@ -595,12 +595,16 @@
       },
       "gridPos": {
         "h": 12,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 70
       },
       "id": 21,
       "options": {
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
         "legend": {
           "calcs": [
             "value"
@@ -635,6 +639,114 @@
       ],
       "title": "📊 RESUMEN DE PRODUCCIÓN POR TIPO DE MÁQUINA (OK / NOK)",
       "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "OK"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2FD06A",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NOK"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E32636",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 70
+      },
+      "id": 22,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": [],
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT\n  CASE\n    WHEN NMODELO LIKE 'XL%' THEN 'XL'\n    WHEN NMODELO LIKE 'MX%' THEN 'M2'\n    WHEN NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%' THEN 'M11'\n    ELSE 'Otros'\n  END AS [Máquina],\n  SUM(CASE WHEN OK_NOK = 'OK' THEN 1 ELSE 0 END) AS [OK],\n  SUM(CASE WHEN OK_NOK = 'NOK' THEN 1 ELSE 0 END) AS [NOK],\n  COUNT(*) AS [Total]\nFROM LOG_TABLA\nWHERE (NMODELO LIKE 'XL%' OR NMODELO LIKE 'MX%' OR NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%')\n  AND $__timeFilter(fecha_creacion)\nGROUP BY\n  CASE\n    WHEN NMODELO LIKE 'XL%' THEN 'XL'\n    WHEN NMODELO LIKE 'MX%' THEN 'M2'\n    WHEN NMODELO LIKE 'FD%' OR NMODELO LIKE 'FG%' THEN 'M11'\n    ELSE 'Otros'\n  END",
+          "refId": "A"
+        }
+      ],
+      "title": "📋 RESUMEN DE PRUEBAS POR MÁQUINA (OK / NOK)",
+      "type": "table"
     }
   ],
   "refresh": "10s",
