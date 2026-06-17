@@ -106,7 +106,7 @@ for panel in db.get("panels", []):
             elif panel_id == 16:
                 target["rawSql"] = f"{select_fields} WHERE OK_NOK = 'NOK' ORDER BY id DESC"
             elif panel_id == 20:
-                target["rawSql"] = f"{select_fields} WHERE ('${{selected_bastidor}}' = 'ALL' OR NBASTIDOR = '${{selected_bastidor}}') ORDER BY NSECUENCIA ASC, id DESC"
+                target["rawSql"] = f"{select_fields} WHERE ('${{selected_bastidor:raw}}' = 'ALL' OR NBASTIDOR = '${{selected_bastidor:raw}}') ORDER BY NSECUENCIA ASC, id DESC"
         
         # 2. Update fieldOverrides
         if "fieldConfig" in panel and "overrides" in panel["fieldConfig"]:
