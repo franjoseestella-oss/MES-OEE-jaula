@@ -11,8 +11,14 @@ PASS = "admin123"
 auth = base64.b64encode(f"{USER}:{PASS}".encode()).decode()
 headers = {"Authorization": f"Basic {auth}", "Content-Type": "application/json"}
 
+def safe_print(text):
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        print(text.encode('ascii', 'replace').decode('ascii'))
+
 def push_dashboard(filepath, message):
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, 'r', encoding='utf-8-sig') as f:
         dashboard = json.load(f)
         
     # Remove version and ID before pushing to prevent version conflicts
@@ -31,7 +37,7 @@ def push_dashboard(filepath, message):
                     folder_id = fld.get("id", 0)
                     break
     except Exception as e:
-        print(f"Error fetching folders: {e}")
+        safe_print(f"Error fetching folders: {e}")
     
     payload = {
         "dashboard": dashboard_to_push,
@@ -48,7 +54,7 @@ def push_dashboard(filepath, message):
     try:
         with urllib.request.urlopen(req) as resp:
             result = json.loads(resp.read().decode("utf-8"))
-            print(f"Pushed {dashboard.get('title')} to Grafana. Status: {result.get('status')} | Version: {result.get('version')}")
+            safe_print(f"Pushed {dashboard.get('title')} to Grafana. Status: {result.get('status')} | Version: {result.get('version')}")
             
             # Fetch the updated dashboard back to keep the file fully synced with ID and version
             uid = dashboard.get('uid')
@@ -59,9 +65,9 @@ def push_dashboard(filepath, message):
                 
             with open(filepath, "w", encoding="utf-8") as fw:
                 json.dump(final_dashboard, fw, indent=2, ensure_ascii=False)
-            print(f"Synced back and updated {filepath}")
+            safe_print(f"Synced back and updated {filepath}")
     except urllib.error.HTTPError as e:
-        print(f"HTTP Error {e.code} for {dashboard.get('title')}: {e.read().decode()}")
+        safe_print(f"HTTP Error {e.code} for {dashboard.get('title')}: {e.read().decode()}")
 
 def main():
     dashboard_dir = 'grafana/provisioning/dashboards'
