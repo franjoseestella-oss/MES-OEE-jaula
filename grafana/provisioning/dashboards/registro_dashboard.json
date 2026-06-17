@@ -91,6 +91,142 @@
   "panels": [
     {
       "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "OK_NOK"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "OK": {
+                        "color": "#2FD06A",
+                        "text": "OK"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "NOK": {
+                        "color": "#E32636",
+                        "text": "NOK"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NSECUENCIA"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 50
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 30,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 20,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": true,
+          "enablePagination": true,
+          "fields": [
+            ""
+          ],
+          "reducer": [
+            "count"
+          ],
+          "show": true
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "NSECUENCIA"
+          },
+          {
+            "desc": true,
+            "displayName": "id"
+          }
+        ]
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT\n  id AS id,\n  OPERARIO AS OPERARIO,\n  COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS FECHA_MONTAJE,\n  NSECUENCIA AS NSECUENCIA,\n  NMODELO AS NMODELO,\n  NBASTIDOR AS NBASTIDOR,\n  OK_NOK AS OK_NOK,\n  NMASTIL AS NMASTIL,\n  ALTURA_MAX_INTERMEDIA AS ALTURA_MAX_INTERMEDIA,\n  ESTADO_MULTILOAD AS ESTADO_MULTILOAD,\n  TIEMPO_ELEVACION_MIN_SINCARGA AS TIEMPO_ELEVACION_MIN_SINCARGA,\n  TIEMPO_ELEVACION_MAX_SINCARGA AS TIEMPO_ELEVACION_MAX_SINCARGA,\n  CASE\n    WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''\n    WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL\n    THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA\n     AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA\n    THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n  END AS TIEMPO_ELEVACION_MEDIDO_SINCARGA,\n  TIEMPO_DESCENSO_MIN_SINCARGA AS TIEMPO_DESCENSO_MIN_SINCARGA,\n  TIEMPO_DESCENSO_MAX_SINCARGA AS TIEMPO_DESCENSO_MAX_SINCARGA,\n  CASE\n    WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''\n    WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL\n    THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA\n     AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA\n    THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n  END AS TIEMPO_DESCENSO_MEDIDO_SINCARGA,\n  ESTADO_SINCARGA AS ESTADO_SINCARGA,\n  TIEMPO_ELEVACION_MIN_CARGA AS TIEMPO_ELEVACION_MIN_CARGA,\n  TIEMPO_ELEVACION_MAX_CARGA AS TIEMPO_ELEVACION_MAX_CARGA,\n  CASE\n    WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''\n    WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL\n    THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA\n     AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA\n    THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n  END AS TIEMPO_ELEVACION_MEDIDO_CARGA,\n  TIEMPO_DESCENSO_MIN_CARGA AS TIEMPO_DESCENSO_MIN_CARGA,\n  TIEMPO_DESCENSO_MAX_CARGA AS TIEMPO_DESCENSO_MAX_CARGA,\n  CASE\n    WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''\n    WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL\n    THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA\n     AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA\n    THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n  END AS TIEMPO_DESCENSO_MEDIDO_CARGA,\n  ESTADO_CARGA AS ESTADO_CARGA,\n  CARGA_CONSIGNADA AS CARGA_CONSIGNADA,\n  CARGA_GET AS CARGA_GET,\n  PESO_PRUEBA AS PESO_PRUEBA,\n  ALTURA_INICIAL AS ALTURA_INICIAL,\n  ALTURA_FINAL AS ALTURA_FINAL,\n  DIFERENCIA_ALTURAS AS DIFERENCIA_ALTURAS,\n  ESTADO_CARGA_5_MIN AS ESTADO_CARGA_5_MIN,\n  FECHA_HORA_INICIO_SEC AS FECHA_HORA_INICIO_SEC,\n  FECHA_HORA_FIN_SEC AS FECHA_HORA_FIN_SEC,\n  DURACION_SEC AS DURACION_SEC\nFROM LOG_TABLA WHERE ('${selected_bastidor:raw}' = 'ALL' OR NBASTIDOR = '${selected_bastidor:raw}') ORDER BY NSECUENCIA ASC, id DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "📋 LISTADO DE SECUENCIAS",
+      "type": "table"
+    },
+    {
+      "datasource": {
         "uid": "mes_sqlserver"
       },
       "fieldConfig": {
@@ -353,142 +489,6 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true,
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "OK_NOK"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "OK": {
-                        "color": "#2FD06A",
-                        "text": "OK"
-                      }
-                    },
-                    "type": "value"
-                  },
-                  {
-                    "options": {
-                      "NOK": {
-                        "color": "#E32636",
-                        "text": "NOK"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "NSECUENCIA"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 70
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "id"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 50
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 30,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 20,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": true,
-          "enablePagination": true,
-          "fields": [
-            ""
-          ],
-          "reducer": [
-            "count"
-          ],
-          "show": true
-        },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": false,
-            "displayName": "NSECUENCIA"
-          },
-          {
-            "desc": true,
-            "displayName": "id"
-          }
-        ]
-      },
-      "pluginVersion": "10.4.2",
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT\n  id AS id,\n  OPERARIO AS OPERARIO,\n  COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS FECHA_MONTAJE,\n  NSECUENCIA AS NSECUENCIA,\n  NMODELO AS NMODELO,\n  NBASTIDOR AS NBASTIDOR,\n  OK_NOK AS OK_NOK,\n  NMASTIL AS NMASTIL,\n  ALTURA_MAX_INTERMEDIA AS ALTURA_MAX_INTERMEDIA,\n  ESTADO_MULTILOAD AS ESTADO_MULTILOAD,\n  TIEMPO_ELEVACION_MIN_SINCARGA AS TIEMPO_ELEVACION_MIN_SINCARGA,\n  TIEMPO_ELEVACION_MAX_SINCARGA AS TIEMPO_ELEVACION_MAX_SINCARGA,\n  CASE\n    WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''\n    WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL\n    THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA\n     AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA\n    THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n  END AS TIEMPO_ELEVACION_MEDIDO_SINCARGA,\n  TIEMPO_DESCENSO_MIN_SINCARGA AS TIEMPO_DESCENSO_MIN_SINCARGA,\n  TIEMPO_DESCENSO_MAX_SINCARGA AS TIEMPO_DESCENSO_MAX_SINCARGA,\n  CASE\n    WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''\n    WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL\n    THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA\n     AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA\n    THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n  END AS TIEMPO_DESCENSO_MEDIDO_SINCARGA,\n  ESTADO_SINCARGA AS ESTADO_SINCARGA,\n  TIEMPO_ELEVACION_MIN_CARGA AS TIEMPO_ELEVACION_MIN_CARGA,\n  TIEMPO_ELEVACION_MAX_CARGA AS TIEMPO_ELEVACION_MAX_CARGA,\n  CASE\n    WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''\n    WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL\n    THEN CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA\n     AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA\n    THEN N'🟢 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    ELSE N'🔴 ' + CAST(CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n  END AS TIEMPO_ELEVACION_MEDIDO_CARGA,\n  TIEMPO_DESCENSO_MIN_CARGA AS TIEMPO_DESCENSO_MIN_CARGA,\n  TIEMPO_DESCENSO_MAX_CARGA AS TIEMPO_DESCENSO_MAX_CARGA,\n  CASE\n    WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''\n    WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL\n    THEN CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA\n     AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA\n    THEN N'🟢 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n    ELSE N'🔴 ' + CAST(CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(10,2)) AS VARCHAR) + ' s'\n  END AS TIEMPO_DESCENSO_MEDIDO_CARGA,\n  ESTADO_CARGA AS ESTADO_CARGA,\n  CARGA_CONSIGNADA AS CARGA_CONSIGNADA,\n  CARGA_GET AS CARGA_GET,\n  PESO_PRUEBA AS PESO_PRUEBA,\n  ALTURA_INICIAL AS ALTURA_INICIAL,\n  ALTURA_FINAL AS ALTURA_FINAL,\n  DIFERENCIA_ALTURAS AS DIFERENCIA_ALTURAS,\n  ESTADO_CARGA_5_MIN AS ESTADO_CARGA_5_MIN,\n  FECHA_HORA_INICIO_SEC AS FECHA_HORA_INICIO_SEC,\n  FECHA_HORA_FIN_SEC AS FECHA_HORA_FIN_SEC,\n  DURACION_SEC AS DURACION_SEC\nFROM LOG_TABLA WHERE ('${selected_bastidor:raw}' = 'ALL' OR NBASTIDOR = '${selected_bastidor:raw}') ORDER BY NSECUENCIA ASC, id DESC",
-          "refId": "A"
-        }
-      ],
-      "title": "📋 LISTADO DE SECUENCIAS",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
             "mode": "palette-classic"
           },
           "custom": {
@@ -615,7 +615,7 @@
             "lastNotNull"
           ],
           "fields": "",
-          "values": false
+          "values": true
         },
         "tooltip": {
           "mode": "single",
@@ -682,6 +682,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — REGISTRO",
   "uid": "mes-reg-v1",
-  "version": 41,
+  "version": 50,
   "weekStart": ""
 }
