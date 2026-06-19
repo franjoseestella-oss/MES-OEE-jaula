@@ -564,7 +564,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  COALESCE(CONVERT(varchar(10), TRY_CAST(Fecha AS DATE), 103), '') AS [Fecha],\n  Tipo_Dia AS [Tipo de Día],\n  CASE WHEN Laborable = 1 THEN 'Sí' ELSE 'No' END AS [Laborable],\n  Cant_A_Fabricar AS [Unidades a Fabricar]\nFROM dbo.CALENDARIO_LABORAL\nWHERE $__timeFilter(Fecha)\nORDER BY Fecha ASC",
+          "rawSql": "SELECT\n  COALESCE(CONVERT(varchar(10), TRY_CAST(Fecha AS DATE), 103), '') AS [Fecha],\n  Tipo_Dia AS [Tipo de Día],\n  CASE WHEN Laborable = 1 THEN 'Sí' ELSE 'No' END AS [Laborable],\n  Cant_A_Fabricar AS [Unidades a Fabricar]\nFROM dbo.CALENDARIO_LABORAL\nORDER BY Fecha ASC",
           "refId": "A"
         }
       ],
