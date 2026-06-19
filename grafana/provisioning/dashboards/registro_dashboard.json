@@ -590,6 +590,32 @@
                 }
               }
             ]
+          },
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "Cantidad",
+                  "M2 - NOK",
+                  "M11 - OK"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
           }
         ]
       },
@@ -794,6 +820,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — REGISTRO",
   "uid": "mes-reg-v1",
-  "version": 64,
+  "version": 66,
   "weekStart": ""
 }

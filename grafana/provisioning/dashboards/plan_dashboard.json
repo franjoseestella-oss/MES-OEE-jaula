@@ -273,10 +273,50 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "stepAfter",
-            "lineWidth": 2
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
           }
         },
         "overrides": [
@@ -367,7 +407,9 @@
         "defaults": {
           "custom": {
             "align": "auto",
-            "displayMode": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
             "inspect": false
           },
           "mappings": [],
@@ -461,21 +503,6 @@
       "type": "table"
     },
     {
-      "gridPos": {
-        "h": 2,
-        "w": 4,
-        "x": 0,
-        "y": 30
-      },
-      "id": 6,
-      "options": {
-        "content": "<div style=\"display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: 'Inter', -apple-system, sans-serif; background: transparent; padding: 0; margin: 0;\">\n  <a href=\"/d/panel-oee-mes-fabrica\" style=\"display: block; width: 90%; text-align: center; background: #a855f7; color: #ffffff; text-decoration: none; padding: 12px 10px; font-weight: 700; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4); line-height: 1.3;\"\n     onmouseover=\"this.style.background='#b566ff'; this.style.boxShadow='0 6px 20px rgba(168, 85, 247, 0.6)'; this.style.transform='translateY(-1px)';\"\n     onmouseout=\"this.style.background='#a855f7'; this.style.boxShadow='0 4px 14px rgba(168, 85, 247, 0.4)'; this.style.transform='translateY(0)';\">\n    Volver al<br>Inicio\n  </a>\n</div>",
-        "mode": "html"
-      },
-      "title": "",
-      "type": "text"
-    },
-    {
       "datasource": {
         "uid": "mes_sqlserver"
       },
@@ -483,7 +510,9 @@
         "defaults": {
           "custom": {
             "align": "auto",
-            "displayMode": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
             "inspect": false
           },
           "mappings": [],
@@ -535,8 +564,8 @@
         ]
       },
       "gridPos": {
-        "h": 10,
-        "w": 24,
+        "h": 11,
+        "w": 12,
         "x": 0,
         "y": 20
       },
@@ -570,11 +599,30 @@
       ],
       "title": "📅 CALENDARIO LABORAL Y PLANIFICACIÓN DE UNIDADES",
       "type": "table"
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 0,
+        "y": 31
+      },
+      "id": 6,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div style=\"display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: 'Inter', -apple-system, sans-serif; background: transparent; padding: 0; margin: 0;\">\n  <a href=\"/d/panel-oee-mes-fabrica\" style=\"display: block; width: 90%; text-align: center; background: #a855f7; color: #ffffff; text-decoration: none; padding: 12px 10px; font-weight: 700; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4); line-height: 1.3;\"\n     onmouseover=\"this.style.background='#b566ff'; this.style.boxShadow='0 6px 20px rgba(168, 85, 247, 0.6)'; this.style.transform='translateY(-1px)';\"\n     onmouseout=\"this.style.background='#a855f7'; this.style.boxShadow='0 4px 14px rgba(168, 85, 247, 0.4)'; this.style.transform='translateY(0)';\">\n    Volver al<br>Inicio\n  </a>\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "10.4.2",
+      "type": "text"
     }
   ],
   "refresh": "5s",
   "schemaVersion": 39,
-  "style": "dark",
   "tags": [],
   "templating": {
     "list": []
@@ -600,5 +648,6 @@
   "timezone": "browser",
   "title": "PLAN PRODUCCIÓN",
   "uid": "mes-plan-v1",
-  "version": 37
+  "version": 49,
+  "weekStart": ""
 }
