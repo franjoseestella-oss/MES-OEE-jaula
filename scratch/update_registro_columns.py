@@ -102,9 +102,9 @@ for panel in db.get("panels", []):
         if panel.get("targets"):
             target = panel["targets"][0]
             if panel_id == 9:
-                target["rawSql"] = f"{select_fields} WHERE OK_NOK = 'OK' ORDER BY id DESC"
+                target["rawSql"] = f"{select_fields} WHERE OK_NOK = 'OK' AND $__timeFilter(FECHA_HORA_INICIO_SEC) ORDER BY id DESC"
             elif panel_id == 16:
-                target["rawSql"] = f"{select_fields} WHERE OK_NOK = 'NOK' ORDER BY id DESC"
+                target["rawSql"] = f"{select_fields} WHERE OK_NOK = 'NOK' AND $__timeFilter(FECHA_HORA_INICIO_SEC) ORDER BY id DESC"
             elif panel_id == 20:
                 target["rawSql"] = f"{select_fields} WHERE ('${{selected_bastidor:raw}}' = 'ALL' OR NBASTIDOR = '${{selected_bastidor:raw}}') ORDER BY NSECUENCIA ASC, id DESC"
         
