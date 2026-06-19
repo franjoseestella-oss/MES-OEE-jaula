@@ -462,14 +462,14 @@
     },
     {
       "gridPos": {
-        "h": 5,
+        "h": 2,
         "w": 24,
         "x": 0,
         "y": 20
       },
       "id": 6,
       "options": {
-        "content": "<div style=\"display: flex; gap: 20px; align-items: stretch; justify-content: space-between; font-family: 'Inter', -apple-system, sans-serif; background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(168, 85, 247, 0.02) 100%); border: 1px solid rgba(168, 85, 247, 0.25); padding: 20px; border-radius: 8px; color: #ffffff;\">\n  <div style=\"flex: 1;\">\n    <h3 style=\"color: #a855f7; font-size: 1.2rem; margin: 0 0 10px 0; font-weight: 600;\">ℹ️ Lógica Pacing / Pacemaker de Planta</h3>\n    <p style=\"color: #a2aab7; font-size: 0.9rem; margin: 0; line-height: 1.5;\">\n      Este panel compara la producción teórica frente a la real. La lógica teórica inicia cada día a las <strong>07:00 AM</strong> partiendo de la primera secuencia del día. El turno es de 07:00 a 15:00, con parada por almuerzo de 10:00 a 10:25. El avance teórico distribuye uniformemente las secuencias planificadas a lo largo de las 7 horas y 35 minutos de producción activa (455 minutos en total), deteniendo el ritmo teórico durante el descanso.\n    </p>\n  </div>\n  <div style=\"display: flex; align-items: center; justify-content: center; padding-left: 20px; border-left: 1px solid rgba(168, 85, 247, 0.15);\">\n    <a href=\"/d/panel-oee-mes-fabrica\" style=\"display: inline-block; background: #a855f7; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: 600; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);\"\n       onmouseover=\"this.style.background='#b566ff'; this.style.boxShadow='0 6px 16px rgba(168, 85, 247, 0.45)';\"\n       onmouseout=\"this.style.background='#a855f7'; this.style.boxShadow='0 4px 12px rgba(168, 85, 247, 0.3)';\">\n      Volver al Inicio\n    </a>\n  </div>\n</div>",
+        "content": "<div style=\"display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: 'Inter', -apple-system, sans-serif; background: transparent; padding: 0; margin: 0;\">\n  <a href=\"/d/panel-oee-mes-fabrica\" style=\"display: inline-block; background: #a855f7; color: #ffffff; text-decoration: none; padding: 12px 30px; font-weight: 600; border-radius: 6px; font-size: 0.95rem; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);\"\n     onmouseover=\"this.style.background='#b566ff'; this.style.boxShadow='0 6px 20px rgba(168, 85, 247, 0.6)'; this.style.transform='translateY(-1px)';\"\n     onmouseout=\"this.style.background='#a855f7'; this.style.boxShadow='0 4px 14px rgba(168, 85, 247, 0.4)'; this.style.transform='translateY(0)';\">\n    Volver al Inicio\n  </a>\n</div>",
         "mode": "html"
       },
       "title": "",
@@ -538,7 +538,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 22
       },
       "id": 7,
       "options": {
