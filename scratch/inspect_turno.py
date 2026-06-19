@@ -14,10 +14,10 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-# Let's inspect logs for a few chassis/bastidor values
-cursor.execute("SELECT TOP 20 NBASTIDOR, FECHA_MONTAJE, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC, OK_NOK FROM LOG_TABLA ORDER BY id DESC")
+cursor.execute("SELECT * FROM dbo.TURNO_TRABAJO")
 rows = cursor.fetchall()
-print("LOGS IN LOG_TABLA (newest first):")
+colnames = [desc[0] for desc in cursor.description]
+print("Columns:", colnames)
 for r in rows:
     print(r)
 

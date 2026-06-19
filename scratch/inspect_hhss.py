@@ -14,12 +14,15 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-# Let's inspect logs for a few chassis/bastidor values
-cursor.execute("SELECT TOP 20 NBASTIDOR, FECHA_MONTAJE, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC, OK_NOK FROM LOG_TABLA ORDER BY id DESC")
-rows = cursor.fetchall()
-print("LOGS IN LOG_TABLA (newest first):")
-for r in rows:
-    print(r)
+def dump_table(table_name):
+    print(f"\n=================== {table_name} ===================")
+    cursor.execute(f"SELECT n_maq, horario FROM {table_name} ORDER BY n_maq")
+    for r in cursor.fetchall():
+        print(f"Seq: {r[0]} | Time: {r[1]}")
+
+dump_table("dbo.HHSS_18")
+dump_table("dbo.HHSS_18_5")
+dump_table("dbo.HHSS_19")
 
 cursor.close()
 conn.close()
