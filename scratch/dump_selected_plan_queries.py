@@ -1,0 +1,22 @@
+import json
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
+
+filepath = "grafana/provisioning/dashboards/plan_dashboard.json"
+with open(filepath, "r", encoding="utf-8") as f:
+    db = json.load(f)
+
+for panel in db.get("panels", []):
+    title = panel.get("title", "")
+    pid = panel.get("id")
+    if pid in [1, 2, 3, 4]:
+        print(f"==================================================")
+        print(f"Panel ID: {pid} - Title: {title}")
+        print(f"==================================================")
+        for idx, target in enumerate(panel.get("targets", [])):
+            raw_sql = target.get("rawSql", "")
+            if raw_sql:
+                print(f"Target {idx} (refId: {target.get('refId')}):")
+                print(raw_sql)
+                print()

@@ -153,6 +153,16 @@
                 "value": {
                   "type": "color-background"
                 }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Forzar a OK",
+                    "url": "http://localhost:8000/api/v1/sequences/${__data.fields.id}/force-ok"
+                  }
+                ]
               }
             ]
           },
@@ -437,6 +447,16 @@
                 "value": {
                   "type": "color-background"
                 }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Forzar a OK",
+                    "url": "http://localhost:8000/api/v1/sequences/${__data.fields.id}/force-ok"
+                  }
+                ]
               }
             ]
           }

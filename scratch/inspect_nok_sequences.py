@@ -11,13 +11,10 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-cursor.execute("""
-SELECT id, NSECUENCIA, NBASTIDOR, OK_NOK, FECHA_HORA_INICIO_SEC, FECHA_MONTAJE
-FROM LOG_TABLA
-WHERE id BETWEEN 33 AND 37
-ORDER BY id
-""")
-rows = cursor.fetchall()
-print("Logs between 33 and 37:")
-for r in rows:
+# Query LOG_TABLA for NOK
+cursor.execute("SELECT TOP 20 id, NBASTIDOR, FECHA_MONTAJE, OK_NOK, FECHA_HORA_FIN_SEC FROM dbo.LOG_TABLA WHERE OK_NOK = 'NOK' ORDER BY id DESC")
+print("NOK logs in LOG_TABLA:")
+for r in cursor.fetchall():
     print(r)
+
+conn.close()

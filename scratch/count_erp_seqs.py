@@ -12,12 +12,11 @@ conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
 cursor.execute("""
-SELECT id, NSECUENCIA, NBASTIDOR, OK_NOK, FECHA_MONTAJE, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC
-FROM LOG_TABLA
-WHERE FECHA_HORA_INICIO_SEC LIKE '2026-06-%'
-ORDER BY id
+SELECT fecha_montaje, COUNT(*)
+FROM JAULA_ERP
+WHERE fecha_montaje BETWEEN '20260615' AND '20260619'
+GROUP BY fecha_montaje
+ORDER BY fecha_montaje
 """)
-rows = cursor.fetchall()
-print(f"Found {len(rows)} rows starting with 2026-06- in FECHA_HORA_INICIO_SEC:")
-for r in rows[:30]:
-    print(r)
+for r in cursor.fetchall():
+    print(f"Date: {r[0]} Count: {r[1]}")

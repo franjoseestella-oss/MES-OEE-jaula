@@ -12,15 +12,14 @@ conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
 cursor.execute("SELECT COUNT(*) FROM LOG_TABLA")
-count = cursor.fetchone()[0]
-print(f"Total rows in LOG_TABLA: {count}")
+total = cursor.fetchone()[0]
+print(f"Total rows in LOG_TABLA: {total}")
 
 cursor.execute("""
-SELECT TOP 20 id, NSECUENCIA, NBASTIDOR, OK_NOK, FECHA_MONTAJE, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC
+SELECT TOP 100 id, NSECUENCIA, NBASTIDOR, OK_NOK, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC, FECHA_MONTAJE
 FROM LOG_TABLA
 ORDER BY id DESC
 """)
 rows = cursor.fetchall()
-print("\nLast 20 rows in LOG_TABLA:")
 for r in rows:
     print(r)

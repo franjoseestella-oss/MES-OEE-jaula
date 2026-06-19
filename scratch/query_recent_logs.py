@@ -11,16 +11,13 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-cursor.execute("SELECT COUNT(*) FROM LOG_TABLA")
-count = cursor.fetchone()[0]
-print(f"Total rows in LOG_TABLA: {count}")
-
 cursor.execute("""
-SELECT TOP 20 id, NSECUENCIA, NBASTIDOR, OK_NOK, FECHA_MONTAJE, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC
+SELECT id, NSECUENCIA, NBASTIDOR, OK_NOK, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC, FECHA_MONTAJE
 FROM LOG_TABLA
-ORDER BY id DESC
+WHERE FECHA_HORA_INICIO_SEC >= '2026-06-15 00:00:00'
+ORDER BY id
 """)
 rows = cursor.fetchall()
-print("\nLast 20 rows in LOG_TABLA:")
+print("Logs in LOG_TABLA from 2026-06-15 onwards:")
 for r in rows:
     print(r)

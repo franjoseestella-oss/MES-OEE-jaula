@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -212,6 +213,25 @@ def stop_reasons(
     return repo.get_stop_summary(db, machine_id, _since, _until)
 
 
+@router.get("/sequences/{sequence_id}/force-ok")
+def force_sequence_ok_endpoint(
+    sequence_id: int,
+    request: Request,
+    db: Session = Depends(get_db_dep),
+):
+    success = repo.force_sequence_ok(db, sequence_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Secuencia con ID {sequence_id} no encontrada en la base de datos.")
+    
+    referer = request.headers.get("referer")
+    if referer:
+        return RedirectResponse(url=referer, status_code=303)
+    
+    default_redirect = "http://localhost:3010/d/mes-reg-v1/logisnext-e28094-registro?orgId=1"
+    return RedirectResponse(url=default_redirect, status_code=303)
+
+
 @router.get("/health")
 def health():
     return {"status": "ok", "ts": datetime.now(timezone.utc).isoformat()}
+
