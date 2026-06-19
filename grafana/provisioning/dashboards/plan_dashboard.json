@@ -474,6 +474,102 @@
       },
       "title": "",
       "type": "text"
+    },
+    {
+      "datasource": {
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Laborable"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "No": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "No"
+                      },
+                      "Sí": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Sí"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "id": 7,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  COALESCE(CONVERT(varchar(10), TRY_CAST(Fecha AS DATE), 103), '') AS [Fecha],\n  Tipo_Dia AS [Tipo de Día],\n  CASE WHEN Laborable = 1 THEN 'Sí' ELSE 'No' END AS [Laborable],\n  Cant_A_Fabricar AS [Unidades a Fabricar]\nFROM dbo.CALENDARIO_LABORAL\nWHERE $__timeFilter(Fecha)\nORDER BY Fecha ASC",
+          "refId": "A"
+        }
+      ],
+      "title": "📅 CALENDARIO LABORAL Y PLANIFICACIÓN DE UNIDADES",
+      "type": "table"
     }
   ],
   "refresh": "5s",
@@ -504,5 +600,5 @@
   "timezone": "browser",
   "title": "PLAN PRODUCCIÓN",
   "uid": "mes-plan-v1",
-  "version": 32
+  "version": 37
 }

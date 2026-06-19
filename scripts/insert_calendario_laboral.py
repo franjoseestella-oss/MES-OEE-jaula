@@ -409,52 +409,54 @@ def main():
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
 
-    # 1. Crear tabla si no existe
+    # 1. Recrear tabla para asegurar que tiene la nueva columna Cant_A_Fabricar
     create_sql = """
-    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'CALENDARIO_LABORAL')
+    IF EXISTS (SELECT * FROM sys.tables WHERE name = 'CALENDARIO_LABORAL')
     BEGIN
-        CREATE TABLE dbo.CALENDARIO_LABORAL (
-            Fecha       DATE         NOT NULL PRIMARY KEY,
-            Tipo_Dia    VARCHAR(50)  NOT NULL,
-            Laborable   BIT          NOT NULL DEFAULT 0
-        );
-        PRINT 'Tabla CALENDARIO_LABORAL creada.';
+        DROP TABLE dbo.CALENDARIO_LABORAL;
+        PRINT 'Tabla CALENDARIO_LABORAL existente eliminada.';
     END
-    ELSE
-    BEGIN
-        PRINT 'Tabla CALENDARIO_LABORAL ya existe.';
-    END
+    
+    CREATE TABLE dbo.CALENDARIO_LABORAL (
+        Fecha           DATE         NOT NULL PRIMARY KEY,
+        Tipo_Dia        VARCHAR(50)  NOT NULL,
+        Laborable       BIT          NOT NULL DEFAULT 0,
+        Cant_A_Fabricar INT          NOT NULL DEFAULT 0
+    );
+    PRINT 'Tabla CALENDARIO_LABORAL creada con la columna Cant_A_Fabricar.';
     """
     cursor.execute(create_sql)
     conn.commit()
-    print("[OK] Tabla CALENDARIO_LABORAL verificada/creada.")
+    print("[OK] Tabla CALENDARIO_LABORAL recreada.")
 
-    # 2. Limpiar datos anteriores e insertar nuevos
-    cursor.execute("DELETE FROM dbo.CALENDARIO_LABORAL")
+    # 2. Preparar datos e insertar todos los registros (18 unidades si es laborable, 0 si no)
+    insert_sql = "INSERT INTO dbo.CALENDARIO_LABORAL (Fecha, Tipo_Dia, Laborable, Cant_A_Fabricar) VALUES (?, ?, ?, ?)"
+    prepared_data = [
+        (row[0], row[1], row[2], 18 if row[2] == 1 else 0)
+        for row in CALENDARIO_DATA
+    ]
+    cursor.executemany(insert_sql, prepared_data)
     conn.commit()
-    print("[OK] Datos anteriores eliminados.")
+    print(f"[OK] {len(prepared_data)} registros insertados correctamente.")
 
-    # 3. Insertar todos los registros
-    insert_sql = "INSERT INTO dbo.CALENDARIO_LABORAL (Fecha, Tipo_Dia, Laborable) VALUES (?, ?, ?)"
-    cursor.executemany(insert_sql, CALENDARIO_DATA)
-    conn.commit()
-    print(f"[OK] {len(CALENDARIO_DATA)} registros insertados correctamente.")
-
-    # 4. Verificar
+    # 3. Verificar
     cursor.execute("SELECT COUNT(*) FROM dbo.CALENDARIO_LABORAL")
     total = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM dbo.CALENDARIO_LABORAL WHERE Laborable = 1")
     laborables = cursor.fetchone()[0]
-    cursor.execute("SELECT Tipo_Dia, COUNT(*) AS cnt FROM dbo.CALENDARIO_LABORAL GROUP BY Tipo_Dia ORDER BY cnt DESC")
+    cursor.execute("SELECT SUM(Cant_A_Fabricar) FROM dbo.CALENDARIO_LABORAL")
+    total_unidades = cursor.fetchone()[0]
+    cursor.execute("SELECT Tipo_Dia, COUNT(*) AS cnt, SUM(Cant_A_Fabricar) AS uds FROM dbo.CALENDARIO_LABORAL GROUP BY Tipo_Dia ORDER BY cnt DESC")
     tipos = cursor.fetchall()
 
     print(f"\nResumen:")
     print(f"   Total días: {total}")
     print(f"   Días laborables: {laborables}")
     print(f"   Días no laborables: {total - laborables}")
+    print(f"   Total unidades a fabricar: {total_unidades}")
     print(f"\n   Desglose por tipo:")
-    for tipo, cnt in tipos:
-        print(f"     {tipo}: {cnt}")
+    for tipo, cnt, uds in tipos:
+        print(f"     {tipo}: {cnt} días | {uds} unidades")
 
     cursor.close()
     conn.close()

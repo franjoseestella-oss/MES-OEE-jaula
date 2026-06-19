@@ -12,12 +12,13 @@ conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
 cursor.execute("""
-    SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE
-    FROM INFORMATION_SCHEMA.TABLES
-    ORDER BY TABLE_SCHEMA, TABLE_NAME
+    SELECT COLUMN_NAME, DATA_TYPE 
+    FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_NAME = 'LOG_TABLA'
 """)
-for row in cursor.fetchall():
-    print(f"{row.TABLE_SCHEMA}.{row.TABLE_NAME} ({row.TABLE_TYPE})")
+cols = cursor.fetchall()
+for col in cols:
+    print(f"{col[0]}: {col[1]}")
 
 cursor.close()
 conn.close()
