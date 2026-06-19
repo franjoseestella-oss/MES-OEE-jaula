@@ -19,7 +19,7 @@ conn = pyodbc.connect(conn_str, timeout=10)
 cursor = conn.cursor()
 
 # Get the latest row columns
-cursor.execute(f"SELECT TOP 1 * FROM {TABLE} ORDER BY fecha_creacion DESC")
+cursor.execute(f"SELECT TOP 1 * FROM {TABLE} ORDER BY id DESC")
 row = cursor.fetchone()
 if row:
     col_names = [desc[0] for desc in cursor.description]
