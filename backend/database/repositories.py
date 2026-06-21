@@ -151,6 +151,28 @@ def get_stop_summary(db: Session, machine_id: str,
     return [{"reason_code": r.reason_code, "ocurrencias": r.ocurrencias} for r in rows]
 
 
+def get_sequence_by_id(db: Session, sequence_id: int) -> Optional[dict]:
+    """Gets a sequence record from dbo.LOG_TABLA by ID."""
+    from config import get_settings
+    settings = get_settings()
+    try:
+        query = text(f"SELECT id, NSECUENCIA, NBASTIDOR, NMODELO, FECHA_MONTAJE, OK_NOK FROM {settings.app1_log_table} WHERE id = :id")
+        row = db.execute(query, {"id": sequence_id}).fetchone()
+        if row:
+            return {
+                "id": int(row[0]) if row[0] is not None else None,
+                "nsecuencia": int(row[1]) if row[1] is not None else None,
+                "nbastidor": row[2],
+                "nmodelo": row[3],
+                "fecha_montaje": row[4],
+                "ok_nok": row[5]
+            }
+        return None
+    except Exception as e:
+        logger.error(f"Error getting sequence {sequence_id}: {e}", exc_info=True)
+        return None
+
+
 def force_sequence_ok(db: Session, sequence_id: int) -> bool:
     """Updates OK_NOK to 'OK' in dbo.LOG_TABLA for the given ID."""
     from config import get_settings
