@@ -589,7 +589,7 @@
         "h": 11,
         "w": 12,
         "x": 0,
-        "y": 20
+        "y": 28
       },
       "id": 7,
       "options": {
@@ -627,7 +627,7 @@
         "h": 3,
         "w": 2,
         "x": 0,
-        "y": 31
+        "y": 39
       },
       "id": 6,
       "options": {
@@ -672,7 +672,7 @@
         "h": 11,
         "w": 12,
         "x": 12,
-        "y": 20
+        "y": 28
       },
       "id": 8,
       "options": {
@@ -704,6 +704,75 @@
       ],
       "title": "📅 DISTRIBUCIÓN DE LA JORNADA LABORAL (TURNO)",
       "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Parada No Planificada"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "Marcha"
+                },
+                "2": {
+                  "color": "blue",
+                  "index": 2,
+                  "text": "Setup / Cambio"
+                },
+                "3": {
+                  "color": "orange",
+                  "index": 3,
+                  "text": "Microparadas"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 9,
+      "options": {
+        "alignValue": "left",
+        "mergeValues": true,
+        "showValue": "never"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "mes_sqlserver"
+          },
+          "format": "table",
+          "rawSql": "SELECT timestamp AS time, CASE state WHEN 'Running' THEN 1 WHEN 'Stopped' THEN 0 WHEN 'Setup' THEN 2 WHEN 'Micro-stop' THEN 3 WHEN 'Break' THEN 4 ELSE -1 END AS [Estado] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= $__timeFrom() AND timestamp <= $__timeTo() ORDER BY timestamp",
+          "refId": "A"
+        }
+      ],
+      "title": "Línea de Tiempo de Estados",
+      "type": "state-timeline"
     }
   ],
   "refresh": "5s",
