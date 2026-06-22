@@ -849,7 +849,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  COALESCE(CONVERT(varchar(10), TRY_CAST(Fecha AS DATE), 103), '') AS [Fecha],\n  Tipo_Dia AS [Tipo de Día],\n  CASE WHEN Laborable = 1 THEN 'Sí' ELSE 'No' END AS [Laborable],\n  Cant_A_Fabricar AS [Unidades a Fabricar]\nFROM dbo.CALENDARIO_LABORAL\nORDER BY Fecha ASC",
+          "rawSql": "SELECT\n  COALESCE(CONVERT(varchar(10), TRY_CAST(Fecha AS DATE), 103), '') AS [Fecha],\n  CASE \n    WHEN Laborable = 1 AND NOT EXISTS (\n      SELECT 1 FROM dbo.JAULA_ERP erp \n      WHERE erp.fecha_montaje = CONVERT(varchar(8), cl.Fecha, 112)\n    ) THEN 'ERTE'\n    ELSE Tipo_Dia \n  END AS [Tipo de Día],\n  CASE \n    WHEN Laborable = 1 AND NOT EXISTS (\n      SELECT 1 FROM dbo.JAULA_ERP erp \n      WHERE erp.fecha_montaje = CONVERT(varchar(8), cl.Fecha, 112)\n    ) THEN 'No'\n    WHEN Laborable = 1 THEN 'Sí' \n    ELSE 'No' \n  END AS [Laborable],\n  CASE \n    WHEN Laborable = 1 AND NOT EXISTS (\n      SELECT 1 FROM dbo.JAULA_ERP erp \n      WHERE erp.fecha_montaje = CONVERT(varchar(8), cl.Fecha, 112)\n    ) THEN 0\n    ELSE Cant_A_Fabricar \n  END AS [Unidades a Fabricar]\nFROM dbo.CALENDARIO_LABORAL cl\nORDER BY cl.Fecha ASC",
           "refId": "A"
         }
       ],
