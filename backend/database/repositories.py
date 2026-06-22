@@ -31,7 +31,10 @@ def upsert_machine_status(db: Session, machine_id: str, state: str,
 
 def save_event(db: Session, machine_id: str, state: str, ts: datetime,
                piece_count: int, good_count: int, bad_count: int,
-               reason_code: Optional[str] = None, source: str = "mqtt") -> MachineEvent:
+               reason_code: Optional[str] = None, source: str = "mqtt",
+               secuencia_id: Optional[str] = None, tiempo_teorico_s: Optional[int] = None,
+               duracion_real_s: Optional[int] = None, dentro_de_tiempo: Optional[bool] = None,
+               error: Optional[str] = None) -> MachineEvent:
     ev = MachineEvent(
         machine_id=machine_id,
         state=state,
@@ -41,6 +44,11 @@ def save_event(db: Session, machine_id: str, state: str, ts: datetime,
         bad_count=bad_count,
         reason_code=reason_code,
         source=source,
+        secuencia_id=secuencia_id,
+        tiempo_teorico_s=tiempo_teorico_s,
+        duracion_real_s=duracion_real_s,
+        dentro_de_tiempo=dentro_de_tiempo,
+        error=error,
     )
     db.add(ev)
     upsert_machine_status(db, machine_id, state, ts, piece_count, good_count, bad_count)

@@ -114,6 +114,20 @@ def seed_machine_events():
     now = datetime.datetime.now()
     end = min(SHIFT_END, now)
 
+    # Fetch today's sequences to map them
+    active_date_erp = TODAY.strftime("%Y%m%d")
+    res = grafana_sql(f"SELECT secuencia FROM dbo.JAULA_ERP WHERE fecha_montaje = '{active_date_erp}' ORDER BY id")
+    seq_list = []
+    try:
+        if res and "results" in res:
+            frames = res["results"]["A"]["frames"]
+            if frames and len(frames) > 0:
+                data = frames[0]["data"]
+                if data and "values" in data and len(data["values"]) > 0:
+                    seq_list = data["values"][0]
+    except Exception as e:
+        print(f"  [WARNING] Could not fetch sequences for today: {e}")
+
     while t < end:
         # Lunch break
         if BREAK_START <= t < BREAK_END:
@@ -166,10 +180,20 @@ def seed_machine_events():
                 "Mantenimiento Preventivo", "Error Operario"
             ])
 
+        # Map to today's sequences based on time elapsed in the shift
+        seq_id = None
+        if seq_list:
+            shift_duration = (SHIFT_END - SHIFT_START).total_seconds()
+            elapsed = (t - SHIFT_START).total_seconds()
+            seq_idx = int(elapsed / shift_duration * len(seq_list))
+            seq_idx = min(max(0, seq_idx), len(seq_list) - 1)
+            seq_id = seq_list[seq_idx]
+
         events.append({
             "state": state, "state_code": code,
             "start": t, "end": ev_end,
-            "pieces": pieces, "good": good, "bad": bad, "reason": reason
+            "pieces": pieces, "good": good, "bad": bad, "reason": reason,
+            "secuencia_id": seq_id
         })
         t = ev_end
 
@@ -179,11 +203,12 @@ def seed_machine_events():
         total_good += ev["good"]
         total_bad += ev["bad"]
         reason_val = f"'{ev['reason']}'" if ev["reason"] else "NULL"
+        seq_val = f"'{ev['secuencia_id']}'" if ev.get("secuencia_id") else "NULL"
         grafana_sql(f"""
             INSERT INTO mes_machine_events
-            (machine_id, state, timestamp, piece_count, good_count, bad_count, reason_code, source, created_at)
+            (machine_id, state, timestamp, piece_count, good_count, bad_count, reason_code, source, created_at, secuencia_id)
             VALUES ('{MACHINE_ID}', '{ev["state"]}', '{ev["start"].strftime(FMT)}',
-                    {ev["pieces"]}, {ev["good"]}, {ev["bad"]}, {reason_val}, 'seed', GETDATE())
+                    {ev["pieces"]}, {ev["good"]}, {ev["bad"]}, {reason_val}, 'seed', GETDATE(), {seq_val})
         """)
 
     print(f"  [OK] Inserted {len(events)} machine events")
@@ -304,6 +329,90 @@ def update_machine_status(total_good, total_bad):
     print("  [OK] Updated machine status")
 
 
+def ensure_today_setup():
+    """Ensure today is set up in CALENDARIO_LABORAL and JAULA_ERP."""
+    active_date_str = TODAY.strftime("%Y-%m-%d")
+    active_date_erp = TODAY.strftime("%Y%m%d")
+
+    print(f"  [INFO] Ensuring calendar entry for today ({active_date_str})...")
+    # Check if entry exists
+    cal_res = grafana_sql(f"SELECT COUNT(*) as cnt FROM dbo.CALENDARIO_LABORAL WHERE Fecha = '{active_date_str}'")
+    cal_count = 0
+    try:
+        if cal_res and "results" in cal_res:
+            frames = cal_res["results"]["A"]["frames"]
+            if frames and len(frames) > 0:
+                data = frames[0]["data"]
+                if data and "values" in data and len(data["values"]) > 0:
+                    cal_count = data["values"][0][0]
+    except Exception as e:
+        print(f"  [WARNING] Could not parse CALENDARIO_LABORAL check results: {e}")
+
+    if cal_count > 0:
+        # Update existing
+        grafana_sql(f"UPDATE dbo.CALENDARIO_LABORAL SET Laborable = 1, Cant_A_Fabricar = 18, Tipo_Dia = 'Laborable' WHERE Fecha = '{active_date_str}'")
+        print(f"  [OK] Updated today's calendar entry to Laborable=True, Cant=18")
+    else:
+        # Insert new
+        grafana_sql(f"INSERT INTO dbo.CALENDARIO_LABORAL (Fecha, Tipo_Dia, Laborable, Cant_A_Fabricar) VALUES ('{active_date_str}', 'Laborable', 1, 18)")
+        print(f"  [OK] Inserted today's calendar entry as Laborable=True, Cant=18")
+
+    print(f"  [INFO] Ensuring sequences in JAULA_ERP for today ({active_date_erp})...")
+    erp_res = grafana_sql(f"SELECT COUNT(*) as cnt FROM dbo.JAULA_ERP WHERE fecha_montaje = '{active_date_erp}'")
+    erp_count = 0
+    try:
+        if erp_res and "results" in erp_res:
+            frames = erp_res["results"]["A"]["frames"]
+            if frames and len(frames) > 0:
+                data = frames[0]["data"]
+                if data and "values" in data and len(data["values"]) > 0:
+                    erp_count = data["values"][0][0]
+    except Exception as e:
+        print(f"  [WARNING] Could not parse JAULA_ERP check results: {e}")
+
+    if erp_count > 0:
+        print(f"  [OK] Found {erp_count} sequences in JAULA_ERP for today")
+        return
+
+    # Find latest date in JAULA_ERP
+    print("  [INFO] No sequences found for today in JAULA_ERP. Copying from latest available date...")
+    latest_res = grafana_sql(f"SELECT TOP 1 fecha_montaje FROM dbo.JAULA_ERP WHERE fecha_montaje < '{active_date_erp}' ORDER BY fecha_montaje DESC")
+    latest_date = None
+    try:
+        if latest_res and "results" in latest_res:
+            frames = latest_res["results"]["A"]["frames"]
+            if frames and len(frames) > 0:
+                data = frames[0]["data"]
+                if data and "values" in data and len(data["values"]) > 0:
+                    latest_date = data["values"][0][0]
+    except Exception as e:
+        print(f"  [WARNING] Could not parse latest JAULA_ERP date: {e}")
+
+    if not latest_date:
+        latest_date = "20260619"  # Fallback
+
+    print(f"  [INFO] Copying sequences from {latest_date} to {active_date_erp}...")
+    insert_query = f"""
+        INSERT INTO dbo.JAULA_ERP (
+            fecha_montaje, secuencia, modelo, bastidor, mastil, altura_max_interm,
+            capac_interm_1, capac_interm_2, capac_interm_3, tpo_elevac_min, tpo_elevac_max,
+            tpo_descenso_min, tpo_descenso_max, tpo_incl_adel_max, tpo_incl_atras_max,
+            tpo_elev_min_scarga, tpo_elev_max_scarga, tpo_desc_min_scarga, tpo_desc_max_scarga,
+            peso_pruebas, fecha_importacion
+        )
+        SELECT 
+            '{active_date_erp}', secuencia, modelo, CAST(bastidor AS VARCHAR(18)) + '_' + SUBSTRING('{active_date_erp}', 5, 4), mastil, altura_max_interm,
+            capac_interm_1, capac_interm_2, capac_interm_3, tpo_elevac_min, tpo_elevac_max,
+            tpo_descenso_min, tpo_descenso_max, tpo_incl_adel_max, tpo_incl_atras_max,
+            tpo_elev_min_scarga, tpo_elev_max_scarga, tpo_desc_min_scarga, tpo_desc_max_scarga,
+            peso_pruebas, GETDATE()
+        FROM dbo.JAULA_ERP
+        WHERE fecha_montaje = '{latest_date}'
+    """
+    grafana_sql(insert_query)
+    print(f"  [OK] Sequences copied successfully to today ({active_date_erp})")
+
+
 def main():
     print("=" * 60)
     print("  OEE Demo Data Seeder (via Grafana API)")
@@ -313,6 +422,9 @@ def main():
 
     print("\n[1/7] Ensuring helper tables...")
     ensure_tables()
+
+    print("\n[1.5/7] Ensuring today's setup in DB...")
+    ensure_today_setup()
 
     print("\n[2/7] Clearing old demo data...")
     clear_demo_data()

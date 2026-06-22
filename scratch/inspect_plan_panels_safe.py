@@ -1,9 +1,8 @@
 import json
 import sys
 
-# Ensure UTF-8 output
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8')
+# Set output encoding to utf-8
+sys.stdout.reconfigure(encoding='utf-8')
 
 dashboard_path = r"c:\Users\franj\OneDrive\Escritorio\COSAS  FRAN\PROYECTOS\JAULA ELEVACION\APLICACION MES-OEE\grafana\provisioning\dashboards\plan_dashboard.json"
 
@@ -12,5 +11,5 @@ with open(dashboard_path, 'r', encoding='utf-8') as f:
 
 print("Title:", data.get("title"))
 print("UID:", data.get("uid"))
-for panel in data.get("panels", []):
-    print(f"Panel ID: {panel.get('id')} - Title: {panel.get('title')} - Type: {panel.get('type')} - GridPos: {panel.get('gridPos')}")
+for p in data.get("panels", []):
+    print(f"ID: {p.get('id')} | Title: {p.get('title')} | Type: {p.get('type')}")

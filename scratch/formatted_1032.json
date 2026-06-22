@@ -1,0 +1,12 @@
+"      "title": "Línea de Tiempo de Estados",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "fieldConfig": {
+        "defaults": {
+ 
+<truncated 6708 bytes>

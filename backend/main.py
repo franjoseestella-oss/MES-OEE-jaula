@@ -35,12 +35,26 @@ _mqtt_client = None
 def handle_mqtt_event(payload: dict) -> None:
     """Callback invocado por el cliente MQTT al recibir un evento."""
     try:
-        machine_id = payload.get("machine_id", "UNKNOWN")
-        state = payload.get("state", "Unknown")
-        ts_raw = payload.get("timestamp", "")
+        machine_id = payload.get("machine_id") or payload.get("jaula_id") or "UNKNOWN"
+        state = payload.get("state") or payload.get("estado") or "Unknown"
+        ts_raw = payload.get("timestamp") or payload.get("ts") or ""
         ts = datetime.fromisoformat(ts_raw) if ts_raw else datetime.now(timezone.utc)
         if ts.tzinfo is None:
             ts = ts.replace(tzinfo=timezone.utc)
+
+        # Extraer campos de secuencia
+        secuencia_id = payload.get("secuencia_id")
+        tiempo_teorico_s = payload.get("tiempo_teorico_s")
+        duracion_real_s = payload.get("duracion_real_s")
+        dentro_de_tiempo = payload.get("dentro_de_tiempo")
+        error_val = payload.get("error")
+        
+        error_str = None
+        if error_val is not None:
+            if isinstance(error_val, dict):
+                error_str = json.dumps(error_val)
+            else:
+                error_str = str(error_val)
 
         with get_db() as db:
             repo.save_event(
@@ -53,8 +67,13 @@ def handle_mqtt_event(payload: dict) -> None:
                 bad_count=int(payload.get("bad_count", 0)),
                 reason_code=payload.get("reason_code"),
                 source="mqtt",
+                secuencia_id=secuencia_id,
+                tiempo_teorico_s=tiempo_teorico_s,
+                duracion_real_s=duracion_real_s,
+                dentro_de_tiempo=dentro_de_tiempo,
+                error=error_str,
             )
-        logger.debug("Evento guardado: %s → %s @ %s", machine_id, state, ts)
+        logger.debug("Evento guardado: %s → %s (Secuencia: %s) @ %s", machine_id, state, secuencia_id, ts)
     except Exception as exc:
         logger.error("Error al guardar evento MQTT: %s", exc, exc_info=True)
 

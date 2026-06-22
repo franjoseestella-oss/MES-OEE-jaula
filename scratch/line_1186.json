@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Restaurar el panel original de Línea de Tiempo de Estados (OEE de la máquina MAQ-01) en plan_dashboard.json\"",
+  "EndLine": "628",
+  "Instruction": "\"Restaurar la consulta SQL, mapeo de valores y transformaciones originales del Panel 9 (Línea de Tiempo de Estados) para el OEE de máquina MAQ-01, manteniendo el Panel 10 nuevo para el plan de producción detallado.\"",
+  "ReplacementContent": "\"    {\\n      \\\"datasource\\\": {\\n        \\\"type\\\": \\\"mssql\\\",\\n        \\\"uid\\\": \\\"mes_sqlserver\\\"\\n      },\\n      \\\"fieldConfig\\\": {\\n        \\\"defaults\\\": {\\n          \\\"color\\\": {\\n            \\\"mode\\\": \\\"palette-classic\\\"\\n          },\\n          \\\"cus\n<truncated 2459 bytes>",
+  "StartLine": "515",
+  "TargetContent": "\"    {\\n      \\\"datasource\\\": {\\n        \\\"type\\\": \\\"mssql\\\",\\n        \\\"uid\\\": \\\"mes_sqlserver\\\"\\n      },\\n      \\\"fieldConfig\\\": {\\n        \\\"defaults\\\": {\\n          \\\"color\\\": {\\n            \\\"mode\\\": \\\"palette-classic\\\"\\n          },\\n          \\\"cus\n<truncated 11717 bytes>",
+  "TargetFile": "\"c:\\\\Users\\\\franj\\\\OneDrive\\\\Escritorio\\\\COSAS  FRAN\\\\PROYECTOS\\\\JAULA ELEVACION\\\\APLICACION MES-OEE\\\\grafana\\\\provisioning\\\\dashboards\\\\plan_dashboard.json\""
+}

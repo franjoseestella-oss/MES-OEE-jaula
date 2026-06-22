@@ -1,0 +1,27 @@
+{
+  "type": "state-timeline",
+  "title": "Línea de Tiempo de Estados",
+  "gridPos": {
+    "h": 12,
+    "w": 24,
+    "x": 0,
+    "y": 20
+  },
+  "fieldConfig": {
+    "defaults": {
+      "color": {
+        "mode": "palette-classic"
+      },
+      "custom": {
+        "fillOpacity": 80,
+        "lineWidth": 0
+      },
+      "mappings": []
+    }
+  },
+  "options": {
+    "alignValue": "left",
+    "mergeValues": true,
+    "showValue": "always"
+  }
+}

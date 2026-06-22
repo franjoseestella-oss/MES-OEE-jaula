@@ -25,6 +25,11 @@ class MachineEvent(Base):
     bad_count = Column(Integer, default=0)
     reason_code = Column(String(50), nullable=True)
     source = Column(String(10), default="mqtt")         # "mqtt" | "sql"
+    secuencia_id = Column(String(50), nullable=True, index=True)
+    tiempo_teorico_s = Column(Integer, nullable=True)
+    duracion_real_s = Column(Integer, nullable=True)
+    dentro_de_tiempo = Column(Boolean, nullable=True)
+    error = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (

@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Añadir el panel ID 10 de Plan de Producción por Secuencias (tipo state-timeline) al array de paneles en el dashboard.\"",
+  "EndLine": "777",
+  "Instruction": "\"Insertar la definición del panel ID 10 después del panel ID 9 en el array de paneles.\"",
+  "ReplacementContent": "\"      \\\"title\\\": \\\"Línea de Tiempo de Estados\\\",\\n      \\\"type\\\": \\\"state-timeline\\\"\\n    },\\n    {\\n      \\\"datasource\\\": {\\n        \\\"type\\\": \\\"mssql\\\",\\n        \\\"uid\\\": \\\"mes_sqlserver\\\"\\n      },\\n      \\\"fieldConfig\\\": {\\n        \\\"defaults\\\": {\\n \n<truncated 10931 bytes>",
+  "StartLine": "774",
+  "TargetContent": "\"      \\\"title\\\": \\\"Línea de Tiempo de Estados\\\",\\n      \\\"type\\\": \\\"state-timeline\\\"\\n    }\\n  ],\"",
+  "TargetFile": "\"c:\\\\Users\\\\franj\\\\OneDrive\\\\Escritorio\\\\COSAS  FRAN\\\\PROYECTOS\\\\JAULA ELEVACION\\\\APLICACION MES-OEE\\\\grafana\\\\provisioning/dashboards/plan_dashboard.json\""
+}

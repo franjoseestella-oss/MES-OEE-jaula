@@ -1,0 +1,98 @@
+{
+  "datasource": {
+    "type": "mssql",
+    "uid": "mes_sqlserver"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "color": {
+        "mode": "thresholds"
+      },
+      "custom": {
+        "fillOpacity": 80,
+        "lineWidth": 0
+      },
+      "mappings": [
+        {
+          "options": {
+            "SECUENCIA_INICIADA": {
+              "color": "#2FD06A",
+              "index": 0,
+              "text": "SECUENCIA_INICIADA"
+            },
+            "EN_PROCESO": {
+              "color": "#2FD06A",
+              "index": 1,
+              "text": "EN_PROCESO"
+            },
+            "EN_ESPERA": {
+              "color": "#FADE2A",
+              "index": 2,
+              "text": "EN_ESPERA"
+            },
+            "PAUSADA": {
+              "color": "#FADE2A",
+              "index": 3,
+              "text": "PAUSADA"
+            },
+            "FINALIZADA": {
+              "color": "#E5C158",
+              "index": 4,
+              "text": "FINALIZADA"
+            },
+            "ERROR": {
+              "color": "#E32636",
+              "index": 5,
+              "text": "ERROR"
+            }
+          },
+          "type": "value"
+        }
+      ]
+    }
+  },
+  "gridPos": {
+    "h": 20,
+    "w": 24,
+    "x": 0,
+    "y": 28
+  },
+  "id": 10,
+  "options": {
+    "alignValue": "left",
+    "mergeValues": true,
+    "showValue": "never"
+  },
+  "targets": [
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "editorMode": "code",
+      "format": "table",
+      "rawQuery": true,
+      "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nIF NOT EXISTS (SELECT 1 FROM JAULA_ERP WHERE fecha_montaje = @ActiveDate)\nBEGIN\n    SET @ActiveDate = COALESCE(\n        (SELECT TOP 1 CONVERT(varchar(8), FECHA_MONTAJE, 112) FROM LOG_TABLA WHERE TRY_CAST(FECHA_HORA_INICIO_SEC AS DATE) = CAST(GETDATE() AS DATE) ORDER BY id DESC),\n        (SELECT MIN(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje >= @ActiveDate),\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP WHERE fecha_montaje <= @ActiveDate),\n        (SELECT MAX(fecha_montaje) FROM JAULA_ERP)\n    );\nEND;\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\nDECLARE @Monday DATE = DATEADD(wk, DATEDIFF(wk, 0, @SelectedDate), 0);\nDECLARE @Friday DATE = DATEADD(day, 4, @Monday);\n\n-- Create weekly schedule slots table\nIF OBJECT_ID('tempdb..#WeeklyScheduleSlots') IS NOT NULL DROP TABLE #WeeklyScheduleSlots;\nCREATE TABLE #WeeklyScheduleSlots (\n    fecha DATE,\n    slot_idx INT,\n    horario TIME,\n    PRIMARY KEY (fecha, slot_idx)\n);\n\nDECLARE @LoopDate DATE = @Monday;\nWHILE @LoopDate <= @Friday\nBEGIN\n    DECLARE @DayCap DECIMAL(4,1);\n    SELECT @DayCap = COALESCE(Cant_A_Fabricar, 18.0)\n    FROM dbo.CALENDARIO_LABORAL\n    WHERE Fecha = @LoopDate;\n\n    IF @DayCap IS NULL SET @DayCap = 18.0;\n\n    IF @DayCap = 18.0\n    BEGIN\n        INSERT INTO #WeeklyScheduleSlots (fecha, slot_idx, horario)\n        SELECT @LoopDate, ROW_NUMBER() OVER (ORDER BY id), horario\n        FROM dbo.HHSS_18;\n    END\n    ELSE IF @DayCap = 19.0\n    BEGIN\n        INSERT INTO #WeeklyScheduleSlots (fecha, slot_idx, horario)\n        SELECT @LoopDate, ROW_NUMBER() OVER (ORDER BY id), horario\n        FROM dbo.HHSS_19;\n    END\n    ELSE IF @DayCap = 18.5\n    BEGIN\n        DECLARE @Cnt185 INT = 0;\n        SELECT @Cnt185 = COUNT(*)\n        FROM dbo.CALENDARIO_LABORAL\n        WHERE Laborable = 1 \n          AND Cant_A_Fabricar = 18.5 \n          AND Fecha <= @LoopDate;\n\n        IF @Cnt185 > 0 AND @Cnt185 % 2 = 0\n        BEGIN\n            INSERT INTO #WeeklyScheduleSlots (fecha, slot_idx, horario)\n            SELECT @LoopDate, ROW_NUMBER() OVER (ORDER BY id), horario\n            FROM dbo.HHSS_18_5\n            WHERE id BETWEEN 20 AND 38;\n        END\n        ELSE\n        BEGIN\n            INSERT INTO #WeeklyScheduleSlots (fecha, slot_idx, horario)\n            SELECT @LoopDate, ROW_NUMBER() OVER (ORDER BY id), horario\n            FROM dbo.HHSS_18_5\n            WHERE id BETWEEN 1 AND 19;\n        END\n    END\n    ELSE\n    BEGIN\n        INSERT INTO #WeeklyScheduleSlots (fecha, slot_idx, horario)\n        SELECT @LoopDate, ROW_NUMBER() OVER (ORDER BY id), horario\n        FROM dbo.HHSS_18;\n    END;\n\n    SET @LoopDate = DATEADD(day, 1, @LoopDate);\nEND;\n\n-- Get all sequences of the week\nIF OBJECT_ID('tempdb..#SeqsToSchedule') IS NOT NULL DROP TABLE #SeqsToSchedule;\nCREATE TABLE #SeqsToSchedule (\n    id INT PRIMARY KEY,\n    secuencia VARCHAR(50),\n    bastidor VARCHAR(50),\n    modelo VARCHAR(50),\n    original_date DATE,\n    completed BIT DEFAULT 0,\n    status VARCHAR(50) DEFAULT 'Pendiente',\n    completion_time DATETIME,\n    actual_date DATE,\n    scheduled_date DATE,\n    slot_idx INT,\n    planned_start DATETIME,\n    planned_end DATETIME\n);\n\nINSERT INTO #SeqsToSchedule (id, secuencia, bastidor, modelo, original_date, completed, status, completion_time, actual_date)\nSELECT \n    erp.id,\n    erp.secuencia,\n    erp.bastidor,\n    erp.modelo,\n    TRY_CAST(erp.fecha_montaje AS DATE),\n    CASE WHEN log.id IS NOT NULL THEN 1 ELSE 0 END,\n    COALESCE(log.OK_NOK, 'Pendiente'),\n    log.FECHA_HORA_FIN_SEC,\n    TRY_CAST(CAST(COALESCE(log.FECHA_HORA_FIN_SEC, log.FECHA_HORA_INICIO_SEC) AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE)\nFROM dbo.JAULA_ERP erp\nLEFT JOIN (\n    SELECT \n        id,\n        NBASTIDOR,\n        FECHA_MONTAJE,\n        OK_NOK,\n        FECHA_HORA_INICIO_SEC,\n        FECHA_HORA_FIN_SEC,\n        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR, FECHA_MONTAJE ORDER BY id DESC) as rn\n    FROM dbo.LOG_TABLA\n) log ON log.NBASTIDOR = erp.bastidor AND log.FECHA_MONTAJE = TRY_CAST(erp.fecha_montaje AS DATE) AND log.rn = 1\nWHERE \n    (TRY_CAST(erp.fecha_montaje AS DATE) BETWEEN @Monday AND @Friday)\n    OR (TRY_CAST(erp.fecha_montaje AS DATE) < @Monday AND log.id IS NULL)\n    OR (TRY_CAST(erp.fecha_montaje AS DATE) < @Monday \n        AND log.id IS NOT NULL \n        AND TRY_CAST(CAST(COALESCE(log.FECHA_HORA_FIN_SEC, log.FECHA_HORA_INICIO_SEC) AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) BETWEEN @Monday AND @Friday);\n\n-- First, any sequence that was completed is scheduled on the day it actually ran\nUPDATE #SeqsToSchedule\nSET scheduled_date = actual_date\nWHERE completed = 1 AND actual_date IS NOT NULL;\n\n-- Now we loop day-by-day to schedule pending sequences\nDECLARE @CurrDate DATE = @Monday;\nDECLARE @Today DATE = CAST(GETDATE() AS DATE);\n\nWHILE @CurrDate <= @Friday\nBEGIN\n    DECLARE @Cap INT;\n    SELECT @Cap = COUNT(*) FROM #WeeklyScheduleSlots WHERE fecha = @CurrDate;\n    \n    DECLARE @Occupied INT;\n    SELECT @Occupied = COUNT(*) FROM #SeqsToSchedule WHERE scheduled_date = @CurrDate;\n    \n    DECLARE @Available INT = @Cap - @Occupied;\n    \n    IF @CurrDate >= @Today AND @Available > 0\n    BEGIN\n        WITH TodayPending AS (\n            SELECT TOP (@Available) *\n            FROM #SeqsToSchedule\n            WHERE scheduled_date IS NULL\n              AND original_date <= @CurrDate\n            ORDER BY id ASC\n        )\n        UPDATE TodayPending\n        SET scheduled_date = @CurrDate;\n    END;\n    \n    SET @CurrDate = DATEADD(day, 1, @CurrDate);\nEND;\n\n-- Any sequences still not scheduled are scheduled for next Monday (or Friday + 3)\nUPDATE #SeqsToSchedule\nSET scheduled_date = DATEADD(day, 3, @Friday)\nWHERE scheduled_date IS NULL;\n\n-- Now assign slot_idx, planned_start and planned_end\nWITH OrderedScheduled AS (\n    SELECT \n        id,\n        scheduled_date,\n        ROW_NUMBER() OVER (PARTITION BY scheduled_date ORDER BY completed DESC, id ASC) as row_idx\n    FROM #SeqsToSchedule\n)\nUPDATE s\nSET \n    s.slot_idx = os.row_idx,\n    s.planned_start = DATEADD(second, \n        CASE \n            WHEN os.row_idx = 1 THEN 0\n            ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))\n        END,\n        DATEADD(hour, 7, CAST(s.scheduled_date AS DATETIME))\n    ),\n    s.planned_end = DATEADD(second, \n        DATEDIFF(second, '07:00:00', COALESCE(t_curr.horario, '07:00:00')),\n        DATEADD(hour, 7, CAST(s.scheduled_date AS DATETIME))\n    )\nFROM #SeqsToSchedule s\nINNER JOIN OrderedScheduled os ON os.id = s.id\nLEFT JOIN #WeeklyScheduleSlots t_curr ON t_curr.fecha = s.scheduled_date AND t_curr.slot_idx = os.row_idx\nLEFT JOIN #WeeklyScheduleSlots t_prev ON t_prev.fecha = s.scheduled_date AND t_prev.slot_idx = os.row_idx - 1;\n\n-- Output for timeline\nWITH SequenceStates AS (\n    SELECT \n        secuencia,\n        planned_start,\n        planned_end,\n        (\n            SELECT TOP 1 state \n            FROM mes_machine_events \n            WHERE secuencia_id = s.secuencia \n            ORDER BY timestamp DESC\n        ) AS latest_state\n    FROM #SeqsToSchedule s\n    WHERE s.scheduled_date = @SelectedDate\n)\nSELECT time, metric, value FROM (\n    SELECT \n        planned_start AS time,\n        secuencia AS metric,\n        CASE COALESCE(latest_state, 'Idle')\n            WHEN 'Execute' THEN 'EN_PROCESO'\n            WHEN 'Starting' THEN 'SECUENCIA_INICIADA'\n            WHEN 'Running' THEN 'EN_PROCESO'\n            WHEN 'Idle' THEN 'EN_ESPERA'\n            WHEN 'Held' THEN 'PAUSADA'\n            WHEN 'Complete' THEN 'FINALIZADA'\n            WHEN 'Stopped' THEN 'FINALIZADA'\n            WHEN 'Aborted' THEN 'ERROR'\n            WHEN 'Aborting' THEN 'ERROR'\n            WHEN 'EN_PROCESO' THEN 'EN_PROCESO'\n            WHEN 'SECUENCIA_INICIADA' THEN 'SECUENCIA_INICIADA'\n            WHEN 'EN_ESPERA' THEN 'EN_ESPERA'\n            WHEN 'PAUSADA' THEN 'PAUSADA'\n            WHEN 'FINALIZADA' THEN 'FINALIZADA'\n            WHEN 'ERROR' THEN 'ERROR'\n            ELSE 'EN_ESPERA'\n        END AS value\n    FROM SequenceStates\n    \n    UNION ALL\n    \n    SELECT \n        planned_end AS time,\n        secuencia AS metric,\n        NULL AS value\n    FROM SequenceStates\n) t\nORDER BY metric ASC, time ASC;",
+      "refId": "A"
+    }
+  ],
+  "title": "Plan de Producción por Secuencias (Teórico vs Real)",
+  "type": "state-timeline",
+  "transformations": [
+    {
+      "id": "partitionByValues",
+      "options": {
+        "fields": [
+          "metric"
+        ]
+      }
+    },
+    {
+      "id": "renameByRegex",
+      "options": {
+        "regex": "^value\\s(.+)",
+        "renamePattern": "$1"
+      }
+    }
+  ]
+}

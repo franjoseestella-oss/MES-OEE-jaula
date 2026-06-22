@@ -1,39 +1,30 @@
 import pyodbc
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 conn_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-PMRMSPT\\SQLEXPRESS,1435;"
-    "DATABASE=DAFEED;"
-    "UID=usuario_readonly;"
-    "PWD=Logisnext2026!;"
+    "Driver={ODBC Driver 17 for SQL Server};"
+    "Server=DESKTOP-PMRMSPT\\SQLEXPRESS;"
+    "Database=DAFEED;"
+    "Trusted_Connection=yes;"
     "TrustServerCertificate=yes;"
-    "ConnLifetime=30;"
 )
 
 try:
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
-    
-    print("--- DISTINCT fecha_montaje in JAULA_ERP ---")
-    cursor.execute("SELECT DISTINCT fecha_montaje FROM JAULA_ERP ORDER BY fecha_montaje DESC")
-    for row in cursor.fetchall():
-        print(row[0])
-        
-    print("\n--- COUNT OF RECORDS IN JAULA_ERP FOR '20260612' ---")
-    cursor.execute("SELECT COUNT(*) FROM JAULA_ERP WHERE fecha_montaje = '20260612'")
-    print(cursor.fetchone()[0])
-    
-    print("\n--- COUNT OF RECORDS IN LOG_TABLA FOR '20260612' ---")
-    cursor.execute("SELECT COUNT(*) FROM LOG_TABLA WHERE FECHA_MONTAJE = '20260612'")
-    print(cursor.fetchone()[0])
-    
-    print("\n--- RECENT ENTRIES IN LOG_TABLA ---")
-    cursor.execute("SELECT TOP 5 FECHA_MONTAJE, fecha_creacion, OK_NOK FROM LOG_TABLA ORDER BY id DESC")
-    for row in cursor.fetchall():
-        print(row)
-        
 except Exception as e:
-    print(f"Error: {e}")
-finally:
-    if 'conn' in locals():
-        conn.close()
+    print(f"Error connecting: {e}")
+    sys.exit(1)
+
+cursor.execute("SELECT GETDATE(), CAST(GETDATE() AS DATE)")
+row = cursor.fetchone()
+print(f"GETDATE(): {row[0]}, CAST AS DATE: {row[1]}")
+
+cursor.execute("SELECT TOP 5 FECHA_MONTAJE, FECHA_HORA_INICIO_SEC FROM LOG_TABLA ORDER BY id DESC")
+print("Latest rows in LOG_TABLA:")
+for r in cursor.fetchall():
+    print(f"FECHA_MONTAJE: {r[0]}, FECHA_HORA_INICIO_SEC: {r[1]}")
+
+conn.close()

@@ -1,0 +1,10 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Crear panel de Plan de Producción Detallado (ID 10) de tipo State Timeline con secuencias en el eje vertical y horarios teóricos en el eje X, mapeando estados MQTT a colores verde, amarillo y rojo.\"",
+  "EndLine": "751",
+  "Instruction": "\"Añadir el nuevo panel 10 (Plan de Producción Detallado) justo después del panel 9 en el array de paneles del dashboard.\"",
+  "ReplacementContent": "\"      \\\"title\\\": \\\"Línea de Tiempo de Estados\\\",\\n      \\\"type\\\": \\\"state-timeline\\\"\\n    },\\n    {\\n      \\\"datasource\\\": {\\n        \\\"type\\\": \\\"mssql\\\",\\n        \\\"uid\\\": \\\"mes_sqlserver\\\"\\n      },\\n      \\\"fieldConfig\\\": {\\n        \\\"defaults\\\": {\\n \n<truncated 6708 bytes>",
+  "StartLine": "748",
+  "TargetContent": "\"      \\\"title\\\": \\\"Línea de Tiempo de Estados\\\",\\n      \\\"type\\\": \\\"state-timeline\\\"\\n    }\\n  ],\"",
+  "TargetFile": "\"c:\\\\Users\\\\franj\\\\OneDrive\\\\Escritorio\\\\COSAS  FRAN\\\\PROYECTOS\\\\JAULA ELEVACION\\\\APLICACION MES-OEE\\\\grafana\\\\provisioning\\\\dashboards\\\\plan_dashboard.json\""
+}
