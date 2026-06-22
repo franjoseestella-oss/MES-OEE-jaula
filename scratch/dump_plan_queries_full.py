@@ -1,19 +1,17 @@
 import json
 import sys
 
-sys.stdout.reconfigure(encoding='utf-8')
-
-filepath = "grafana/provisioning/dashboards/plan_dashboard.json"
-with open(filepath, "r", encoding="utf-8") as f:
+with open("grafana/provisioning/dashboards/plan_dashboard.json", "r", encoding="utf-8") as f:
     db = json.load(f)
 
-for panel in db.get("panels", []):
-    pid = panel.get("id")
-    if pid in [1, 2, 3, 4]:
-        print(f"=====================================")
-        print(f"PANEL ID: {pid} - {panel.get('title')}")
-        print(f"=====================================")
-        for idx, target in enumerate(panel.get("targets", [])):
-            print(f"Target {idx} (refId: {target.get('refId')}):")
-            print(target.get("rawSql", ""))
-            print("-" * 50)
+with open("scratch/plan_queries_dump.txt", "w", encoding="utf-8") as out:
+    for p in db.get("panels", []):
+        targets = p.get("targets", [])
+        if not targets:
+            continue
+        sql = targets[0].get("rawSql", "")
+        out.write(f"=== Panel {p.get('id')}: {p.get('title')} ===\n")
+        out.write(sql)
+        out.write("\n\n")
+
+print("Dumped queries to scratch/plan_queries_dump.txt")
