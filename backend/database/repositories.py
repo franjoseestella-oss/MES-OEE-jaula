@@ -195,3 +195,180 @@ def force_sequence_ok(db: Session, sequence_id: int) -> bool:
         db.rollback()
         raise e
 
+
+def get_pending_sequence_by_bastidor(db: Session, bastidor: str) -> Optional[dict]:
+    """Gets details of a pending sequence from JAULA_ERP by bastidor."""
+    try:
+        query = text("""
+            SELECT id, secuencia, bastidor, modelo, fecha_montaje, mastil 
+            FROM JAULA_ERP 
+            WHERE bastidor = :bastidor
+        """)
+        row = db.execute(query, {"bastidor": bastidor}).fetchone()
+        if row:
+            return {
+                "id": row[0],
+                "secuencia": row[1],
+                "bastidor": row[2],
+                "modelo": row[3],
+                "fecha_montaje": row[4],
+                "mastil": row[5]
+            }
+        return None
+    except Exception as e:
+        logger.error(f"Error getting pending sequence {bastidor}: {e}", exc_info=True)
+        return None
+
+
+def force_sequence_nok(db: Session, bastidor: str) -> bool:
+    """Inserts a single sequence from JAULA_ERP into LOG_TABLA as NOK by its bastidor."""
+    from config import get_settings
+    settings = get_settings()
+    try:
+        # Check if it exists in JAULA_ERP and is not already in LOG_TABLA
+        check_query = text(f"""
+            SELECT COUNT(*) FROM JAULA_ERP erp
+            WHERE erp.bastidor = :bastidor
+              AND erp.bastidor NOT IN (
+                  SELECT DISTINCT log.NBASTIDOR 
+                  FROM {settings.app1_log_table} log 
+                  WHERE log.NBASTIDOR IS NOT NULL
+              )
+        """)
+        exists = db.execute(check_query, {"bastidor": bastidor}).scalar()
+        if not exists:
+            return False
+
+        # Execute insertion
+        insert_query = text(f"""
+            INSERT INTO {settings.app1_log_table} (
+                id,
+                OPERARIO,
+                FECHA_MONTAJE,
+                NSECUENCIA,
+                NMODELO,
+                NBASTIDOR,
+                NMASTIL,
+                ALTURA_MAX_INTERMEDIA,
+                OK_NOK,
+                TIEMPO_ELEVACION_MIN_SINCARGA,
+                TIEMPO_ELEVACION_MAX_SINCARGA,
+                TIEMPO_DESCENSO_MIN_SINCARGA,
+                TIEMPO_DESCENSO_MAX_SINCARGA,
+                TIEMPO_ELEVACION_MIN_CARGA,
+                TIEMPO_ELEVACION_MAX_CARGA,
+                TIEMPO_DESCENSO_MIN_CARGA,
+                TIEMPO_DESCENSO_MAX_CARGA,
+                PESO_PRUEBA
+            )
+            SELECT 
+                (SELECT COALESCE(MAX(id), 0) + 1 FROM {settings.app1_log_table}),
+                'FORZADO NOK',
+                TRY_CAST(erp.fecha_montaje AS DATETIME),
+                TRY_CAST(erp.secuencia AS FLOAT),
+                erp.modelo,
+                erp.bastidor,
+                erp.mastil,
+                TRY_CAST(erp.altura_max_interm AS FLOAT),
+                'NOK',
+                TRY_CAST(erp.tpo_elev_min_scarga AS FLOAT),
+                TRY_CAST(erp.tpo_elev_max_scarga AS FLOAT),
+                TRY_CAST(erp.tpo_desc_min_scarga AS FLOAT),
+                TRY_CAST(erp.tpo_desc_max_scarga AS FLOAT),
+                TRY_CAST(erp.tpo_elevac_min AS FLOAT),
+                TRY_CAST(erp.tpo_elevac_max AS FLOAT),
+                TRY_CAST(erp.tpo_descenso_min AS FLOAT),
+                TRY_CAST(erp.tpo_descenso_max AS FLOAT),
+                TRY_CAST(erp.peso_pruebas AS FLOAT)
+            FROM JAULA_ERP erp
+            WHERE erp.bastidor = :bastidor;
+        """)
+        result = db.execute(insert_query, {"bastidor": bastidor})
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error forcing single sequence {bastidor} to NOK: {e}", exc_info=True)
+        db.rollback()
+        raise e
+
+
+def force_all_pending_sequences_nok(db: Session, max_date: str = "20260624") -> int:
+    """Inserts all pending sequences from JAULA_ERP (where fecha_montaje <= max_date) 
+    into LOG_TABLA as NOK, generating sequential IDs from the current MAX(id)."""
+    from config import get_settings
+    settings = get_settings()
+    try:
+        # Check if there are any records first to avoid errors and trace log
+        check_query = text(f"""
+            SELECT COUNT(*) FROM JAULA_ERP erp
+            WHERE erp.fecha_montaje <= :max_date
+              AND erp.bastidor NOT IN (
+                  SELECT DISTINCT log.NBASTIDOR 
+                  FROM {settings.app1_log_table} log 
+                  WHERE log.NBASTIDOR IS NOT NULL
+              )
+        """)
+        pending_count = db.execute(check_query, {"max_date": max_date}).scalar()
+        if pending_count == 0:
+            logger.info("No pending sequences to force to NOK up to date %s.", max_date)
+            return 0
+
+        # Execute the insert
+        insert_query = text(f"""
+            INSERT INTO {settings.app1_log_table} (
+                id,
+                OPERARIO,
+                FECHA_MONTAJE,
+                NSECUENCIA,
+                NMODELO,
+                NBASTIDOR,
+                NMASTIL,
+                ALTURA_MAX_INTERMEDIA,
+                OK_NOK,
+                TIEMPO_ELEVACION_MIN_SINCARGA,
+                TIEMPO_ELEVACION_MAX_SINCARGA,
+                TIEMPO_DESCENSO_MIN_SINCARGA,
+                TIEMPO_DESCENSO_MAX_SINCARGA,
+                TIEMPO_ELEVACION_MIN_CARGA,
+                TIEMPO_ELEVACION_MAX_CARGA,
+                TIEMPO_DESCENSO_MIN_CARGA,
+                TIEMPO_DESCENSO_MAX_CARGA,
+                PESO_PRUEBA
+            )
+            SELECT 
+                (SELECT COALESCE(MAX(id), 0) FROM {settings.app1_log_table}) + ROW_NUMBER() OVER (ORDER BY TRY_CAST(erp.fecha_montaje AS DATE) ASC, erp.secuencia ASC),
+                'FORZADO NOK',
+                TRY_CAST(erp.fecha_montaje AS DATETIME),
+                TRY_CAST(erp.secuencia AS FLOAT),
+                erp.modelo,
+                erp.bastidor,
+                erp.mastil,
+                TRY_CAST(erp.altura_max_interm AS FLOAT),
+                'NOK',
+                TRY_CAST(erp.tpo_elev_min_scarga AS FLOAT),
+                TRY_CAST(erp.tpo_elev_max_scarga AS FLOAT),
+                TRY_CAST(erp.tpo_desc_min_scarga AS FLOAT),
+                TRY_CAST(erp.tpo_desc_max_scarga AS FLOAT),
+                TRY_CAST(erp.tpo_elevac_min AS FLOAT),
+                TRY_CAST(erp.tpo_elevac_max AS FLOAT),
+                TRY_CAST(erp.tpo_descenso_min AS FLOAT),
+                TRY_CAST(erp.tpo_descenso_max AS FLOAT),
+                TRY_CAST(erp.peso_pruebas AS FLOAT)
+            FROM JAULA_ERP erp
+            WHERE erp.fecha_montaje <= :max_date
+              AND erp.bastidor NOT IN (
+                  SELECT DISTINCT log.NBASTIDOR 
+                  FROM {settings.app1_log_table} log 
+                  WHERE log.NBASTIDOR IS NOT NULL
+              )
+        """)
+        result = db.execute(insert_query, {"max_date": max_date})
+        db.commit()
+        logger.info("Forced %d pending sequences <= %s to NOK state.", pending_count, max_date)
+        return pending_count
+    except Exception as e:
+        logger.error(f"Error forcing all pending sequences to NOK: {e}", exc_info=True)
+        db.rollback()
+        raise e
+
+

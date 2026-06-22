@@ -90,6 +90,15 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("BD no disponible al arrancar (%s). La app sigue activa.", exc)
 
+    # Forzar todas las secuencias pendientes a NOK hasta el 24/06/2026
+    try:
+        from database.session import SessionLocal
+        from database import repositories as repo
+        with SessionLocal() as db:
+            repo.force_all_pending_sequences_nok(db, max_date="20260624")
+    except Exception as exc:
+        logger.warning("No se pudieron forzar las secuencias a NOK al arrancar: %s", exc)
+
     # Scheduler de snapshots OEE
     try:
         _scheduler = start_scheduler()

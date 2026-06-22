@@ -466,8 +466,8 @@
                 "value": [
                   {
                     "targetBlank": false,
-                    "title": "Forzar a OK",
-                    "url": "http://localhost:8000/api/v1/sequences/${__data.fields.log_id}/force-ok"
+                    "title": "Forzar a NOK",
+                    "url": "http://localhost:8000/api/v1/sequences/force-nok?bastidor=${__data.fields.Bastidor}"
                   }
                 ]
               }
