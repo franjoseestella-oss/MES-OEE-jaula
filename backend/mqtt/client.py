@@ -92,10 +92,13 @@ class MQTTClient:
         if reason_code == 0:
             self._connected = True
             logger.info("MQTT: conectado.")
-            # Suscribirse a estado y contadores
+            # Suscribirse a estado y contadores de la máquina configurada
             client.subscribe(self._topic("estado"), qos=1)
             client.subscribe(self._topic("contadores"), qos=1)
-            logger.info("MQTT: suscrito a %s/estado y .../contadores", self._settings.mqtt_topic_prefix)
+            # Suscribirse a estado y conexión de todas las jaulas
+            client.subscribe("planta/jaula/+/estado", qos=1)
+            client.subscribe("planta/jaula/+/conexion", qos=1)
+            logger.info("MQTT: suscrito a los temas de la máquina y de la jaula")
         else:
             logger.warning("MQTT: fallo de conexión, código %s", reason_code)
 
@@ -110,6 +113,19 @@ class MQTTClient:
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             logger.warning("MQTT: payload inválido en %s: %s", msg.topic, exc)
             return
+
+        # Extraer información de los tópicos de la jaula
+        topic_parts = msg.topic.split("/")
+        if len(topic_parts) >= 3 and topic_parts[0] == "planta" and topic_parts[1] == "jaula":
+            jaula_id = topic_parts[2]
+            raw["jaula_id"] = jaula_id
+            if "ts" in raw and "timestamp" not in raw:
+                raw["timestamp"] = raw["ts"]
+            if topic_parts[-1] == "conexion":
+                raw["state"] = "Idle" if raw.get("online") else "Disconnected"
+            elif topic_parts[-1] == "estado":
+                if "estado" in raw and "state" not in raw:
+                    raw["state"] = raw["estado"]
 
         # Normalizar estado al vocabulario PackML
         if "state" in raw:
