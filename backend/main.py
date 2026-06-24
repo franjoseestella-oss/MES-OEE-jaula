@@ -90,14 +90,61 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("BD no disponible al arrancar (%s). La app sigue activa.", exc)
 
-    # Forzar todas las secuencias pendientes a NOK hasta el 24/06/2026
+    # Forzar todas las secuencias pendientes a NOK hasta el 23/06/2026
     try:
         from database.session import SessionLocal
         from database import repositories as repo
         with SessionLocal() as db:
-            repo.force_all_pending_sequences_nok(db, max_date="20260624")
+            repo.force_all_pending_sequences_nok(db, max_date="20260623")
     except Exception as exc:
         logger.warning("No se pudieron forzar las secuencias a NOK al arrancar: %s", exc)
+
+    # Asegurar tema oscuro en Grafana
+    def ensure_grafana_dark_theme():
+        import threading
+        import time
+        import urllib.request
+        import base64
+        import json
+
+        def run():
+            time.sleep(5)
+            user = "fran.jose.estella@gmail.com"
+            pw = "admin123"
+            auth = base64.b64encode(f"{user}:{pw}".encode()).decode()
+            headers = {
+                "Authorization": f"Basic {auth}",
+                "Content-Type": "application/json"
+            }
+            urls = [
+                "http://grafana:3000/api/org/preferences",
+                "http://grafana:3000/api/user/preferences",
+                "http://localhost:3010/api/org/preferences",
+                "http://localhost:3010/api/user/preferences"
+            ]
+            payload = {"theme": "dark"}
+            data = json.dumps(payload).encode("utf-8")
+            
+            for i in range(12):
+                success = False
+                for url in urls:
+                    try:
+                        req = urllib.request.Request(url, data=data, headers=headers, method="PUT")
+                        with urllib.request.urlopen(req, timeout=5) as resp:
+                            logger.info("Fuerza tema oscuro en Grafana: %s exitoso", url)
+                            success = True
+                    except Exception:
+                        pass
+                if success:
+                    break
+                time.sleep(10)
+
+        threading.Thread(target=run, daemon=True).start()
+
+    try:
+        ensure_grafana_dark_theme()
+    except Exception as exc:
+        logger.warning("No se pudo iniciar el hilo para asegurar tema oscuro: %s", exc)
 
     # Scheduler de snapshots OEE
     try:

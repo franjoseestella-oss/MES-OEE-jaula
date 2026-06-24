@@ -9,5 +9,5 @@ with open(filepath, "r", encoding="utf-8") as f:
 
 for panel in data.get("panels", []):
     if panel.get("id") == 10:
-        print(json.dumps(panel, indent=2, ensure_ascii=False))
+        print(json.dumps(panel.get("fieldConfig", {}).get("defaults", {}), indent=2, ensure_ascii=False))
         break

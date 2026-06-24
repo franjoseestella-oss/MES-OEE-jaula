@@ -161,6 +161,11 @@
                     "targetBlank": false,
                     "title": "Forzar a OK",
                     "url": "http://localhost:8000/api/v1/sequences/${__data.fields.id}/force-ok"
+                  },
+                  {
+                    "targetBlank": false,
+                    "title": "Forzar a NOK",
+                    "url": "http://localhost:8000/api/v1/sequences/${__data.fields.id}/force-nok"
                   }
                 ]
               }
@@ -319,6 +324,16 @@
                 "value": {
                   "type": "color-background"
                 }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Forzar a NOK",
+                    "url": "http://localhost:8000/api/v1/sequences/${__data.fields.id}/force-nok"
+                  }
+                ]
               }
             ]
           }
@@ -840,6 +855,6 @@
   "timezone": "browser",
   "title": "LOGISNEXT — REGISTRO",
   "uid": "mes-reg-v1",
-  "version": 72,
+  "version": 86,
   "weekStart": ""
 }

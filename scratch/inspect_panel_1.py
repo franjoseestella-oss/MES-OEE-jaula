@@ -8,6 +8,6 @@ with open(filepath, "r", encoding="utf-8") as f:
     data = json.load(f)
 
 for panel in data.get("panels", []):
-    if panel.get("id") == 10:
+    if panel.get("id") == 1:
+        print("Panel 1 Config:")
         print(json.dumps(panel, indent=2, ensure_ascii=False))
-        break

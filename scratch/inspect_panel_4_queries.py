@@ -8,6 +8,8 @@ with open(filepath, "r", encoding="utf-8") as f:
     data = json.load(f)
 
 for panel in data.get("panels", []):
-    if panel.get("id") == 10:
-        print(json.dumps(panel, indent=2, ensure_ascii=False))
-        break
+    if panel.get("id") == 4:
+        targets = panel.get("targets", [])
+        for t in targets:
+            print(f"--- RefId: {t.get('refId')} ---")
+            print(t.get("rawSql"))

@@ -8,6 +8,9 @@ with open(filepath, "r", encoding="utf-8") as f:
     data = json.load(f)
 
 for panel in data.get("panels", []):
-    if panel.get("id") == 10:
-        print(json.dumps(panel, indent=2, ensure_ascii=False))
-        break
+    pid = panel.get("id")
+    title = panel.get("title")
+    for t in panel.get("targets", []):
+        sql = t.get("rawSql", "")
+        if "@EvalTime" in sql:
+            print(f"Panel {pid}: '{title}' contains @EvalTime")

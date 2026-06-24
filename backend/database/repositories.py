@@ -196,6 +196,22 @@ def force_sequence_ok(db: Session, sequence_id: int) -> bool:
         raise e
 
 
+def force_sequence_nok_by_id(db: Session, sequence_id: int) -> bool:
+    """Updates OK_NOK to 'NOK' in dbo.LOG_TABLA for the given ID."""
+    from config import get_settings
+    settings = get_settings()
+    try:
+        query = text(f"UPDATE {settings.app1_log_table} SET OK_NOK = 'NOK' WHERE id = :id")
+        result = db.execute(query, {"id": sequence_id})
+        db.commit()
+        return result.rowcount > 0
+    except Exception as e:
+        logger.error(f"Error forcing sequence {sequence_id} to NOK: {e}", exc_info=True)
+        db.rollback()
+        raise e
+
+
+
 def get_pending_sequence_by_bastidor(db: Session, bastidor: str) -> Optional[dict]:
     """Gets details of a pending sequence from JAULA_ERP by bastidor."""
     try:
