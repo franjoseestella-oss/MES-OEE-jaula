@@ -37,7 +37,7 @@ services:
       - "DESKTOP-PMRMSPT:host-gateway"
 
   grafana:
-    image: grafana/grafana:10.4.2
+    image: grafana/grafana:11.0.0
     container_name: mes_grafana
     ports:
       - "3010:3000"
