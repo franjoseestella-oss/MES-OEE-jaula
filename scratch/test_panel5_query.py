@@ -6,20 +6,16 @@ conn_str = (
     "DATABASE=DAFEED;"
     "UID=usuario_readonly;"
     "PWD=Logisnext2026!;"
-    "TrustServerCertificate=yes;"
-    "ConnLifetime=30;"
 )
 
-def inspect():
+try:
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
     
-    sql = """
+    query = """
     SET NOCOUNT ON;
-    DECLARE @ActiveDate VARCHAR(8) = '20260624';
+    DECLARE @ActiveDate VARCHAR(8) = '20260625';
     DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
-    DECLARE @Monday DATE = DATEADD(wk, DATEDIFF(wk, 0, @SelectedDate), 0);
-    DECLARE @Friday DATE = DATEADD(day, 4, @Monday);
 
     -- Create weekly schedule slots table
     IF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;
@@ -137,103 +133,27 @@ def inspect():
         FROM dbo.LOG_TABLA
     ) l ON l.NBASTIDOR = m.bastidor AND l.rn = 1;
 
-    -- Now assign planned times ONLY if planned_date is within the current week
+    -- Now assign planned times
     SELECT 
-        ROW_NUMBER() OVER (ORDER BY COALESCE(s.planned_date, '1900-01-01') ASC, s.slot_idx ASC, s.secuencia ASC) AS [ID],
         s.secuencia AS [Secuencia],
         s.bastidor AS [Bastidor],
-        s.modelo AS [Modelo],
-        COALESCE(CONVERT(varchar(10), s.planned_date, 103), '') AS [Fecha Montaje],
-        -- Planned Times are ONLY shown if planned_date falls within the active week
         CASE 
-            WHEN s.planned_date BETWEEN @Monday AND @Friday THEN
-                CONVERT(varchar(8), 
-                    DATEADD(second, 
-                        CASE 
-                            WHEN s.slot_idx = 1 THEN 0
-                            ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))
-                        END,
-                        DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
-                    ), 
-                    108
-                )
-            ELSE ''
-        END AS [Inicio Planificado],
-        CASE 
-            WHEN s.planned_date BETWEEN @Monday AND @Friday THEN
-                CONVERT(varchar(8), 
-                    DATEADD(second, 
-                        DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),
-                        DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
-                    ), 
-                    108
-                )
-            ELSE ''
-        END AS [Fin Planificado],
-        CONVERT(varchar(8), CAST(s.FECHA_HORA_INICIO_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Inicio Real],
-        CONVERT(varchar(8), CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Fin Real],
-        CASE 
-            WHEN s.FECHA_HORA_FIN_SEC IS NULL THEN '-'
-            ELSE 
-                -- Deviation is only calculated if planned times exist
-                CASE 
-                    WHEN s.planned_date BETWEEN @Monday AND @Friday THEN
-                        CASE 
-                            WHEN DATEDIFF(minute, 
-                                DATEADD(second, 
-                                    DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),
-                                    DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
-                                ), 
-                                CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
-                            ) > 0 
-                                THEN '+' + CAST(DATEDIFF(minute, 
-                                    DATEADD(second, 
-                                        DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),
-                                        DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
-                                    ), 
-                                    CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
-                                ) AS VARCHAR) + ' min'
-                            ELSE 
-                                CAST(DATEDIFF(minute, 
-                                    DATEADD(second, 
-                                        DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),
-                                        DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
-                                    ), 
-                                    CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
-                                ) AS VARCHAR) + ' min'
-                        END
-                    ELSE '-'
-                END
-        END AS [Desviación],
-        COALESCE(s.log_status, 'Pendiente') AS [Estado]
+            WHEN s.FECHA_HORA_FIN_SEC IS NOT NULL THEN s.log_status
+            WHEN active.id IS NOT NULL OR (s.FECHA_HORA_INICIO_SEC IS NOT NULL AND s.FECHA_HORA_FIN_SEC IS NULL) THEN 'Procesando'
+            ELSE 'Pendiente'
+        END AS [Estado]
     FROM #SeqsWithLog s
     LEFT JOIN #CalendarSlots t_prev ON t_prev.fecha = s.planned_date AND t_prev.slot_idx_in_day = s.slot_idx - 1
+    LEFT JOIN dbo.REFERENCIA_EN_CICLO active ON active.NBASTIDOR = s.bastidor
     WHERE 
-        -- Show sequences planned for this week
-        (s.planned_date BETWEEN @Monday AND @Friday)
-        -- OR sequences planned for the past (or not planned / < 227) that are either NOT completed, or completed during this week
-        OR (
-            (s.planned_date < @Monday OR s.planned_date IS NULL)
-            AND (
-                s.log_status IS NULL 
-                OR s.log_status = 'NOK' 
-                -- Completed this week
-                OR CAST(s.log_fecha_montaje AS DATE) BETWEEN @Monday AND @Friday
-            )
-        )
-    ORDER BY COALESCE(s.planned_date, '1900-01-01') ASC, s.slot_idx ASC, s.secuencia ASC;
+        s.planned_date = @SelectedDate
+    ORDER BY s.slot_idx ASC, s.secuencia ASC;
     """
-    
-    cursor.execute(sql)
+    cursor.execute(query)
     rows = cursor.fetchall()
-    
-    # Print columns
-    print([d[0] for d in cursor.description])
-    # Print all rows
+    print("Sequence statuses for today:")
     for r in rows:
-        print(r)
+        print(f"Secuencia={r[0]}, Bastidor={r[1]}, Estado={r[2]}")
         
-    conn.close()
-
-if __name__ == "__main__":
-    inspect()
+except Exception as e:
+    print("Error:", e)
