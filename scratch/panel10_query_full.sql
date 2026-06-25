@@ -283,7 +283,10 @@ FilteredTimestamps AS (
     SELECT bt.id, bt.t
     FROM BoundedTimestamps bt
     INNER JOIN #SeqsToSchedule s ON s.id = bt.id
-    WHERE bt.t >= s.planned_start
+    WHERE bt.t >= CASE 
+                      WHEN s.actual_start IS NOT NULL AND (s.actual_start < s.planned_start OR s.actual_start >= s.planned_end) THEN s.actual_start 
+                      ELSE s.planned_start 
+                  END
       AND bt.t <= CASE 
                       -- Rule: If a previous sequence is in progress, do not draw this sequence
                       WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx THEN
