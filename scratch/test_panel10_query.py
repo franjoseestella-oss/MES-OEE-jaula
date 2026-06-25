@@ -33,9 +33,9 @@ SELECT @CurrentProgressTime = CASE
     ELSE @ShiftEndDT
 END;
 
--- For testing "no jump", let's simulate current progress time being 09:15:00 local time
--- which is past the planned start of sequence 0275 (09:06:20)
-SET @CurrentProgressTime = DATEADD(hour, -@UTCOffset, CAST('2026-06-25 09:15:00' AS DATETIME));
+-- Simulate current progress time being 09:00:00 local time
+-- which is between 0275 planned start (08:41:04) and planned end (09:06:20)
+SET @CurrentProgressTime = DATEADD(hour, -@UTCOffset, CAST('2026-06-25 09:00:00' AS DATETIME));
 
 -- Get active reference/sequence in cycle
 DECLARE @ActiveBastidor VARCHAR(50);
@@ -183,6 +183,13 @@ LEFT JOIN (
 ) log ON log.NBASTIDOR = m.bastidor AND log.rn = 1
 WHERE m.planned_date = @SelectedDate;
 
+-- FOR TESTING: Let's pretend 0274 finished at 08:35:00 (so 0275 is allowed to start drawing waiting bar)
+UPDATE #SeqsToSchedule
+SET actual_end = DATEADD(hour, -@UTCOffset, CAST('2026-06-25 08:35:00' AS DATETIME)),
+    completed = 1,
+    status = 'OK'
+WHERE secuencia = '0274';
+
 UPDATE s
 SET 
     s.planned_start = DATEADD(hour, -@UTCOffset, DATEADD(second, 
@@ -318,7 +325,11 @@ FilteredTimestamps AS (
                       ELSE
                           CASE 
                               WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
-                              ELSE s.planned_end
+                              ELSE
+                                  CASE 
+                                      WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
+                                      ELSE s.planned_end
+                                  END
                           END
                   END
 )
@@ -366,7 +377,11 @@ SELECT time, metric, value FROM (
                             ELSE
                                 CASE 
                                     WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
-                                    ELSE s.planned_end
+                                    ELSE
+                                        CASE 
+                                            WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
+                                            ELSE s.planned_end
+                                        END
                                 END
                         END THEN NULL
             WHEN s.actual_start IS NOT NULL AND ft.t >= s.actual_start AND (s.actual_end IS NULL OR ft.t < s.actual_end)
@@ -399,8 +414,7 @@ cursor.execute(test_query)
 rows = cursor.fetchall()
 print(f"Returned {len(rows)} rows.")
 for r in rows:
-    # Print 0274 (active) and 0275 (which would have been drawn yellow if we jumped)
-    if "0274" in r[1] or "0275" in r[1]:
+    if "0275" in r[1]:
         print(r)
 
 conn.close()

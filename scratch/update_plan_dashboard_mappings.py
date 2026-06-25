@@ -7,7 +7,7 @@ db_path = "grafana/provisioning/dashboards/plan_dashboard.json"
 with open(db_path, "r", encoding="utf-8") as f:
     db = json.load(f)
 
-# Panel 10 query with LOG_ALARMAS duration-interval integration and active-slot sequence blocking
+# Panel 10 query with LOG_ALARMAS duration-interval integration, active-slot blocking, and current-time capping
 panel_10_query = """DECLARE @ActiveDate VARCHAR(8);
 SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
 
@@ -308,7 +308,11 @@ FilteredTimestamps AS (
                       ELSE
                           CASE 
                               WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
-                              ELSE s.planned_end
+                              ELSE
+                                  CASE 
+                                      WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
+                                      ELSE s.planned_end
+                                  END
                           END
                   END
 )
@@ -356,7 +360,11 @@ SELECT time, metric, value FROM (
                             ELSE
                                 CASE 
                                     WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
-                                    ELSE s.planned_end
+                                    ELSE
+                                        CASE 
+                                            WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
+                                            ELSE s.planned_end
+                                        END
                                 END
                         END THEN NULL
             WHEN s.actual_start IS NOT NULL AND ft.t >= s.actual_start AND (s.actual_end IS NULL OR ft.t < s.actual_end)
@@ -410,6 +418,6 @@ for p in db.get("panels", []):
 if updated == 1:
     with open(db_path, "w", encoding="utf-8") as f:
         json.dump(db, f, indent=2, ensure_ascii=False)
-    print("Successfully updated Panel 10 query with finalized Alarm, unprocessed and active-slot sequence blocking logic.")
+    print("Successfully updated Panel 10 query with finalized Alarm, unprocessed and progress-cap logic.")
 else:
     print(f"Error: Panel 10 not found.")
