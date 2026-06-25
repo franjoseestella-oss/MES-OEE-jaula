@@ -289,7 +289,7 @@ FilteredTimestamps AS (
                   END
       AND bt.t <= CASE 
                       -- Rule: If a previous sequence is in progress, do not draw this sequence
-                      WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx THEN
+                      WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL THEN
                           s.planned_start
                       
                       WHEN s.actual_start IS NOT NULL THEN
@@ -341,7 +341,7 @@ SELECT time, metric, value FROM (
         CASE 
             WHEN ft.t >= CASE 
                             -- Rule: If a previous sequence is in progress, do not draw this sequence
-                            WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx THEN
+                            WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL THEN
                                 s.planned_start
                             
                             WHEN s.actual_start IS NOT NULL THEN
