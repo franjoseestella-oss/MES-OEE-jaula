@@ -1,117 +1,47 @@
 import json
+import requests
 import sys
 
-# Set stdout to UTF-8 to handle emoji printing in Windows terminal
-if sys.platform.startswith('win'):
-    import sys, io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stdout.reconfigure(encoding='utf-8')
 
-dashboard_path = "grafana/provisioning/dashboards/registro_dashboard.json"
+db_path = "grafana/provisioning/dashboards/registro_dashboard.json"
 
-with open(dashboard_path, "r", encoding="utf-8") as f:
+with open(db_path, "r", encoding="utf-8") as f:
     db = json.load(f)
 
-# Define the new SELECT fields with INT casting for floats
-select_fields = """SELECT
-  CAST(id AS INT) AS id,
-  OPERARIO AS OPERARIO,
-  COALESCE(CONVERT(varchar(10), TRY_CAST(FECHA_MONTAJE AS DATE), 103), '') AS FECHA_MONTAJE,
-  CAST(NSECUENCIA AS INT) AS NSECUENCIA,
-  NMODELO AS NMODELO,
-  NBASTIDOR AS NBASTIDOR,
-  NMASTIL AS NMASTIL,
-  CAST(ALTURA_MAX_INTERMEDIA AS INT) AS ALTURA_MAX_INTERMEDIA,
-  ESTADO_MULTILOAD AS ESTADO_MULTILOAD,
-  REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MIN_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS TIEMPO_ELEVACION_MIN_SINCARGA,
-  REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MAX_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS TIEMPO_ELEVACION_MAX_SINCARGA,
-  CASE
-    WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA IS NULL THEN ''
-    WHEN TIEMPO_ELEVACION_MIN_SINCARGA IS NULL OR TIEMPO_ELEVACION_MAX_SINCARGA IS NULL
-    THEN REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-    WHEN TIEMPO_ELEVACION_MEDIDO_SINCARGA >= TIEMPO_ELEVACION_MIN_SINCARGA
-     AND TIEMPO_ELEVACION_MEDIDO_SINCARGA <= TIEMPO_ELEVACION_MAX_SINCARGA
-    THEN N'🟢 ' + REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-    ELSE N'🔴 ' + REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MEDIDO_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-  END AS TIEMPO_ELEVACION_MEDIDO_SINCARGA,
-  REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MIN_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS TIEMPO_DESCENSO_MIN_SINCARGA,
-  REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MAX_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS TIEMPO_DESCENSO_MAX_SINCARGA,
-  CASE
-    WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA IS NULL THEN ''
-    WHEN TIEMPO_DESCENSO_MIN_SINCARGA IS NULL OR TIEMPO_DESCENSO_MAX_SINCARGA IS NULL
-    THEN REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-    WHEN TIEMPO_DESCENSO_MEDIDO_SINCARGA >= TIEMPO_DESCENSO_MIN_SINCARGA
-     AND TIEMPO_DESCENSO_MEDIDO_SINCARGA <= TIEMPO_DESCENSO_MAX_SINCARGA
-    THEN N'🟢 ' + REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-    ELSE N'🔴 ' + REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MEDIDO_SINCARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-  END AS TIEMPO_DESCENSO_MEDIDO_SINCARGA,
-  ESTADO_SINCARGA AS ESTADO_SINCARGA,
-  REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MIN_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS TIEMPO_ELEVACION_MIN_CARGA,
-  REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MAX_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS TIEMPO_ELEVACION_MAX_CARGA,
-  CASE
-    WHEN TIEMPO_ELEVACION_MEDIDO_CARGA IS NULL THEN ''
-    WHEN TIEMPO_ELEVACION_MIN_CARGA IS NULL OR TIEMPO_ELEVACION_MAX_CARGA IS NULL
-    THEN REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-    WHEN TIEMPO_ELEVACION_MEDIDO_CARGA >= TIEMPO_ELEVACION_MIN_CARGA
-     AND TIEMPO_ELEVACION_MEDIDO_CARGA <= TIEMPO_ELEVACION_MAX_CARGA
-    THEN N'🟢 ' + REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-    ELSE N'🔴 ' + REPLACE(CAST(TRY_CAST(TIEMPO_ELEVACION_MEDIDO_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-  END AS TIEMPO_ELEVACION_MEDIDO_CARGA,
-  REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MIN_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS TIEMPO_DESCENSO_MIN_CARGA,
-  REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MAX_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS TIEMPO_DESCENSO_MAX_CARGA,
-  CASE
-    WHEN TIEMPO_DESCENSO_MEDIDO_CARGA IS NULL THEN ''
-    WHEN TIEMPO_DESCENSO_MIN_CARGA IS NULL OR TIEMPO_DESCENSO_MAX_CARGA IS NULL
-    THEN REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-    WHEN TIEMPO_DESCENSO_MEDIDO_CARGA >= TIEMPO_DESCENSO_MIN_CARGA
-     AND TIEMPO_DESCENSO_MEDIDO_CARGA <= TIEMPO_DESCENSO_MAX_CARGA
-    THEN N'🟢 ' + REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-    ELSE N'🔴 ' + REPLACE(CAST(TRY_CAST(TIEMPO_DESCENSO_MEDIDO_CARGA AS DECIMAL(18,2)) AS VARCHAR), '.', ',') + ' s'
-  END AS TIEMPO_DESCENSO_MEDIDO_CARGA,
-  ESTADO_CARGA AS ESTADO_CARGA,
-  CAST(CARGA_CONSIGNADA AS INT) AS CARGA_CONSIGNADA,
-  CAST(CARGA_GET AS INT) AS CARGA_GET,
-  CAST(PESO_PRUEBA AS INT) AS PESO_PRUEBA,
-  REPLACE(CAST(TRY_CAST(ALTURA_INICIAL AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS ALTURA_INICIAL,
-  REPLACE(CAST(TRY_CAST(ALTURA_FINAL AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS ALTURA_FINAL,
-  REPLACE(CAST(TRY_CAST(DIFERENCIA_ALTURAS AS DECIMAL(18,2)) AS VARCHAR), '.', ',') AS DIFERENCIA_ALTURAS,
-  ESTADO_CARGA_5_MIN AS ESTADO_CARGA_5_MIN,
-  FECHA_HORA_INICIO_SEC AS FECHA_HORA_INICIO_SEC,
-  FECHA_HORA_FIN_SEC AS FECHA_HORA_FIN_SEC,
-  DURACION_SEC AS DURACION_SEC,
-  OK_NOK AS OK_NOK
-FROM LOG_TABLA"""
-
-# Process each panel
+updated_count = 0
 for panel in db.get("panels", []):
-    panel_id = panel.get("id")
-    if panel_id in [9, 16, 20]:
-        title = panel.get('title', '').encode('ascii', errors='ignore').decode('ascii')
-        print(f"Updating query and columns for Panel {panel_id}: {title}")
-        if panel.get("targets"):
-            target = panel["targets"][0]
-            if panel_id == 9:
-                target["rawSql"] = f"{select_fields} WHERE OK_NOK = 'OK' AND $__timeFilter(FECHA_MONTAJE) ORDER BY id DESC"
-            elif panel_id == 16:
-                target["rawSql"] = f"{select_fields} WHERE OK_NOK = 'NOK' AND $__timeFilter(FECHA_MONTAJE) ORDER BY id DESC"
-            elif panel_id == 20:
-                target["rawSql"] = f"{select_fields} WHERE ('${{selected_bastidor:raw}}' = 'ALL' OR NBASTIDOR = '${{selected_bastidor:raw}}') ORDER BY NSECUENCIA ASC, id DESC"
-                
-    elif panel_id == 21:
-        title = panel.get('title', '').encode('ascii', errors='ignore').decode('ascii')
-        print(f"Updating time filter for Panel 21: {title}")
-        if panel.get("targets"):
-            target = panel["targets"][0]
-            target["rawSql"] = target["rawSql"].replace("$__timeFilter(FECHA_HORA_INICIO_SEC)", "$__timeFilter(FECHA_MONTAJE)")
-            
-    elif panel_id == 22:
-        title = panel.get('title', '').encode('ascii', errors='ignore').decode('ascii')
-        print(f"Updating time filter for Panel 22: {title}")
-        if panel.get("targets"):
-            target = panel["targets"][0]
-            target["rawSql"] = target["rawSql"].replace("$__timeFilter(FECHA_HORA_INICIO_SEC)", "$__timeFilter(FECHA_MONTAJE)")
+    title = panel.get("title")
+    pid = panel.get("id")
+    for t in panel.get("targets", []):
+        raw_sql = t.get("rawSql")
+        if raw_sql and "$__timeFilter(FECHA_MONTAJE)" in raw_sql:
+            new_sql = raw_sql.replace("$__timeFilter(FECHA_MONTAJE)", "$__timeFilter(FECHA_HORA_FIN_SEC)")
+            t["rawSql"] = new_sql
+            print(f"Updated Panel ID {pid} ({title})")
+            updated_count += 1
 
-# Save dashboard
-with open(dashboard_path, "w", encoding="utf-8") as f:
-    json.dump(db, f, indent=2, ensure_ascii=False)
-
-print("Finished updating registro_dashboard.json")
+if updated_count > 0:
+    with open(db_path, "w", encoding="utf-8") as fw:
+        json.dump(db, fw, indent=2, ensure_ascii=False)
+    print(f"Successfully updated {updated_count} queries locally.")
+    
+    # Push back to Grafana
+    # Strip id to let Grafana match by UID and avoid conflict
+    if "id" in db:
+        del db["id"]
+        
+    payload = {
+        "dashboard": db,
+        "folderUid": "dfovv23tkq48wc",
+        "overwrite": True
+    }
+    auth = ("fran.jose.estella@gmail.com", "admin123")
+    url = "http://localhost:3010/api/dashboards/db"
+    headers = {"Content-Type": "application/json"}
+    
+    res = requests.post(url, json=payload, auth=auth, headers=headers)
+    print(f"Status Code: {res.status_code}")
+    print(f"Response: {res.text}")
+else:
+    print("No matches of $__timeFilter(FECHA_MONTAJE) found to replace.")
