@@ -1,36 +1,11 @@
-import os
-import sys
+import re
 
-sys.stdout.reconfigure(encoding='utf-8')
+filepath = r"C:\Users\franj\.gemini\antigravity\brain\a961276b-cf64-4f02-b78b-201b21659b4e\.system_generated\logs\overview.txt"
+with open(filepath, "r", encoding="utf-8") as f:
+    content = f.read()
 
-search_dirs = [
-    r"C:\Users\franj\.gemini\antigravity\brain\5fb9b6d4-078a-4d9e-b78a-22db34c6505a",
-    r"c:\Users\franj\OneDrive\Escritorio\COSAS  FRAN\PROYECTOS\JAULA ELEVACION\APLICACION MES-OEE\scratch"
-]
-
-keywords = ["vertical", "timeline", "secuencia", "estado"]
-
-for search_dir in search_dirs:
-    if not os.path.exists(search_dir):
-        continue
-    print(f"Searching in: {search_dir}")
-    for root, dirs, files in os.walk(search_dir):
-        # Skip media storage and build files
-        if ".git" in root or ".tempmediaStorage" in root:
-            continue
-        for file in files:
-            if not file.endswith((".py", ".txt", ".json", ".md")):
-                continue
-            path = os.path.join(root, file)
-            try:
-                with open(path, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
-                for kw in keywords:
-                    if kw in content.lower():
-                        # Find occurrences
-                        lines = content.splitlines()
-                        for idx, l in enumerate(lines):
-                            if kw in l.lower() and len(l) < 200:
-                                print(f"[{file}:{idx+1}] ({kw}) {l.strip()}")
-            except Exception as e:
-                pass
+for m in re.finditer(r"(?i)(desfase|eje|vertical|timeline|coincidir)", content):
+    start = max(0, m.start() - 150)
+    end = min(len(content), m.end() + 150)
+    print(f"--- MATCH ---")
+    print(content[start:end])

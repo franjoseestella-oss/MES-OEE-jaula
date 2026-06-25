@@ -1,39 +1,481 @@
 import json
+import subprocess
+import os
 
-path = r"c:\Users\franj\OneDrive\Escritorio\COSAS  FRAN\PROYECTOS\JAULA ELEVACION\APLICACION MES-OEE\grafana\provisioning\dashboards\plan_dashboard.json"
-with open(path, "r", encoding="utf-8") as f:
-    d = json.load(f)
+db_path = "grafana/provisioning/dashboards/plan_dashboard.json"
 
-# 1) Add style: dark
-d["style"] = "dark"
-print("Style set to dark.")
+with open(db_path, "r", encoding="utf-8") as f:
+    db = json.load(f)
 
-# 2) Find Panel 5 and update rawSql
-panel5 = None
-for panel in d["panels"]:
-    if panel.get("id") == 5:
-        panel5 = panel
-        break
+# Panel 5 daily query (only sequences of the day)
+panel_5_query = """DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
 
-if panel5:
-    sql = panel5["targets"][0]["rawSql"]
-    old_clause = "WHERE TRY_CAST(erp.fecha_montaje AS DATE) BETWEEN @Monday AND @Friday;"
-    new_clause = """WHERE 
-    (TRY_CAST(erp.fecha_montaje AS DATE) BETWEEN @Monday AND @Friday)
-    OR (TRY_CAST(erp.fecha_montaje AS DATE) < @Monday AND log.id IS NULL)
-    OR (TRY_CAST(erp.fecha_montaje AS DATE) < @Monday 
-        AND log.id IS NOT NULL 
-        AND TRY_CAST(CAST(COALESCE(log.FECHA_HORA_FIN_SEC, log.FECHA_HORA_INICIO_SEC) AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) BETWEEN @Monday AND @Friday);"""
+DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
+
+-- Create weekly schedule slots table
+IF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;
+CREATE TABLE #CalendarSlots (
+    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,
+    fecha DATE,
+    slot_idx_in_day INT,
+    horario TIME
+);
+
+WITH CalendarBase AS (
+    SELECT 
+        Fecha,
+        Laborable,
+        Cant_A_Fabricar,
+        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185
+    FROM dbo.CALENDARIO_LABORAL
+    WHERE Fecha >= '2026-06-24'
+)
+INSERT INTO #CalendarSlots (fecha, slot_idx_in_day, horario)
+SELECT 
+    cb.Fecha,
+    s.seq_idx,
+    s.horario
+FROM CalendarBase cb
+CROSS APPLY (
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
+    FROM dbo.HHSS_18
+    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)
     
-    if old_clause in sql:
-        panel5["targets"][0]["rawSql"] = sql.replace(old_clause, new_clause)
-        print("SQL query updated successfully.")
-    else:
-        print("Target WHERE clause not found in SQL!")
-else:
-    print("Panel 5 not found!")
+    UNION ALL
+    
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
+    FROM dbo.HHSS_19
+    WHERE cb.Cant_A_Fabricar = 19.0
+    
+    UNION ALL
+    
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
+    FROM dbo.HHSS_18_5
+    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19
+    
+    UNION ALL
+    
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
+    FROM dbo.HHSS_18_5
+    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38
+) s
+WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
+ORDER BY cb.Fecha ASC, s.seq_idx ASC;
 
-# Save back
-with open(path, "w", encoding="utf-8") as f:
-    json.dump(d, f, indent=2, ensure_ascii=False)
-print("File saved successfully.")
+-- Map sequences starting from 227
+IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
+CREATE TABLE #MappedSeqs (
+    id INT PRIMARY KEY,
+    secuencia VARCHAR(50),
+    bastidor VARCHAR(50),
+    modelo VARCHAR(50),
+    original_date DATE,
+    planned_date DATE,
+    slot_idx INT,
+    horario TIME
+);
+
+WITH OrderedERP AS (
+    SELECT 
+        id,
+        secuencia,
+        bastidor,
+        modelo,
+        TRY_CAST(fecha_montaje AS DATE) AS original_date,
+        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
+    FROM dbo.JAULA_ERP
+    WHERE TRY_CAST(secuencia AS INT) >= 227
+)
+INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
+SELECT 
+    o.id,
+    o.secuencia,
+    o.bastidor,
+    o.modelo,
+    o.original_date,
+    cs.fecha,
+    cs.slot_idx_in_day,
+    cs.horario
+FROM OrderedERP o
+LEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
+
+-- Get completion status from log
+IF OBJECT_ID('tempdb..#SeqsWithLog') IS NOT NULL DROP TABLE #SeqsWithLog;
+SELECT 
+    m.id,
+    m.secuencia,
+    m.bastidor,
+    m.modelo,
+    m.original_date,
+    m.planned_date,
+    m.slot_idx,
+    m.horario,
+    l.OK_NOK AS log_status,
+    l.FECHA_MONTAJE AS log_fecha_montaje,
+    l.FECHA_HORA_INICIO_SEC,
+    l.FECHA_HORA_FIN_SEC
+INTO #SeqsWithLog
+FROM #MappedSeqs m
+LEFT JOIN (
+    SELECT 
+        id,
+        NBASTIDOR,
+        FECHA_MONTAJE,
+        OK_NOK,
+        FECHA_HORA_INICIO_SEC,
+        FECHA_HORA_FIN_SEC,
+        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR ORDER BY id DESC) as rn
+    FROM dbo.LOG_TABLA
+) l ON l.NBASTIDOR = m.bastidor AND l.rn = 1;
+
+-- Now assign planned times
+SELECT 
+    ROW_NUMBER() OVER (ORDER BY s.slot_idx ASC, s.secuencia ASC) AS [ID],
+    s.secuencia AS [Secuencia],
+    s.bastidor AS [Bastidor],
+    s.modelo AS [Modelo],
+    COALESCE(CONVERT(varchar(10), s.planned_date, 103), '') AS [Fecha Montaje],
+    CONVERT(varchar(8), 
+        DATEADD(second, 
+            CASE 
+                WHEN s.slot_idx = 1 THEN 0
+                ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))
+            END,
+            DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
+        ), 
+        108
+    ) AS [Inicio Planificado],
+    CONVERT(varchar(8), 
+        DATEADD(second, 
+            DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),
+            DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
+        ), 
+        108
+    ) AS [Fin Planificado],
+    CONVERT(varchar(8), CAST(s.FECHA_HORA_INICIO_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Inicio Real],
+    CONVERT(varchar(8), CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Fin Real],
+    CASE 
+        WHEN s.FECHA_HORA_FIN_SEC IS NULL THEN '-'
+        ELSE 
+            CASE 
+                WHEN DATEDIFF(minute, 
+                    DATEADD(second, 
+                        DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),
+                        DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
+                    ), 
+                    CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
+                ) > 0 
+                    THEN '+' + CAST(DATEDIFF(minute, 
+                        DATEADD(second, 
+                            DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),
+                            DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
+                        ), 
+                        CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
+                    ) AS VARCHAR) + ' min'
+                ELSE 
+                    CAST(DATEDIFF(minute, 
+                        DATEADD(second, 
+                            DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),
+                            DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
+                        ), 
+                        CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
+                    ) AS VARCHAR) + ' min'
+            END
+    END AS [Desviación],
+    COALESCE(s.log_status, 'Pendiente') AS [Estado]
+FROM #SeqsWithLog s
+LEFT JOIN #CalendarSlots t_prev ON t_prev.fecha = s.planned_date AND t_prev.slot_idx_in_day = s.slot_idx - 1
+WHERE 
+    s.planned_date = @SelectedDate
+ORDER BY s.slot_idx ASC, s.secuencia ASC;"""
+
+# Panel 10 daily query (only sequences of the day)
+panel_10_query = """DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
+
+DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
+DECLARE @PlotDate DATE = CAST($__timeFrom() AS DATE);
+
+-- Get timezone offset
+DECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());
+DECLARE @ShiftStartDT DATETIME = DATEADD(hour, 7 - @UTCOffset, CAST(@PlotDate AS DATETIME));
+DECLARE @ShiftEndDT DATETIME = DATEADD(hour, 15 - @UTCOffset, CAST(@PlotDate AS DATETIME));
+
+-- Current progress time limit
+DECLARE @CurrentProgressTime DATETIME;
+SELECT @CurrentProgressTime = CASE 
+    WHEN CAST(GETDATE() AS DATE) = @PlotDate THEN GETUTCDATE()
+    WHEN @PlotDate > CAST(GETDATE() AS DATE) THEN @ShiftStartDT
+    ELSE @ShiftEndDT
+END;
+
+-- Create schedule slots table
+IF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;
+CREATE TABLE #CalendarSlots (
+    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,
+    fecha DATE,
+    slot_idx_in_day INT,
+    horario TIME
+);
+
+WITH CalendarBase AS (
+    SELECT 
+        Fecha,
+        Laborable,
+        Cant_A_Fabricar,
+        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185
+    FROM dbo.CALENDARIO_LABORAL
+    WHERE Fecha >= '2026-06-24'
+)
+INSERT INTO #CalendarSlots (fecha, slot_idx_in_day, horario)
+SELECT 
+    cb.Fecha,
+    s.seq_idx,
+    s.horario
+FROM CalendarBase cb
+CROSS APPLY (
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
+    FROM dbo.HHSS_18
+    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)
+    
+    UNION ALL
+    
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
+    FROM dbo.HHSS_19
+    WHERE cb.Cant_A_Fabricar = 19.0
+    
+    UNION ALL
+    
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
+    FROM dbo.HHSS_18_5
+    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19
+    
+    UNION ALL
+    
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
+    FROM dbo.HHSS_18_5
+    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38
+) s
+WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
+ORDER BY cb.Fecha ASC, s.seq_idx ASC;
+
+-- Map sequences starting from 227
+IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
+CREATE TABLE #MappedSeqs (
+    id INT PRIMARY KEY,
+    secuencia VARCHAR(50),
+    bastidor VARCHAR(50),
+    modelo VARCHAR(50),
+    original_date DATE,
+    planned_date DATE,
+    slot_idx INT,
+    horario TIME
+);
+
+WITH OrderedERP AS (
+    SELECT 
+        id,
+        secuencia,
+        bastidor,
+        modelo,
+        TRY_CAST(fecha_montaje AS DATE) AS original_date,
+        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
+    FROM dbo.JAULA_ERP
+    WHERE TRY_CAST(secuencia AS INT) >= 227
+)
+INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
+SELECT 
+    o.id,
+    o.secuencia,
+    o.bastidor,
+    o.modelo,
+    o.original_date,
+    cs.fecha,
+    cs.slot_idx_in_day,
+    cs.horario
+FROM OrderedERP o
+LEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
+
+IF OBJECT_ID('tempdb..#SeqsToSchedule') IS NOT NULL DROP TABLE #SeqsToSchedule;
+CREATE TABLE #SeqsToSchedule (
+    id INT PRIMARY KEY,
+    secuencia VARCHAR(50),
+    bastidor VARCHAR(50),
+    modelo VARCHAR(50),
+    completed BIT DEFAULT 0,
+    status VARCHAR(50) DEFAULT 'Pendiente',
+    completion_time DATETIME,
+    planned_start DATETIME,
+    planned_end DATETIME,
+    planned_date DATE,
+    slot_idx INT
+);
+
+INSERT INTO #SeqsToSchedule (id, secuencia, bastidor, modelo, completed, status, completion_time, planned_date, slot_idx)
+SELECT 
+    m.id,
+    m.secuencia,
+    m.bastidor,
+    m.modelo,
+    CASE WHEN log.id IS NOT NULL THEN 1 ELSE 0 END,
+    COALESCE(log.OK_NOK, 'Pendiente'),
+    log.FECHA_HORA_FIN_SEC,
+    m.planned_date,
+    m.slot_idx
+FROM #MappedSeqs m
+LEFT JOIN (
+    SELECT 
+        id,
+        NBASTIDOR,
+        FECHA_MONTAJE,
+        OK_NOK,
+        FECHA_HORA_FIN_SEC,
+        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR ORDER BY id DESC) as rn
+    FROM dbo.LOG_TABLA
+) log ON log.NBASTIDOR = m.bastidor AND log.rn = 1
+WHERE m.planned_date = @SelectedDate;
+
+UPDATE s
+SET 
+    s.planned_start = DATEADD(hour, -@UTCOffset, DATEADD(second, 
+        CASE 
+            WHEN m.slot_idx = 1 THEN 0
+            ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))
+        END,
+        DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))
+    )),
+    s.planned_end = DATEADD(hour, -@UTCOffset, CASE 
+        WHEN m.horario IS NOT NULL THEN 
+            DATEADD(second, 
+                DATEDIFF(second, '07:00:00', m.horario),
+                DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))
+            )
+        ELSE
+            DATEADD(minute, 25, 
+                DATEADD(second, 
+                    CASE 
+                        WHEN m.slot_idx = 1 THEN 0
+                        ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))
+                    END,
+                    DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))
+                )
+            )
+    END)
+FROM #SeqsToSchedule s
+INNER JOIN #MappedSeqs m ON m.id = s.id
+LEFT JOIN #CalendarSlots t_prev ON t_prev.fecha = m.planned_date AND t_prev.slot_idx_in_day = m.slot_idx - 1;
+
+-- Output for timeline
+WITH SequenceStates AS (
+    SELECT 
+        secuencia,
+        bastidor,
+        planned_start,
+        planned_end,
+        planned_date,
+        slot_idx,
+        (
+            SELECT TOP 1 state 
+            FROM mes_machine_events 
+            WHERE secuencia_id = s.secuencia 
+            ORDER BY timestamp DESC
+        ) AS latest_state
+    FROM #SeqsToSchedule s
+)
+SELECT time, metric, value FROM (
+    -- Shift start boundary to force horizontal axis range
+    SELECT 
+        @ShiftStartDT AS time,
+        CONCAT(secuencia, CHAR(10), bastidor) AS metric,
+        NULL AS value,
+        planned_date,
+        slot_idx,
+        1 AS sort_time_order
+    FROM SequenceStates
+    
+    UNION ALL
+    
+    -- Sequence planned start with its state (capped at shift boundaries and current progress)
+    SELECT 
+        CASE 
+            WHEN planned_start < @ShiftStartDT THEN @ShiftStartDT 
+            WHEN planned_start > @ShiftEndDT THEN @ShiftEndDT
+            ELSE planned_start 
+        END AS time,
+        CONCAT(secuencia, CHAR(10), bastidor) AS metric,
+        CASE 
+            WHEN planned_start > @CurrentProgressTime THEN NULL
+            ELSE CASE COALESCE(latest_state, 'Idle')
+                WHEN 'Execute' THEN 'En proceso'
+                WHEN 'Starting' THEN 'Secuencia iniciada'
+                WHEN 'Running' THEN 'En proceso'
+                WHEN 'Idle' THEN 'Esperando máquina'
+                WHEN 'Held' THEN 'Pausada'
+                WHEN 'Complete' THEN 'Finalizada'
+                WHEN 'Stopped' THEN 'Finalizada'
+                WHEN 'Aborted' THEN 'Alarma'
+                WHEN 'Aborting' THEN 'Alarma'
+                WHEN 'EN_PROCESO' THEN 'En proceso'
+                WHEN 'SECUENCIA_INICIADA' THEN 'Secuencia iniciada'
+                WHEN 'EN_ESPERA' THEN 'Esperando máquina'
+                WHEN 'PAUSADA' THEN 'Pausada'
+                WHEN 'FINALIZADA' THEN 'Finalizada'
+                WHEN 'ERROR' THEN 'Alarma'
+                ELSE 'Esperando máquina'
+            END
+        END AS value,
+        planned_date,
+        slot_idx,
+        2 AS sort_time_order
+    FROM SequenceStates
+    
+    UNION ALL
+    
+    -- Sequence planned end to terminate the block (capped at shift boundaries and current progress)
+    SELECT 
+        CASE 
+            WHEN (CASE WHEN planned_end > @CurrentProgressTime THEN (CASE WHEN planned_start > @CurrentProgressTime THEN planned_start ELSE @CurrentProgressTime END) ELSE planned_end END) < @ShiftStartDT THEN @ShiftStartDT 
+            WHEN (CASE WHEN planned_end > @CurrentProgressTime THEN (CASE WHEN planned_start > @CurrentProgressTime THEN planned_start ELSE @CurrentProgressTime END) ELSE planned_end END) > @ShiftEndDT THEN @ShiftEndDT
+            ELSE (CASE WHEN planned_end > @CurrentProgressTime THEN (CASE WHEN planned_start > @CurrentProgressTime THEN planned_start ELSE @CurrentProgressTime END) ELSE planned_end END)
+        END AS time,
+        CONCAT(secuencia, CHAR(10), bastidor) AS metric,
+        NULL AS value,
+        planned_date,
+        slot_idx,
+        3 AS sort_time_order
+    FROM SequenceStates
+    
+    UNION ALL
+    
+    -- Shift end boundary to force horizontal axis range
+    SELECT 
+        @ShiftEndDT AS time,
+        CONCAT(secuencia, CHAR(10), bastidor) AS metric,
+        NULL AS value,
+        planned_date,
+        slot_idx,
+        4 AS sort_time_order
+    FROM SequenceStates
+) t
+ORDER BY 
+    COALESCE(planned_date, '1900-01-01') ASC, 
+    slot_idx ASC, 
+    metric ASC, 
+    sort_time_order ASC;"""
+
+updated = 0
+for p in db.get("panels", []):
+    if p.get("id") == 5:
+        p["targets"][0]["rawSql"] = panel_5_query
+        updated += 1
+    elif p.get("id") == 10:
+        p["targets"][0]["rawSql"] = panel_10_query
+        updated += 1
+
+if updated == 2:
+    with open(db_path, "w", encoding="utf-8") as f:
+        json.dump(db, f, indent=2, ensure_ascii=False)
+    print("Successfully updated both panels in plan_dashboard.json.")
+else:
+    print(f"Error: only updated {updated} panels.")

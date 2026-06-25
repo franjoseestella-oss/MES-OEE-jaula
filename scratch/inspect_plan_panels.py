@@ -2,7 +2,11 @@ import json
 
 filepath = "grafana/provisioning/dashboards/plan_dashboard.json"
 with open(filepath, "r", encoding="utf-8") as f:
-    data = json.load(f)
+    db = json.load(f)
 
-for i, panel in enumerate(data.get("panels", [])):
-    print(f"Panel {i}: ID={panel.get('id')}, Title='{panel.get('title')}', Type='{panel.get('type')}'")
+for p in db.get("panels", []):
+    if p.get("id") in (5, 10):
+        print(f"--- Panel {p.get('id')} ({p.get('title')}) ---")
+        for t in p.get("targets", []):
+            print(t.get("rawSql"))
+            print("-" * 50)

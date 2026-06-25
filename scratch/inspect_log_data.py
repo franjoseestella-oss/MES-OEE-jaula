@@ -1,4 +1,7 @@
 import pyodbc
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 conn_str = (
     "DRIVER={ODBC Driver 17 for SQL Server};"
@@ -6,24 +9,13 @@ conn_str = (
     "DATABASE=DAFEED;"
     "UID=usuario_readonly;"
     "PWD=Logisnext2026!;"
-    "TrustServerCertificate=yes;"
 )
+
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-test_sql = """
-SELECT val
-FROM (
-    SELECT 1 AS val, 10 AS sort_col
-    UNION ALL
-    SELECT 2 AS val, 5 AS sort_col
-) t
-ORDER BY sort_col ASC;
-"""
-
-cursor.execute(test_sql)
-rows = cursor.fetchall()
-for r in rows:
-    print(r)
+cursor.execute("SELECT TOP 5 NSECUENCIA, NBASTIDOR, FECHA_MONTAJE, OK_NOK, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC FROM dbo.LOG_TABLA ORDER BY id DESC")
+for r in cursor.fetchall():
+    print(list(r))
 
 conn.close()

@@ -1,0 +1,151 @@
+{
+  "datasource": {
+    "type": "mssql",
+    "uid": "mes_sqlserver"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "color": {
+        "mode": "fixed"
+      },
+      "custom": {
+        "fillOpacity": 80,
+        "hideFrom": {
+          "legend": false,
+          "tooltip": false,
+          "viz": false
+        },
+        "insertNulls": false,
+        "lineWidth": 0,
+        "spanNulls": false
+      },
+      "displayName": "${__series.name}",
+      "mappings": [
+        {
+          "options": {
+            "Alarma": {
+              "color": "#E32636",
+              "index": 2,
+              "text": "Alarma"
+            },
+            "En proceso": {
+              "color": "#2FD06A",
+              "index": 1,
+              "text": "En proceso"
+            },
+            "Esperando máquina": {
+              "color": "#FADE2A",
+              "index": 0,
+              "text": "Esperando máquina"
+            },
+            "Finalizada": {
+              "color": "#5F6B7C",
+              "index": 3,
+              "text": "Finalizada"
+            },
+            "Pausada": {
+              "color": "#FFB347",
+              "index": 4,
+              "text": "Pausada"
+            },
+            "Secuencia iniciada": {
+              "color": "#73E6A1",
+              "index": 5,
+              "text": "Secuencia iniciada"
+            }
+          },
+          "type": "value"
+        }
+      ],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          },
+          {
+            "color": "red",
+            "value": 80
+          }
+        ]
+      }
+    },
+    "overrides": []
+  },
+  "gridPos": {
+    "h": 28,
+    "w": 24,
+    "x": 0,
+    "y": 20
+  },
+  "id": 10,
+  "options": {
+    "alignValue": "left",
+    "legend": {
+      "displayMode": "list",
+      "placement": "bottom",
+      "showLegend": true
+    },
+    "mergeValues": true,
+    "rowHeight": 0.9,
+    "showValue": "never",
+    "tooltip": {
+      "mode": "single",
+      "sort": "none"
+    }
+  },
+  "targets": [
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "editorMode": "code",
+      "format": "table",
+      "rawQuery": true,
+      "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\nDECLARE @PlotDate DATE = CAST($__timeFrom() AS DATE);\n\n-- Get timezone offset\nDECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());\nDECLARE @ShiftStartDT DATETIME = DATEADD(hour, 7 - @UTCOffset, CAST(@PlotDate AS DATETIME));\nDECLARE @ShiftEndDT DATETIME = DATEADD(hour, 15 - @UTCOffset, CAST(@PlotDate AS DATETIME));\n\n-- Current progress time limit\nDECLARE @CurrentProgressTime DATETIME;\nSELECT @CurrentProgressTime = CASE \n    WHEN CAST(GETDATE() AS DATE) = @PlotDate THEN GETUTCDATE()\n    WHEN @PlotDate > CAST(GETDATE() AS DATE) THEN @ShiftStartDT\n    ELSE @ShiftEndDT\nEND;\n\n-- Create schedule slots table\nIF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;\nCREATE TABLE #CalendarSlots (\n    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,\n    fecha DATE,\n    slot_idx_in_day INT,\n    horario TIME\n);\n\nWITH CalendarBase AS (\n    SELECT \n        Fecha,\n        Laborable,\n        Cant_A_Fabricar,\n        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185\n    FROM dbo.CALENDARIO_LABORAL\n    WHERE Fecha >= '2026-06-24'\n)\nINSERT INTO #CalendarSlots (fecha, slot_idx_in_day, horario)\nSELECT \n    cb.Fecha,\n    s.seq_idx,\n    s.horario\nFROM CalendarBase cb\nCROSS APPLY (\n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario\n    FROM dbo.HHSS_18\n    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario\n    FROM dbo.HHSS_19\n    WHERE cb.Cant_A_Fabricar = 19.0\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38\n) s\nWHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0\nORDER BY cb.Fecha ASC, s.seq_idx ASC;\n\n-- Map sequences starting from 227\nIF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;\nCREATE TABLE #MappedSeqs (\n    id INT PRIMARY KEY,\n    secuencia VARCHAR(50),\n    bastidor VARCHAR(50),\n    modelo VARCHAR(50),\n    original_date DATE,\n    planned_date DATE,\n    slot_idx INT,\n    horario TIME\n);\n\nWITH OrderedERP AS (\n    SELECT \n        id,\n        secuencia,\n        bastidor,\n        modelo,\n        TRY_CAST(fecha_montaje AS DATE) AS original_date,\n        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx\n    FROM dbo.JAULA_ERP\n    WHERE TRY_CAST(secuencia AS INT) >= 227\n)\nINSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)\nSELECT \n    o.id,\n    o.secuencia,\n    o.bastidor,\n    o.modelo,\n    o.original_date,\n    cs.fecha,\n    cs.slot_idx_in_day,\n    cs.horario\nFROM OrderedERP o\nLEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;\n\nIF OBJECT_ID('tempdb..#SeqsToSchedule') IS NOT NULL DROP TABLE #SeqsToSchedule;\nCREATE TABLE #SeqsToSchedule (\n    id INT PRIMARY KEY,\n    secuencia VARCHAR(50),\n    bastidor VARCHAR(50),\n    modelo VARCHAR(50),\n    completed BIT DEFAULT 0,\n    status VARCHAR(50) DEFAULT 'Pendiente',\n    completion_time DATETIME,\n    planned_start DATETIME,\n    planned_end DATETIME\n);\n\nINSERT INTO #SeqsToSchedule (id, secuencia, bastidor, modelo, completed, status, completion_time)\nSELECT \n    m.id,\n    m.secuencia,\n    m.bastidor,\n    m.modelo,\n    CASE WHEN log.id IS NOT NULL THEN 1 ELSE 0 END,\n    COALESCE(log.OK_NOK, 'Pendiente'),\n    log.FECHA_HORA_FIN_SEC\nFROM #MappedSeqs m\nLEFT JOIN (\n    SELECT \n        id,\n        NBASTIDOR,\n        FECHA_MONTAJE,\n        OK_NOK,\n        FECHA_HORA_FIN_SEC,\n        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR ORDER BY id DESC) as rn\n    FROM dbo.LOG_TABLA\n) log ON log.NBASTIDOR = m.bastidor AND log.rn = 1\nWHERE m.planned_date = @SelectedDate;\n\nUPDATE s\nSET \n    s.planned_start = DATEADD(hour, -@UTCOffset, DATEADD(second, \n        CASE \n            WHEN m.slot_idx = 1 THEN 0\n            ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))\n        END,\n        DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))\n    )),\n    s.planned_end = DATEADD(hour, -@UTCOffset, CASE \n        WHEN m.horario IS NOT NULL THEN \n            DATEADD(second, \n                DATEDIFF(second, '07:00:00', m.horario),\n                DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))\n            )\n        ELSE\n            DATEADD(minute, 25, \n                DATEADD(second, \n                    CASE \n                        WHEN m.slot_idx = 1 THEN 0\n                        ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))\n                    END,\n                    DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))\n                )\n            )\n    END)\nFROM #SeqsToSchedule s\nINNER JOIN #MappedSeqs m ON m.id = s.id\nLEFT JOIN #CalendarSlots t_prev ON t_prev.fecha = m.planned_date AND t_prev.slot_idx_in_day = m.slot_idx - 1;\n\n-- Output for timeline\nWITH SequenceStates AS (\n    SELECT \n        secuencia,\n        bastidor,\n        planned_start,\n        planned_end,\n        (\n            SELECT TOP 1 state \n            FROM mes_machine_events \n            WHERE secuencia_id = s.secuencia \n            ORDER BY timestamp DESC\n        ) AS latest_state\n    FROM #SeqsToSchedule s\n)\nSELECT time, metric, value FROM (\n    -- Shift start boundary to force horizontal axis range\n    SELECT \n        @ShiftStartDT AS time,\n        CONCAT(secuencia, CHAR(10), bastidor) AS metric,\n        NULL AS value\n    FROM SequenceStates\n    \n    UNION ALL\n    \n    -- Sequence planned start with its state (capped at shift boundaries and current progress)\n    SELECT \n        CASE \n            WHEN planned_start < @ShiftStartDT THEN @ShiftStartDT \n            WHEN planned_start > @ShiftEndDT THEN @ShiftEndDT\n            ELSE planned_start \n        END AS time,\n        CONCAT(secuencia, CHAR(10), bastidor) AS metric,\n        CASE \n            WHEN planned_start > @CurrentProgressTime THEN NULL\n            ELSE CASE COALESCE(latest_state, 'Idle')\n                WHEN 'Execute' THEN 'En proceso'\n                WHEN 'Starting' THEN 'Secuencia iniciada'\n                WHEN 'Running' THEN 'En proceso'\n                WHEN 'Idle' THEN 'Esperando máquina'\n                WHEN 'Held' THEN 'Pausada'\n                WHEN 'Complete' THEN 'Finalizada'\n                WHEN 'Stopped' THEN 'Finalizada'\n                WHEN 'Aborted' THEN 'Alarma'\n                WHEN 'Aborting' THEN 'Alarma'\n                WHEN 'EN_PROCESO' THEN 'En proceso'\n                WHEN 'SECUENCIA_INICIADA' THEN 'Secuencia iniciada'\n                WHEN 'EN_ESPERA' THEN 'Esperando máquina'\n                WHEN 'PAUSADA' THEN 'Pausada'\n                WHEN 'FINALIZADA' THEN 'Finalizada'\n                WHEN 'ERROR' THEN 'Alarma'\n                ELSE 'Esperando máquina'\n            END\n        END AS value\n    FROM SequenceStates\n    \n    UNION ALL\n    \n    -- Sequence planned end to terminate the block (capped at shift boundaries and current progress)\n    SELECT \n        CASE \n            WHEN (CASE WHEN planned_end > @CurrentProgressTime THEN (CASE WHEN planned_start > @CurrentProgressTime THEN planned_start ELSE @CurrentProgressTime END) ELSE planned_end END) < @ShiftStartDT THEN @ShiftStartDT \n            WHEN (CASE WHEN planned_end > @CurrentProgressTime THEN (CASE WHEN planned_start > @CurrentProgressTime THEN planned_start ELSE @CurrentProgressTime END) ELSE planned_end END) > @ShiftEndDT THEN @ShiftEndDT\n            ELSE (CASE WHEN planned_end > @CurrentProgressTime THEN (CASE WHEN planned_start > @CurrentProgressTime THEN planned_start ELSE @CurrentProgressTime END) ELSE planned_end END)\n        END AS time,\n        CONCAT(secuencia, CHAR(10), bastidor) AS metric,\n        NULL AS value\n    FROM SequenceStates\n    \n    UNION ALL\n    \n    -- Shift end boundary to force horizontal axis range\n    SELECT \n        @ShiftEndDT AS time,\n        CONCAT(secuencia, CHAR(10), bastidor) AS metric,\n        NULL AS value\n    FROM SequenceStates\n) t\nORDER BY metric ASC, time ASC;",
+      "refId": "A",
+      "sql": {
+        "columns": [
+          {
+            "parameters": [],
+            "type": "function"
+          }
+        ],
+        "groupBy": [
+          {
+            "property": {
+              "type": "string"
+            },
+            "type": "groupBy"
+          }
+        ],
+        "limit": 50
+      }
+    }
+  ],
+  "title": "Plan de Producción por Secuencias (Teórico vs Real)",
+  "transformations": [
+    {
+      "id": "partitionByValues",
+      "options": {
+        "fields": [
+          "metric"
+        ],
+        "keepFields": false,
+        "naming": {
+          "asLabels": false
+        }
+      }
+    },
+    {
+      "id": "renameByRegex",
+      "options": {
+        "regex": "^value\\s([\\s\\S]+)",
+        "renamePattern": "$1"
+      }
+    }
+  ],
+  "type": "state-timeline"
+}

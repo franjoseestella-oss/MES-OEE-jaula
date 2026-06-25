@@ -1,0 +1,136 @@
+{
+  "datasource": {
+    "uid": "mes_sqlserver"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "color": {
+        "mode": "palette-classic"
+      },
+      "custom": {
+        "axisBorderShow": false,
+        "axisCenteredZero": false,
+        "axisColorMode": "text",
+        "axisLabel": "",
+        "axisPlacement": "auto",
+        "barAlignment": 0,
+        "drawStyle": "line",
+        "fillOpacity": 10,
+        "gradientMode": "none",
+        "hideFrom": {
+          "legend": false,
+          "tooltip": false,
+          "viz": false
+        },
+        "insertNulls": false,
+        "lineInterpolation": "stepAfter",
+        "lineWidth": 2,
+        "pointSize": 5,
+        "scaleDistribution": {
+          "type": "linear"
+        },
+        "showPoints": "auto",
+        "spanNulls": false,
+        "stacking": {
+          "group": "A",
+          "mode": "none"
+        },
+        "thresholdsStyle": {
+          "mode": "off"
+        }
+      },
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          },
+          {
+            "color": "red",
+            "value": 80
+          }
+        ]
+      }
+    },
+    "overrides": [
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Teórico"
+        },
+        "properties": [
+          {
+            "id": "color",
+            "value": {
+              "fixedColor": "#00D3FF",
+              "mode": "fixed"
+            }
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Real"
+        },
+        "properties": [
+          {
+            "id": "color",
+            "value": {
+              "fixedColor": "#2FD06A",
+              "mode": "fixed"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "gridPos": {
+    "h": 16,
+    "w": 12,
+    "x": 0,
+    "y": 4
+  },
+  "id": 4,
+  "options": {
+    "legend": {
+      "calcs": [],
+      "displayMode": "list",
+      "placement": "bottom",
+      "showLegend": true
+    },
+    "tooltip": {
+      "mode": "multi",
+      "sort": "none"
+    }
+  },
+  "pluginVersion": "10.4.2",
+  "targets": [
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "editorMode": "code",
+      "format": "time_series",
+      "rawQuery": true,
+      "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nDECLARE @DashboardDate DATE = TRY_CAST(@ActiveDate AS DATE);\nDECLARE @PlotDate DATE = CAST($__timeFrom() AS DATE);\n\n-- Get timezone offset\nDECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());\nDECLARE @ShiftStart DATETIME = DATEADD(hour, 7 - @UTCOffset, CAST(@PlotDate AS DATETIME));\n\nDECLARE @UnidadesAFabricar DECIMAL(4,1);\nSELECT @UnidadesAFabricar = COALESCE(Cant_A_Fabricar, 18.0)\nFROM dbo.CALENDARIO_LABORAL\nWHERE Fecha = @DashboardDate;\n\nIF @UnidadesAFabricar IS NULL\n    SET @UnidadesAFabricar = 18.0;\n\nDECLARE @Count185 INT = 0;\nSELECT @Count185 = COUNT(*)\nFROM dbo.CALENDARIO_LABORAL\nWHERE Laborable = 1 \n  AND Cant_A_Fabricar = 18.5 \n  AND Fecha <= @DashboardDate;\n\nDECLARE @UseSecondSet185 BIT = 0;\nIF @Count185 > 0 AND @Count185 % 2 = 0\n    SET @UseSecondSet185 = 1;\n\nIF OBJECT_ID('tempdb..#ShiftSchedule') IS NOT NULL\n    DROP TABLE #ShiftSchedule;\n\nCREATE TABLE #ShiftSchedule (\n    seq_idx INT,\n    horario TIME\n);\n\nIF @UnidadesAFabricar = 18.0\nBEGIN\n    INSERT INTO #ShiftSchedule (seq_idx, horario)\n    SELECT ROW_NUMBER() OVER (ORDER BY id), horario\n    FROM dbo.HHSS_18;\nEND\nELSE IF @UnidadesAFabricar = 19.0\nBEGIN\n    INSERT INTO #ShiftSchedule (seq_idx, horario)\n    SELECT ROW_NUMBER() OVER (ORDER BY id), horario\n    FROM dbo.HHSS_19;\nEND\nELSE IF @UnidadesAFabricar = 18.5\nBEGIN\n    IF @UseSecondSet185 = 1\n    BEGIN\n        INSERT INTO #ShiftSchedule (seq_idx, horario)\n        SELECT ROW_NUMBER() OVER (ORDER BY id), horario\n        FROM dbo.HHSS_18_5\n        WHERE id BETWEEN 20 AND 38;\n    END\n    ELSE\n    BEGIN\n        INSERT INTO #ShiftSchedule (seq_idx, horario)\n        SELECT ROW_NUMBER() OVER (ORDER BY id), horario\n        FROM dbo.HHSS_18_5\n        WHERE id BETWEEN 1 AND 19;\n    END\nEND\nELSE\nBEGIN\n    INSERT INTO #ShiftSchedule (seq_idx, horario)\n    SELECT ROW_NUMBER() OVER (ORDER BY id), horario\n    FROM dbo.HHSS_18;\nEND;\n\nWITH Planned_With_Times AS (\n    SELECT \n        s.seq_idx,\n        DATEADD(hour, -@UTCOffset, CAST(CONCAT(CONVERT(VARCHAR(10), @PlotDate, 120), ' ', CONVERT(VARCHAR(8), s.horario, 108)) AS DATETIME)) AS [Fin Planificado]\n    FROM #ShiftSchedule s\n)\nSELECT time, [Teórico] FROM (\n    SELECT \n        @ShiftStart AS time,\n        0 AS [Teórico]\n    UNION ALL\n    SELECT \n        [Fin Planificado] AS time,\n        seq_idx AS [Teórico]\n    FROM Planned_With_Times\n    WHERE [Fin Planificado] <= DATEADD(hour, 15 - @UTCOffset, CAST(@PlotDate AS DATETIME))\n) t\nORDER BY time;",
+      "refId": "A"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "editorMode": "code",
+      "format": "time_series",
+      "rawQuery": true,
+      "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nDECLARE @DashboardDate DATE = TRY_CAST(@ActiveDate AS DATE);\nDECLARE @PlotDate DATE = CAST($__timeFrom() AS DATE);\n\n-- Get timezone offset\nDECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());\nDECLARE @ShiftStart DATETIME = DATEADD(hour, 7 - @UTCOffset, CAST(@PlotDate AS DATETIME));\n\nSELECT time, [Real] FROM (\n    SELECT \n        @ShiftStart AS time,\n        0 AS [Real]\n    UNION ALL\n    SELECT \n        DATEADD(hour, -@UTCOffset, TRY_CAST(l.FECHA_HORA_INICIO_SEC AS DATETIME2)) AS time,\n        ROW_NUMBER() OVER (ORDER BY TRY_CAST(l.FECHA_HORA_INICIO_SEC AS DATETIME2)) AS [Real]\n    FROM dbo.LOG_TABLA l\n    WHERE CAST(l.FECHA_MONTAJE AS DATE) = @DashboardDate\n      AND l.OK_NOK = 'OK'\n      AND TRY_CAST(l.FECHA_HORA_INICIO_SEC AS DATETIME2) >= DATEADD(hour, 7, CAST(@DashboardDate AS DATETIME))\n      AND TRY_CAST(l.FECHA_HORA_INICIO_SEC AS DATETIME2) <= DATEADD(hour, 15, CAST(@DashboardDate AS DATETIME))\n) t\nORDER BY time;",
+      "refId": "B"
+    }
+  ],
+  "title": "EVOLUCIÓN PLAN DE PRODUCCIÓN (PLAN vs REAL)",
+  "type": "timeseries"
+}

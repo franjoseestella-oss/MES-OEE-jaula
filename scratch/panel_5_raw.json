@@ -1,0 +1,113 @@
+{
+  "datasource": {
+    "uid": "mes_sqlserver"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "align": "auto",
+        "cellOptions": {
+          "type": "auto"
+        },
+        "inspect": false
+      },
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          }
+        ]
+      }
+    },
+    "overrides": [
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Estado"
+        },
+        "properties": [
+          {
+            "id": "mappings",
+            "value": [
+              {
+                "options": {
+                  "NOK": {
+                    "color": "red",
+                    "index": 1,
+                    "text": "🔴 NOK"
+                  },
+                  "OK": {
+                    "color": "green",
+                    "index": 0,
+                    "text": "🟢 OK"
+                  },
+                  "Pendiente": {
+                    "color": "gray",
+                    "index": 2,
+                    "text": "⚪ Pendiente"
+                  }
+                },
+                "type": "value"
+              }
+            ]
+          },
+          {
+            "id": "custom.cellOptions",
+            "value": {
+              "type": "color-background"
+            }
+          },
+          {
+            "id": "links",
+            "value": [
+              {
+                "targetBlank": false,
+                "title": "Forzar a NOK",
+                "url": "http://localhost:8000/api/v1/sequences/force-nok?bastidor=${__data.fields.Bastidor}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "gridPos": {
+    "h": 16,
+    "w": 12,
+    "x": 12,
+    "y": 4
+  },
+  "id": 5,
+  "options": {
+    "cellHeight": "sm",
+    "footer": {
+      "countRows": false,
+      "fields": "",
+      "reducer": [
+        "sum"
+      ],
+      "show": false
+    },
+    "showHeader": true,
+    "sortBy": []
+  },
+  "pluginVersion": "10.4.2",
+  "targets": [
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "mes_sqlserver"
+      },
+      "editorMode": "code",
+      "format": "table",
+      "rawQuery": true,
+      "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\nDECLARE @Monday DATE = DATEADD(wk, DATEDIFF(wk, 0, @SelectedDate), 0);\nDECLARE @Friday DATE = DATEADD(day, 4, @Monday);\n\n-- Create weekly schedule slots table\nIF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;\nCREATE TABLE #CalendarSlots (\n    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,\n    fecha DATE,\n    slot_idx_in_day INT,\n    horario TIME\n);\n\nWITH CalendarBase AS (\n    SELECT \n        Fecha,\n        Laborable,\n        Cant_A_Fabricar,\n        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185\n    FROM dbo.CALENDARIO_LABORAL\n    WHERE Fecha >= '2026-06-24'\n)\nINSERT INTO #CalendarSlots (fecha, slot_idx_in_day, horario)\nSELECT \n    cb.Fecha,\n    s.seq_idx,\n    s.horario\nFROM CalendarBase cb\nCROSS APPLY (\n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario\n    FROM dbo.HHSS_18\n    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario\n    FROM dbo.HHSS_19\n    WHERE cb.Cant_A_Fabricar = 19.0\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38\n) s\nWHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0\nORDER BY cb.Fecha ASC, s.seq_idx ASC;\n\n-- Map sequences starting from 227\nIF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;\nCREATE TABLE #MappedSeqs (\n    id INT PRIMARY KEY,\n    secuencia VARCHAR(50),\n    bastidor VARCHAR(50),\n    modelo VARCHAR(50),\n    original_date DATE,\n    planned_date DATE,\n    slot_idx INT,\n    horario TIME\n);\n\nWITH OrderedERP AS (\n    SELECT \n        id,\n        secuencia,\n        bastidor,\n        modelo,\n        TRY_CAST(fecha_montaje AS DATE) AS original_date,\n        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx\n    FROM dbo.JAULA_ERP\n    WHERE TRY_CAST(secuencia AS INT) >= 227\n)\nINSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)\nSELECT \n    o.id,\n    o.secuencia,\n    o.bastidor,\n    o.modelo,\n    o.original_date,\n    cs.fecha,\n    cs.slot_idx_in_day,\n    cs.horario\nFROM OrderedERP o\nLEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;\n\n-- Get completion status from log\nIF OBJECT_ID('tempdb..#SeqsWithLog') IS NOT NULL DROP TABLE #SeqsWithLog;\nSELECT \n    m.id,\n    m.secuencia,\n    m.bastidor,\n    m.modelo,\n    m.original_date,\n    m.planned_date,\n    m.slot_idx,\n    m.horario,\n    l.OK_NOK AS log_status,\n    l.FECHA_MONTAJE AS log_fecha_montaje,\n    l.FECHA_HORA_INICIO_SEC,\n    l.FECHA_HORA_FIN_SEC\nINTO #SeqsWithLog\nFROM #MappedSeqs m\nLEFT JOIN (\n    SELECT \n        id,\n        NBASTIDOR,\n        FECHA_MONTAJE,\n        OK_NOK,\n        FECHA_HORA_INICIO_SEC,\n        FECHA_HORA_FIN_SEC,\n        ROW_NUMBER() OVER (PARTITION BY NBASTIDOR ORDER BY id DESC) as rn\n    FROM dbo.LOG_TABLA\n) l ON l.NBASTIDOR = m.bastidor AND l.rn = 1;\n\n-- Now assign planned times ONLY if planned_date is within the current week\nSELECT \n    ROW_NUMBER() OVER (ORDER BY COALESCE(s.planned_date, '1900-01-01') ASC, s.slot_idx ASC, s.secuencia ASC) AS [ID],\n    s.secuencia AS [Secuencia],\n    s.bastidor AS [Bastidor],\n    s.modelo AS [Modelo],\n    COALESCE(CONVERT(varchar(10), s.planned_date, 103), '') AS [Fecha Montaje],\n    -- Planned Times are ONLY shown if planned_date falls within the active week\n    CASE \n        WHEN s.planned_date BETWEEN @Monday AND @Friday THEN\n            CONVERT(varchar(8), \n                DATEADD(second, \n                    CASE \n                        WHEN s.slot_idx = 1 THEN 0\n                        ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))\n                    END,\n                    DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))\n                ), \n                108\n            )\n        ELSE ''\n    END AS [Inicio Planificado],\n    CASE \n        WHEN s.planned_date BETWEEN @Monday AND @Friday THEN\n            CONVERT(varchar(8), \n                DATEADD(second, \n                    DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),\n                    DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))\n                ), \n                108\n            )\n        ELSE ''\n    END AS [Fin Planificado],\n    CONVERT(varchar(8), CAST(s.FECHA_HORA_INICIO_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Inicio Real],\n    CONVERT(varchar(8), CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Fin Real],\n    CASE \n        WHEN s.FECHA_HORA_FIN_SEC IS NULL THEN '-'\n        ELSE \n            -- Deviation is only calculated if planned times exist\n            CASE \n                WHEN s.planned_date BETWEEN @Monday AND @Friday THEN\n                    CASE \n                        WHEN DATEDIFF(minute, \n                            DATEADD(second, \n                                DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),\n                                DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))\n                            ), \n                            CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)\n                        ) > 0 \n                            THEN '+' + CAST(DATEDIFF(minute, \n                                DATEADD(second, \n                                    DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),\n                                    DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))\n                                ), \n                                CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)\n                            ) AS VARCHAR) + ' min'\n                        ELSE \n                            CAST(DATEDIFF(minute, \n                                DATEADD(second, \n                                    DATEDIFF(second, '07:00:00', COALESCE(s.horario, '07:00:00')),\n                                    DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))\n                                ), \n                                CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)\n                            ) AS VARCHAR) + ' min'\n                    END\n                ELSE '-'\n            END\n    END AS [Desviación],\n    COALESCE(s.log_status, 'Pendiente') AS [Estado]\nFROM #SeqsWithLog s\nLEFT JOIN #CalendarSlots t_prev ON t_prev.fecha = s.planned_date AND t_prev.slot_idx_in_day = s.slot_idx - 1\nWHERE \n    -- Show sequences planned for this week\n    (s.planned_date BETWEEN @Monday AND @Friday)\n    -- OR sequences planned for the past (or not planned / < 227) that are either NOT completed, or completed during this week\n    OR (\n        (s.planned_date < @Monday OR s.planned_date IS NULL)\n        AND (\n            s.log_status IS NULL \n            OR s.log_status = 'NOK' \n            -- Completed this week\n            OR CAST(s.log_fecha_montaje AS DATE) BETWEEN @Monday AND @Friday\n        )\n    )\nORDER BY COALESCE(s.planned_date, '1900-01-01') ASC, s.slot_idx ASC, s.secuencia ASC;",
+      "refId": "A"
+    }
+  ],
+  "title": "LISTADO DE SECUENCIAS (PLAN vs REAL)",
+  "type": "table"
+}

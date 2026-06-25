@@ -1,24 +1,18 @@
-import pyodbc
-import sys
+import json
+import subprocess
+import os
 
-sys.stdout.reconfigure(encoding='utf-8')
+db_path = "grafana/provisioning/dashboards/plan_dashboard.json"
 
-conn_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-PMRMSPT\\SQLEXPRESS,1435;"
-    "DATABASE=DAFEED;"
-    "UID=usuario_readonly;"
-    "PWD=Logisnext2026!;"
-)
+with open(db_path, "r", encoding="utf-8") as f:
+    db = json.load(f)
 
-conn = pyodbc.connect(conn_str)
-cursor = conn.cursor()
+# Panel 10 query with LOG_ALARMAS duration-interval integration and active-slot sequence blocking
+panel_10_query = """DECLARE @ActiveDate VARCHAR(8);
+SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
 
-test_query = """
-SET NOCOUNT ON;
-
-DECLARE @SelectedDate DATE = '2026-06-25';
-DECLARE @PlotDate DATE = '2026-06-25';
+DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
+DECLARE @PlotDate DATE = CAST($__timeFrom() AS DATE);
 
 -- Get timezone offset
 DECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());
@@ -32,10 +26,6 @@ SELECT @CurrentProgressTime = CASE
     WHEN @PlotDate > CAST(GETDATE() AS DATE) THEN @ShiftStartDT
     ELSE @ShiftEndDT
 END;
-
--- For testing "no jump", let's simulate current progress time being 09:15:00 local time
--- which is past the planned start of sequence 0275 (09:06:20)
-SET @CurrentProgressTime = DATEADD(hour, -@UTCOffset, CAST('2026-06-25 09:15:00' AS DATETIME));
 
 -- Get active reference/sequence in cycle
 DECLARE @ActiveBastidor VARCHAR(50);
@@ -392,15 +382,34 @@ ORDER BY
     slot_idx ASC, 
     metric ASC, 
     time ASC,
-    sort_time_order ASC;
-"""
+    sort_time_order ASC;"""
 
-cursor.execute(test_query)
-rows = cursor.fetchall()
-print(f"Returned {len(rows)} rows.")
-for r in rows:
-    # Print 0274 (active) and 0275 (which would have been drawn yellow if we jumped)
-    if "0274" in r[1] or "0275" in r[1]:
-        print(r)
+updated = 0
+for p in db.get("panels", []):
+    if p.get("id") == 10:
+        # Update rawSql
+        p["targets"][0]["rawSql"] = panel_10_query
+        
+        # Update value mappings options to include "Exceso de tiempo" and "Alarma"
+        mappings = p.setdefault("fieldConfig", {}).setdefault("defaults", {}).setdefault("mappings", [])
+        if mappings and len(mappings) > 0 and mappings[0].get("type") == "value":
+            opts = mappings[0].get("options", {})
+            opts["Exceso de tiempo"] = {
+                "color": "#5F6B7C",
+                "index": 6,
+                "text": "Exceso de tiempo"
+            }
+            opts["Alarma"] = {
+                "color": "#E32636",
+                "index": 7,
+                "text": "Alarma"
+            }
+        
+        updated += 1
 
-conn.close()
+if updated == 1:
+    with open(db_path, "w", encoding="utf-8") as f:
+        json.dump(db, f, indent=2, ensure_ascii=False)
+    print("Successfully updated Panel 10 query with finalized Alarm, unprocessed and active-slot sequence blocking logic.")
+else:
+    print(f"Error: Panel 10 not found.")
