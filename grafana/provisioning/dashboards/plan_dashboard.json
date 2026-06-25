@@ -167,7 +167,53 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "OK"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2FD06A",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NOK"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E32636",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#00D3FF",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 4,
@@ -196,7 +242,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nSELECT COUNT(DISTINCT log.NBASTIDOR) AS [Real]\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_MONTAJE = TRY_CAST(@ActiveDate AS DATE);",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nSELECT \n    COUNT(DISTINCT log.NBASTIDOR) AS [Total],\n    SUM(CASE WHEN log.OK_NOK = 'OK' THEN 1 ELSE 0 END) AS [OK],\n    SUM(CASE WHEN log.OK_NOK = 'NOK' THEN 1 ELSE 0 END) AS [NOK]\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_HORA_FIN_SEC IS NOT NULL\n  AND CAST(CAST(log.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) = @SelectedDate;",
           "refId": "A"
         }
       ],
@@ -256,7 +302,7 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nIF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;\nCREATE TABLE #CalendarSlots (\n    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,\n    fecha DATE\n);\n\nWITH CalendarBase AS (\n    SELECT \n        Fecha,\n        Laborable,\n        Cant_A_Fabricar,\n        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185\n    FROM dbo.CALENDARIO_LABORAL\n    WHERE Fecha >= '2026-06-24'\n)\nINSERT INTO #CalendarSlots (fecha)\nSELECT \n    cb.Fecha\nFROM CalendarBase cb\nCROSS APPLY (\n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18\n    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_19\n    WHERE cb.Cant_A_Fabricar = 19.0\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38\n) s\nWHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0\nORDER BY cb.Fecha ASC, s.seq_idx ASC;\n\nIF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;\nCREATE TABLE #MappedSeqs (\n    id INT PRIMARY KEY,\n    planned_date DATE\n);\n\nWITH OrderedERP AS (\n    SELECT \n        id,\n        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx\n    FROM dbo.JAULA_ERP\n    WHERE TRY_CAST(secuencia AS INT) >= 227\n)\nINSERT INTO #MappedSeqs (id, planned_date)\nSELECT \n    o.id,\n    cs.fecha\nFROM OrderedERP o\nINNER JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;\n\nDECLARE @Teorico INT, @Real INT;\n\nSELECT @Teorico = COUNT(*)\nFROM #MappedSeqs\nWHERE planned_date = @SelectedDate;\n\nSELECT @Real = COUNT(DISTINCT log.NBASTIDOR)\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_MONTAJE = TRY_CAST(@ActiveDate AS DATE);\n\nSELECT COALESCE(@Real, 0) - COALESCE(@Teorico, 0) AS [Desviación];",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nIF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;\nCREATE TABLE #CalendarSlots (\n    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,\n    fecha DATE\n);\n\nWITH CalendarBase AS (\n    SELECT \n        Fecha,\n        Laborable,\n        Cant_A_Fabricar,\n        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185\n    FROM dbo.CALENDARIO_LABORAL\n    WHERE Fecha >= '2026-06-24'\n)\nINSERT INTO #CalendarSlots (fecha)\nSELECT \n    cb.Fecha\nFROM CalendarBase cb\nCROSS APPLY (\n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18\n    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_19\n    WHERE cb.Cant_A_Fabricar = 19.0\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38\n) s\nWHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0\nORDER BY cb.Fecha ASC, s.seq_idx ASC;\n\nIF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;\nCREATE TABLE #MappedSeqs (\n    id INT PRIMARY KEY,\n    planned_date DATE\n);\n\nWITH OrderedERP AS (\n    SELECT \n        id,\n        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx\n    FROM dbo.JAULA_ERP\n    WHERE TRY_CAST(secuencia AS INT) >= 227\n)\nINSERT INTO #MappedSeqs (id, planned_date)\nSELECT \n    o.id,\n    cs.fecha\nFROM OrderedERP o\nINNER JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;\n\nDECLARE @Teorico INT, @Real INT;\n\nSELECT @Teorico = COUNT(*)\nFROM #MappedSeqs\nWHERE planned_date = @SelectedDate;\n\nSELECT @Real = COUNT(DISTINCT log.NBASTIDOR)\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_HORA_FIN_SEC IS NOT NULL\n  AND CAST(CAST(log.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) = @SelectedDate;\n\nSELECT COALESCE(@Real, 0) - COALESCE(@Teorico, 0) AS [Desviación];",
           "refId": "A"
         }
       ],
@@ -552,6 +598,11 @@
                   "index": 0,
                   "text": "Esperando máquina"
                 },
+                "Exceso de tiempo": {
+                  "color": "#5F6B7C",
+                  "index": 6,
+                  "text": "Exceso de tiempo"
+                },
                 "Finalizada": {
                   "color": "#5F6B7C",
                   "index": 3,
@@ -566,11 +617,6 @@
                   "color": "#73E6A1",
                   "index": 5,
                   "text": "Secuencia iniciada"
-                },
-                "Exceso de tiempo": {
-                  "color": "#5F6B7C",
-                  "index": 6,
-                  "text": "Exceso de tiempo"
                 }
               },
               "type": "value"
@@ -875,6 +921,6 @@
   "timezone": "browser",
   "title": "PLAN PRODUCCIÓN",
   "uid": "mes-plan-v1",
-  "version": 118,
+  "version": 143,
   "weekStart": ""
 }

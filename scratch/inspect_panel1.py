@@ -6,7 +6,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 with open("grafana/provisioning/dashboards/plan_dashboard.json", "r", encoding="utf-8") as f:
     db = json.load(f)
 
-for i, panel in enumerate(db.get("panels", [])):
-    title = panel.get("title")
-    pid = panel.get("id")
-    print(f"Panel ID: {pid} | Title: {title} | Type: {panel.get('type')}")
+for panel in db.get("panels", []):
+    if panel.get("id") == 1:
+        print(json.dumps(panel, indent=2, ensure_ascii=False))
+        break
