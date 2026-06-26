@@ -193,12 +193,6 @@ FROM #SeqsToSchedule s
 INNER JOIN #MappedSeqs m ON m.id = s.id
 LEFT JOIN #CalendarSlots t_prev ON t_prev.fecha = m.planned_date AND t_prev.slot_idx_in_day = m.slot_idx - 1;
 
--- Find active slot index in progress
-DECLARE @ActiveSlotIdx INT;
-SELECT @ActiveSlotIdx = MIN(slot_idx)
-FROM #SeqsToSchedule
-WHERE actual_start IS NOT NULL AND actual_end IS NULL;
-
 -- Alarm intervals CTE
 WITH AlarmIntervals AS (
     SELECT 
@@ -288,10 +282,6 @@ FilteredTimestamps AS (
                       ELSE s.planned_start 
                   END
       AND bt.t <= CASE 
-                      -- Rule: If a previous sequence is in progress, do not draw this sequence
-                      WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL THEN
-                          s.planned_start
-                      
                       WHEN s.actual_start IS NOT NULL THEN
                           CASE 
                               WHEN s.actual_end IS NOT NULL THEN 
@@ -299,14 +289,7 @@ FilteredTimestamps AS (
                               ELSE @CurrentProgressTime
                           END
                       ELSE
-                          CASE 
-                              WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
-                              ELSE
-                                  CASE 
-                                      WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
-                                      ELSE s.planned_end
-                                  END
-                          END
+                          s.planned_end
                   END
 )
 SELECT time, metric, value FROM (
@@ -340,10 +323,6 @@ SELECT time, metric, value FROM (
         CONCAT(s.secuencia, CHAR(10), s.bastidor) AS metric,
         CASE 
             WHEN ft.t >= CASE 
-                            -- Rule: If a previous sequence is in progress, do not draw this sequence
-                            WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL THEN
-                                s.planned_start
-                            
                             WHEN s.actual_start IS NOT NULL THEN
                                 CASE 
                                     WHEN s.actual_end IS NOT NULL THEN 
@@ -351,14 +330,7 @@ SELECT time, metric, value FROM (
                                     ELSE @CurrentProgressTime
                                 END
                             ELSE
-                                CASE 
-                                    WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
-                                    ELSE
-                                        CASE 
-                                            WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
-                                            ELSE s.planned_end
-                                        END
-                                END
+                                s.planned_end
                         END THEN NULL
             WHEN s.actual_start IS NOT NULL AND ft.t >= s.actual_start AND (s.actual_end IS NULL OR ft.t < s.actual_end)
                  AND EXISTS (

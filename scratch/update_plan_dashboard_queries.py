@@ -757,8 +757,10 @@ SELECT time, metric, value FROM (
         NULL AS value
     FROM SequenceStates
 ) t
-ORDER BY metric ASC, time ASC;"""
 }
+
+with open("scratch/panel10_query_full.sql", "r", encoding="utf-8") as f:
+    queries[(10, "A")] = f.read()
 
 # Update SQL in targets
 updated_count = 0
