@@ -199,20 +199,6 @@ SELECT @ActiveSlotIdx = MIN(slot_idx)
 FROM #SeqsToSchedule
 WHERE actual_start IS NOT NULL AND actual_end IS NULL;
 
--- Find theoretical active slot index
-DECLARE @TheoreticalActiveSlotIdx INT;
-SELECT TOP 1 @TheoreticalActiveSlotIdx = slot_idx
-FROM #SeqsToSchedule
-WHERE planned_start <= @CurrentProgressTime AND planned_end >= @CurrentProgressTime;
-
-IF @TheoreticalActiveSlotIdx IS NULL
-BEGIN
-    SELECT @TheoreticalActiveSlotIdx = COALESCE(
-        (SELECT MAX(slot_idx) FROM #SeqsToSchedule WHERE planned_start <= @CurrentProgressTime),
-        1
-    );
-END;
-
 -- Alarm intervals CTE
 WITH AlarmIntervals AS (
     SELECT 
@@ -303,7 +289,7 @@ FilteredTimestamps AS (
                   END
       AND bt.t <= CASE 
                       -- Rule: If a previous sequence is in progress, do not draw this sequence
-                      WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL AND @ActiveSlotIdx >= @TheoreticalActiveSlotIdx THEN
+                      WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL THEN
                           s.planned_start
                       
                       WHEN s.actual_start IS NOT NULL THEN
@@ -355,7 +341,7 @@ SELECT time, metric, value FROM (
         CASE 
             WHEN ft.t >= CASE 
                             -- Rule: If a previous sequence is in progress, do not draw this sequence
-                            WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL AND @ActiveSlotIdx >= @TheoreticalActiveSlotIdx THEN
+                            WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL THEN
                                 s.planned_start
                             
                             WHEN s.actual_start IS NOT NULL THEN

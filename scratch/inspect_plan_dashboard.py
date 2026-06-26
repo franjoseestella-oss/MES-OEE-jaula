@@ -1,12 +1,11 @@
 import json
-import sys
 
-sys.stdout.reconfigure(encoding='utf-8')
+with open("scratch/plan_dashboard_8am.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
 
-with open("grafana/provisioning/dashboards/plan_dashboard.json", "r", encoding="utf-8") as f:
-    db = json.load(f)
-
-for i, panel in enumerate(db.get("panels", [])):
-    title = panel.get("title")
-    pid = panel.get("id")
-    print(f"Panel ID: {pid} | Title: {title} | Type: {panel.get('type')}")
+print("Title:", data.get("title"))
+print("UID:", data.get("uid"))
+panels = data.get("panels", [])
+print(f"Number of panels: {len(panels)}")
+for i, p in enumerate(panels):
+    print(f"Index {i}: ID {p.get('id')} - Title: '{p.get('title')}' - Type: '{p.get('type')}'")

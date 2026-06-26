@@ -1,42 +1,23 @@
-import pyodbc
 import sys
+import os
+from sqlalchemy import text
 
-conn_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-PMRMSPT\\SQLEXPRESS,1435;"
-    "DATABASE=DAFEED;"
-    "UID=usuario_readonly;"
-    "PWD=Logisnext2026!;"
-    "TrustServerCertificate=yes;"
-)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend')))
+from database.session import get_db
 
-def main():
-    conn = pyodbc.connect(conn_str)
-    cursor = conn.cursor()
-    
-    print("=== JAULA_ERP columns ===")
-    cursor.execute("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'JAULA_ERP'")
-    for r in cursor.fetchall():
-        print(r)
-        
-    print("\n=== LOG_TABLA columns ===")
-    cursor.execute("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'LOG_TABLA'")
-    for r in cursor.fetchall():
-        print(r)
+with get_db() as db:
+    print("--- TURNO_TRABAJO ---")
+    try:
+        res = db.execute(text("SELECT * FROM dbo.TURNO_TRABAJO")).mappings().all()
+        for r in res:
+            print(dict(r))
+    except Exception as e:
+        print("Error TURNO_TRABAJO:", e)
 
-    print("\n=== JAULA_ERP sample rows (top 5) ===")
-    cursor.execute("SELECT TOP 5 * FROM JAULA_ERP ORDER BY id DESC")
-    cols = [col[0] for col in cursor.description]
-    for r in cursor.fetchall():
-        print(dict(zip(cols, r)))
-
-    print("\n=== LOG_TABLA sample rows (top 5) ===")
-    cursor.execute("SELECT TOP 5 * FROM LOG_TABLA ORDER BY id DESC")
-    cols = [col[0] for col in cursor.description]
-    for r in cursor.fetchall():
-        print(dict(zip(cols, r)))
-        
-    conn.close()
-
-if __name__ == "__main__":
-    main()
+    print("\n--- CALENDARIO_LABORAL (recent) ---")
+    try:
+        res = db.execute(text("SELECT TOP 5 * FROM dbo.CALENDARIO_LABORAL ORDER BY Fecha DESC")).mappings().all()
+        for r in res:
+            print(dict(r))
+    except Exception as e:
+        print("Error CALENDARIO_LABORAL:", e)
