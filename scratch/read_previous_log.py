@@ -1,28 +1,33 @@
-import re
 import sys
+import os
+import json
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
-overview_path = r"C:\Users\franj\.gemini\antigravity\brain\94f80dcf-f9fc-46d5-8664-bf671481cae2\.system_generated\logs\overview.txt"
+log_path = r"C:\Users\franj\.gemini\antigravity\brain\ff73665e-0611-4498-9577-e0ed64617210\.system_generated\logs\overview.txt"
+out_path = r"c:\Users\franj\OneDrive\Escritorio\COSAS  FRAN\PROYECTOS\JAULA ELEVACION\APLICACION MES-OEE\scratch\previous_log_tail.txt"
 
-with open(overview_path, "r", encoding="utf-8", errors="ignore") as f:
+if not os.path.exists(log_path):
+    print("Log does not exist at", log_path)
+    sys.exit(1)
+
+with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
     lines = f.readlines()
 
 print(f"Total lines: {len(lines)}")
-patterns = [
-    re.compile(r"update_dashboard", re.IGNORECASE),
-    re.compile(r"transformations", re.IGNORECASE),
-    re.compile(r"plan_dashboard", re.IGNORECASE),
-    re.compile(r"save_dashboard", re.IGNORECASE),
-]
+# Write readable text representation of the last 150 lines
+with open(out_path, 'w', encoding='utf-8') as f:
+    for line in lines[-150:]:
+        if not line.strip():
+            continue
+        try:
+            data = json.loads(line)
+            role = data.get("source", "UNKNOWN")
+            content = data.get("content", "")
+            f.write(f"[{role}]:\n{content}\n" + "-"*40 + "\n")
+        except Exception as e:
+            f.write(f"[RAW LINE ERR {e}]: {line}\n")
 
-for idx, line in enumerate(lines):
-    if any(p.search(line) for p in patterns):
-        print(f"--- Line {idx} ---")
-        # Print surrounding context (2 lines before, 3 lines after)
-        start = max(0, idx - 2)
-        end = min(len(lines), idx + 4)
-        for j in range(start, end):
-            print(f"  {j}: {lines[j].strip()}")
-        print("-" * 50)
+print(f"Tail written to {out_path}")
+

@@ -13,8 +13,8 @@ DECLARE @ShiftEndDT DATETIME = DATEADD(hour, 15 - @UTCOffset, CAST(@PlotDate AS 
 DECLARE @CurrentProgressTime DATETIME;
 SELECT @CurrentProgressTime = CASE 
     WHEN CAST(GETDATE() AS DATE) = @PlotDate THEN GETUTCDATE()
-    WHEN @PlotDate > CAST(GETDATE() AS DATE) THEN @ShiftStartDT
-    ELSE @ShiftEndDT
+    WHEN @PlotDate > CAST(GETDATE() AS DATE) THEN DATEADD(second, -1, @ShiftStartDT)
+    ELSE DATEADD(day, 1, @ShiftEndDT)
 END;
 
 -- Get active reference/sequence in cycle
@@ -82,7 +82,7 @@ CROSS APPLY (
 WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
 ORDER BY cb.Fecha ASC, s.seq_idx ASC;
 
--- Map sequences using Partition By Day
+-- Map sequences starting from 227
 IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
 CREATE TABLE #MappedSeqs (
     id INT PRIMARY KEY,
@@ -102,8 +102,9 @@ WITH OrderedERP AS (
         bastidor,
         modelo,
         TRY_CAST(fecha_montaje AS DATE) AS original_date,
-        ROW_NUMBER() OVER (PARTITION BY fecha_montaje ORDER BY TRY_CAST(secuencia AS INT) ASC) as slot_idx_in_day
+        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
     FROM dbo.JAULA_ERP
+    WHERE TRY_CAST(secuencia AS INT) >= 227
 )
 INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
 SELECT 
@@ -112,11 +113,11 @@ SELECT
     o.bastidor,
     o.modelo,
     o.original_date,
-    o.original_date,
-    o.slot_idx_in_day,
+    cs.fecha,
+    cs.slot_idx_in_day,
     cs.horario
 FROM OrderedERP o
-LEFT JOIN #CalendarSlots cs ON cs.fecha = o.original_date AND cs.slot_idx_in_day = o.slot_idx_in_day;
+LEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
 
 IF OBJECT_ID('tempdb..#SeqsToSchedule') IS NOT NULL DROP TABLE #SeqsToSchedule;
 CREATE TABLE #SeqsToSchedule (
