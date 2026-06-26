@@ -289,7 +289,14 @@ FilteredTimestamps AS (
                               ELSE @CurrentProgressTime
                           END
                       ELSE
-                          s.planned_end
+                          CASE 
+                              WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
+                              ELSE
+                                  CASE 
+                                      WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
+                                      ELSE s.planned_end
+                                  END
+                          END
                   END
 )
 SELECT time, metric, value FROM (
@@ -330,7 +337,14 @@ SELECT time, metric, value FROM (
                                     ELSE @CurrentProgressTime
                                 END
                             ELSE
-                                s.planned_end
+                                CASE 
+                                    WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
+                                    ELSE
+                                        CASE 
+                                            WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
+                                            ELSE s.planned_end
+                                        END
+                                END
                         END THEN NULL
             WHEN s.actual_start IS NOT NULL AND ft.t >= s.actual_start AND (s.actual_end IS NULL OR ft.t < s.actual_end)
                  AND EXISTS (
