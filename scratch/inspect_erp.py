@@ -18,20 +18,9 @@ def main():
     cursor.execute("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'JAULA_ERP'")
     for r in cursor.fetchall():
         print(r)
-        
-    print("\n=== LOG_TABLA columns ===")
-    cursor.execute("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'LOG_TABLA'")
-    for r in cursor.fetchall():
-        print(r)
 
     print("\n=== JAULA_ERP sample rows (top 5) ===")
     cursor.execute("SELECT TOP 5 * FROM JAULA_ERP ORDER BY id DESC")
-    cols = [col[0] for col in cursor.description]
-    for r in cursor.fetchall():
-        print(dict(zip(cols, r)))
-
-    print("\n=== LOG_TABLA sample rows (top 5) ===")
-    cursor.execute("SELECT TOP 5 * FROM LOG_TABLA ORDER BY id DESC")
     cols = [col[0] for col in cursor.description]
     for r in cursor.fetchall():
         print(dict(zip(cols, r)))

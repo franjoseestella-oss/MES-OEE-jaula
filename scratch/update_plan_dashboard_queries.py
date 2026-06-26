@@ -12,76 +12,9 @@ queries = {
     (1, "A"): """DECLARE @ActiveDate VARCHAR(8);
 SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
 
-DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
-
-IF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;
-CREATE TABLE #CalendarSlots (
-    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,
-    fecha DATE
-);
-
-WITH CalendarBase AS (
-    SELECT 
-        Fecha,
-        Laborable,
-        Cant_A_Fabricar,
-        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185
-    FROM dbo.CALENDARIO_LABORAL
-    WHERE Fecha >= '2026-06-24'
-)
-INSERT INTO #CalendarSlots (fecha)
-SELECT 
-    cb.Fecha
-FROM CalendarBase cb
-CROSS APPLY (
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
-    FROM dbo.HHSS_18
-    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)
-    
-    UNION ALL
-    
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
-    FROM dbo.HHSS_19
-    WHERE cb.Cant_A_Fabricar = 19.0
-    
-    UNION ALL
-    
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
-    FROM dbo.HHSS_18_5
-    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19
-    
-    UNION ALL
-    
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
-    FROM dbo.HHSS_18_5
-    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38
-) s
-WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
-ORDER BY cb.Fecha ASC, s.seq_idx ASC;
-
-IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
-CREATE TABLE #MappedSeqs (
-    id INT PRIMARY KEY,
-    planned_date DATE
-);
-
-WITH OrderedERP AS (
-    SELECT 
-        id,
-        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
-    FROM dbo.JAULA_ERP
-    WHERE TRY_CAST(secuencia AS INT) >= 227
-)
-INSERT INTO #MappedSeqs (id, planned_date)
-SELECT 
-    o.id,
-    cs.fecha
-FROM OrderedERP o
-INNER JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
-
 SELECT COUNT(*) AS [Teórico]
-FROM #MappedSeqs
-WHERE planned_date = @SelectedDate;""",
+FROM dbo.JAULA_ERP
+WHERE TRY_CAST(fecha_montaje AS DATE) = TRY_CAST(@ActiveDate AS DATE);""",
 
     # Panel 2: SECUENCIAS COMPLETADAS (REAL)
     (2, "A"): """DECLARE @ActiveDate VARCHAR(8);
@@ -98,76 +31,11 @@ SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
 
 DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
 
-IF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;
-CREATE TABLE #CalendarSlots (
-    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,
-    fecha DATE
-);
-
-WITH CalendarBase AS (
-    SELECT 
-        Fecha,
-        Laborable,
-        Cant_A_Fabricar,
-        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185
-    FROM dbo.CALENDARIO_LABORAL
-    WHERE Fecha >= '2026-06-24'
-)
-INSERT INTO #CalendarSlots (fecha)
-SELECT 
-    cb.Fecha
-FROM CalendarBase cb
-CROSS APPLY (
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
-    FROM dbo.HHSS_18
-    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)
-    
-    UNION ALL
-    
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
-    FROM dbo.HHSS_19
-    WHERE cb.Cant_A_Fabricar = 19.0
-    
-    UNION ALL
-    
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
-    FROM dbo.HHSS_18_5
-    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19
-    
-    UNION ALL
-    
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
-    FROM dbo.HHSS_18_5
-    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38
-) s
-WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
-ORDER BY cb.Fecha ASC, s.seq_idx ASC;
-
-IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
-CREATE TABLE #MappedSeqs (
-    id INT PRIMARY KEY,
-    planned_date DATE
-);
-
-WITH OrderedERP AS (
-    SELECT 
-        id,
-        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
-    FROM dbo.JAULA_ERP
-    WHERE TRY_CAST(secuencia AS INT) >= 227
-)
-INSERT INTO #MappedSeqs (id, planned_date)
-SELECT 
-    o.id,
-    cs.fecha
-FROM OrderedERP o
-INNER JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
-
 DECLARE @Teorico INT, @Real INT;
 
 SELECT @Teorico = COUNT(*)
-FROM #MappedSeqs
-WHERE planned_date = @SelectedDate;
+FROM dbo.JAULA_ERP
+WHERE TRY_CAST(fecha_montaje AS DATE) = @SelectedDate;
 
 SELECT @Real = COUNT(DISTINCT log.NBASTIDOR)
 FROM dbo.LOG_TABLA log
@@ -355,7 +223,7 @@ CROSS APPLY (
 WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
 ORDER BY cb.Fecha ASC, s.seq_idx ASC;
 
--- Map sequences starting from 227
+-- Map sequences using Partition By Day
 IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
 CREATE TABLE #MappedSeqs (
     id INT PRIMARY KEY,
@@ -375,9 +243,8 @@ WITH OrderedERP AS (
         bastidor,
         modelo,
         TRY_CAST(fecha_montaje AS DATE) AS original_date,
-        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
+        ROW_NUMBER() OVER (PARTITION BY fecha_montaje ORDER BY TRY_CAST(secuencia AS INT) ASC) as slot_idx_in_day
     FROM dbo.JAULA_ERP
-    WHERE TRY_CAST(secuencia AS INT) >= 227
 )
 INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
 SELECT 
@@ -386,11 +253,11 @@ SELECT
     o.bastidor,
     o.modelo,
     o.original_date,
-    cs.fecha,
-    cs.slot_idx_in_day,
+    o.original_date,
+    o.slot_idx_in_day,
     cs.horario
 FROM OrderedERP o
-LEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
+LEFT JOIN #CalendarSlots cs ON cs.fecha = o.original_date AND cs.slot_idx_in_day = o.slot_idx_in_day;
 
 -- Get completion status from log
 IF OBJECT_ID('tempdb..#SeqsWithLog') IS NOT NULL DROP TABLE #SeqsWithLog;
@@ -757,6 +624,7 @@ SELECT time, metric, value FROM (
         NULL AS value
     FROM SequenceStates
 ) t
+"""
 }
 
 with open("scratch/panel10_query_full.sql", "r", encoding="utf-8") as f:

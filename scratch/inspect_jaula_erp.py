@@ -12,11 +12,10 @@ conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
 query = """
-SELECT id, NSECUENCIA, NBASTIDOR, NMODELO, FECHA_MONTAJE, OK_NOK, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC 
-FROM dbo.LOG_TABLA 
-WHERE YEAR(FECHA_MONTAJE) = 2026
-  AND NSECUENCIA BETWEEN 225 AND 235
-ORDER BY id DESC
+SELECT id, secuencia, bastidor, modelo, fecha_montaje
+FROM dbo.JAULA_ERP
+WHERE TRY_CAST(secuencia AS INT) BETWEEN 225 AND 280
+ORDER BY TRY_CAST(secuencia AS INT) ASC
 """
 
 cursor.execute(query)
