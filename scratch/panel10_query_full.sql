@@ -1,13 +1,22 @@
 DECLARE @ActiveDate VARCHAR(8);
-SET @ActiveDate = CONVERT(varchar(8), CAST($__timeFrom() AS DATE), 112);
+SET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);
 
 DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
-DECLARE @PlotDate DATE = CAST($__timeFrom() AS DATE);
+DECLARE @PlotDate DATE = CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE);
+
+DECLARE @ShiftStartHour INT, @ShiftEndHour INT;
+DECLARE @ShiftStartStr VARCHAR(8);
+
+SELECT 
+    @ShiftStartHour = DATEPART(hour, hora_inicio_jornada),
+    @ShiftEndHour = DATEPART(hour, hora_fin_jornada),
+    @ShiftStartStr = CAST(hora_inicio_jornada AS VARCHAR(8))
+FROM dbo.TURNO_TRABAJO;
 
 -- Get timezone offset
 DECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());
-DECLARE @ShiftStartDT DATETIME = DATEADD(hour, 7 - @UTCOffset, CAST(@PlotDate AS DATETIME));
-DECLARE @ShiftEndDT DATETIME = DATEADD(hour, 15 - @UTCOffset, CAST(@PlotDate AS DATETIME));
+DECLARE @ShiftStartDT DATETIME = DATEADD(hour, @ShiftStartHour - @UTCOffset, CAST(@PlotDate AS DATETIME));
+DECLARE @ShiftEndDT DATETIME = DATEADD(hour, @ShiftEndHour - @UTCOffset, CAST(@PlotDate AS DATETIME));
 
 -- Current progress time limit
 DECLARE @CurrentProgressTime DATETIME;
@@ -168,24 +177,24 @@ SET
     s.planned_start = DATEADD(hour, -@UTCOffset, DATEADD(second, 
         CASE 
             WHEN m.slot_idx = 1 THEN 0
-            ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))
+            ELSE DATEDIFF(second, @ShiftStartStr, COALESCE(t_prev.horario, @ShiftStartStr))
         END,
-        DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))
+        DATEADD(hour, @ShiftStartHour, CAST(@PlotDate AS DATETIME))
     )),
     s.planned_end = DATEADD(hour, -@UTCOffset, CASE 
         WHEN m.horario IS NOT NULL THEN 
             DATEADD(second, 
-                DATEDIFF(second, '07:00:00', m.horario),
-                DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))
+                DATEDIFF(second, @ShiftStartStr, m.horario),
+                DATEADD(hour, @ShiftStartHour, CAST(@PlotDate AS DATETIME))
             )
         ELSE
             DATEADD(minute, 25, 
                 DATEADD(second, 
                     CASE 
                         WHEN m.slot_idx = 1 THEN 0
-                        ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))
+                        ELSE DATEDIFF(second, @ShiftStartStr, COALESCE(t_prev.horario, @ShiftStartStr))
                     END,
-                    DATEADD(hour, 7, CAST(@PlotDate AS DATETIME))
+                    DATEADD(hour, @ShiftStartHour, CAST(@PlotDate AS DATETIME))
                 )
             )
     END)

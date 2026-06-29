@@ -1,43 +1,49 @@
 import pyodbc
+import dotenv
+import os
+import sys
 
-conn_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-PMRMSPT\\SQLEXPRESS,1435;"
-    "DATABASE=DAFEED;"
-    "UID=usuario_readonly;"
-    "PWD=Logisnext2026!;"
-    "TrustServerCertificate=yes;"
-    "ConnLifetime=30;"
-)
+sys.stdout.reconfigure(encoding='utf-8')
+dotenv.load_dotenv()
+
+host = os.getenv("SQL_SERVER_HOST", "DESKTOP-PMRMSPT\\SQLEXPRESS")
+database = os.getenv("SQL_SERVER_DATABASE", "DAFEED")
+user = os.getenv("SQL_SERVER_USER", "usuario_readonly")
+password = os.getenv("SQL_SERVER_PASSWORD", "Logisnext2026!")
+driver = os.getenv("SQL_SERVER_DRIVER", "ODBC Driver 17 for SQL Server")
+
+conn_str = f"DRIVER={{{driver}}};SERVER={host};DATABASE={database};UID={user};PWD={password};TrustServerCertificate=yes;"
 
 try:
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
     
-    # 1. Check unique dates in JAULA_ERP
-    print("--- Dates in JAULA_ERP ---")
-    cursor.execute("SELECT DISTINCT TOP 10 fecha_montaje FROM JAULA_ERP ORDER BY fecha_montaje DESC")
+    print("=== Last 5 rows from JAULA_ERP ===")
+    cursor.execute("SELECT TOP 5 * FROM dbo.JAULA_ERP ORDER BY id DESC")
+    columns = [desc[0] for desc in cursor.description]
+    print(columns)
     for row in cursor.fetchall():
-        print(f"  fecha_montaje: {row[0]}")
+        print(row)
         
-    # 2. Check unique dates in LOG_TABLA
-    print("\n--- Dates in LOG_TABLA ---")
-    cursor.execute("SELECT DISTINCT TOP 10 FECHA_MONTAJE FROM LOG_TABLA ORDER BY FECHA_MONTAJE DESC")
+    print("\n=== Last 5 rows from LOG_TABLA ===")
+    cursor.execute("SELECT TOP 5 * FROM dbo.LOG_TABLA ORDER BY id DESC")
+    columns = [desc[0] for desc in cursor.description]
+    print(columns)
     for row in cursor.fetchall():
-        print(f"  FECHA_MONTAJE: {row[0]}")
+        print(row)
         
-    # 3. Check sample match between JAULA_ERP and LOG_TABLA for a recent date (e.g. today or latest date)
-    print("\n--- Sample data match by bastidor/sequence ---")
-    cursor.execute("""
-        SELECT TOP 10 
-            j.fecha_montaje, j.secuencia, j.bastidor, j.modelo,
-            l.NSECUENCIA, l.NBASTIDOR, l.OK_NOK
-        FROM JAULA_ERP j
-        LEFT JOIN LOG_TABLA l ON j.bastidor = l.NBASTIDOR
-        ORDER BY j.fecha_montaje DESC
-    """)
+    print("\n=== Active Reference ===")
+    cursor.execute("SELECT * FROM dbo.REFERENCIA_EN_CICLO")
+    columns = [desc[0] for desc in cursor.description]
+    print(columns)
     for row in cursor.fetchall():
-        print(f"  ERP: {row[0]}/{row[1]}/{row[2]} ({row[3]}) -> LOG: {row[4]}/{row[5]} [{row[6]}]")
+        print(row)
 
+    print("\n=== WORK TURN ===")
+    cursor.execute("SELECT * FROM dbo.TURNO_TRABAJO")
+    for row in cursor.fetchall():
+        print(row)
+        
+    conn.close()
 except Exception as e:
-    print(f"Error: {e}")
+    print("Error:", e)

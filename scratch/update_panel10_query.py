@@ -1,54 +1,67 @@
 import json
-import requests
-import sys
+import os
 
-sys.stdout.reconfigure(encoding='utf-8')
+def main():
+    dashboard_path = r'grafana/provisioning/dashboards/plan_dashboard.json'
+    if not os.path.exists(dashboard_path):
+        print(f"File not found: {dashboard_path}")
+        return
 
-db_path = "grafana/provisioning/dashboards/plan_dashboard.json"
+    with open(dashboard_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 
-with open(db_path, "r", encoding="utf-8") as f:
-    db = json.load(f)
+    # Find Panel 10
+    panel_10 = None
+    for panel in data.get('panels', []):
+        if panel.get('id') == 10:
+            panel_10 = panel
+            break
+    
+    if not panel_10:
+        print("Panel 10 not found!")
+        return
 
-updated = False
-for panel in db.get("panels", []):
-    if panel.get("id") == 10:
-        for target in panel.get("targets", []):
-            if target.get("refId") == "A":
-                sql = target.get("rawSql")
-                old_where = "WHERE bt.t >= s.planned_start"
-                new_where = """WHERE bt.t >= CASE 
-                      WHEN s.actual_start IS NOT NULL AND s.actual_start < s.planned_start THEN s.actual_start 
-                      ELSE s.planned_start 
-                  END"""
-                if old_where in sql:
-                    target["rawSql"] = sql.replace(old_where, new_where)
-                    print("Updated Panel 10 query in plan_dashboard.json.")
-                    updated = True
-                else:
-                    print("Error: Could not find target where clause in Panel 10 query.")
-                break
-        break
+    raw_sql = panel_10['targets'][0]['rawSql']
+    print("Original rawSql snippet:")
+    print("..." + raw_sql[-1000:] + "\n")
 
-if not updated:
-    print("Error: Panel 10 query not updated.")
-    sys.exit(1)
+    target_segment = (
+        "WHEN (s.actual_end IS NULL OR ft.t < s.actual_end)\n"
+        "                 AND EXISTS (\n"
+        "                     SELECT 1 FROM AlarmIntervals a \n"
+        "                     WHERE ft.t >= a.alarm_start AND ft.t < a.alarm_end\n"
+        "                 ) THEN 'Alarma'"
+    )
+    
+    replacement_segment = (
+        "WHEN s.actual_start IS NOT NULL AND ft.t >= s.actual_start AND (s.actual_end IS NULL OR ft.t < s.actual_end)\n"
+        "                 AND EXISTS (\n"
+        "                     SELECT 1 FROM AlarmIntervals a \n"
+        "                     WHERE ft.t >= a.alarm_start AND ft.t < a.alarm_end\n"
+        "                 ) THEN 'Alarma'"
+    )
 
-with open(db_path, "w", encoding="utf-8") as fw:
-    json.dump(db, fw, indent=2, ensure_ascii=False)
+    if target_segment in raw_sql:
+        print("Found target segment!")
+        new_sql = raw_sql.replace(target_segment, replacement_segment)
+        panel_10['targets'][0]['rawSql'] = new_sql
+        
+        with open(dashboard_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        print("Saved updated dashboard JSON successfully.")
+    else:
+        print("Target segment NOT found in rawSql. Maybe it is already modified?")
+        # Let's search for some substrings to see what is there
+        if "AlarmIntervals" in raw_sql:
+            print("AlarmIntervals is present. Let's print the WHEN conditions around it:")
+            lines = raw_sql.split('\n')
+            for i, line in enumerate(lines):
+                if "AlarmIntervals" in line:
+                    start_idx = max(0, i - 4)
+                    end_idx = min(len(lines), i + 6)
+                    print(f"Context lines {start_idx} to {end_idx}:")
+                    for j in range(start_idx, end_idx):
+                        print(f"{j}: {lines[j]}")
 
-# Push to Grafana API
-if "id" in db:
-    del db["id"]
-
-payload = {
-    "dashboard": db,
-    "folderUid": "dfovv23tkq48wc",
-    "overwrite": True
-}
-auth = ("fran.jose.estella@gmail.com", "admin123")
-url = "http://localhost:3010/api/dashboards/db"
-headers = {"Content-Type": "application/json"}
-
-res = requests.post(url, json=payload, auth=auth, headers=headers)
-print(f"Grafana API Push Status Code: {res.status_code}")
-print(f"Response: {res.text}")
+if __name__ == '__main__':
+    main()

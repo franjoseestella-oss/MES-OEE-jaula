@@ -1,11 +1,16 @@
 import json
 
-with open("scratch/plan_dashboard_8am.json", "r", encoding="utf-8") as f:
+with open("grafana/provisioning/dashboards/plan_dashboard.json", "r", encoding="utf-8") as f:
     data = json.load(f)
 
-print("Title:", data.get("title"))
-print("UID:", data.get("uid"))
+lines = []
+lines.append("Title: " + str(data.get("title")))
+lines.append("UID: " + str(data.get("uid")))
 panels = data.get("panels", [])
-print(f"Number of panels: {len(panels)}")
+lines.append(f"Number of panels: {len(panels)}")
 for i, p in enumerate(panels):
-    print(f"Index {i}: ID {p.get('id')} - Title: '{p.get('title')}' - Type: '{p.get('type')}'")
+    lines.append(f"Index {i}: ID {p.get('id')} - Title: '{p.get('title')}' - Type: '{p.get('type')}'")
+
+with open("scratch/inspect_plan_dashboard_output.txt", "w", encoding="utf-8") as f:
+    f.write("\n".join(lines))
+

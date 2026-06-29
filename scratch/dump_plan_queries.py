@@ -7,14 +7,19 @@ filepath = "grafana/provisioning/dashboards/plan_dashboard.json"
 with open(filepath, "r", encoding="utf-8") as f:
     db = json.load(f)
 
+lines = []
 for panel in db.get("panels", []):
     title = panel.get("title", "")
     pid = panel.get("id")
-    print(f"Panel ID: {pid} - Title: {title}")
+    lines.append(f"Panel ID: {pid} - Title: {title}")
     for idx, target in enumerate(panel.get("targets", [])):
         raw_sql = target.get("rawSql", "")
         if raw_sql:
-            print(f"  Target {idx} (refId: {target.get('refId')}):")
-            print("-" * 40)
-            print(raw_sql[:300] + "...")
-            print("-" * 40)
+            lines.append(f"  Target {idx} (refId: {target.get('refId')}):")
+            lines.append("-" * 40)
+            lines.append(raw_sql)
+            lines.append("-" * 40)
+
+with open("scratch/all_plan_queries_dump.txt", "w", encoding="utf-8") as f:
+    f.write("\n".join(lines))
+

@@ -1,30 +1,30 @@
 import pyodbc
+import dotenv
+import os
+import sys
 
-conn_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-PMRMSPT\\SQLEXPRESS,1435;"
-    "DATABASE=DAFEED;"
-    "UID=usuario_readonly;"
-    "PWD=Logisnext2026!;"
-    "TrustServerCertificate=yes;"
-    "ConnLifetime=30;"
-)
+sys.stdout.reconfigure(encoding='utf-8')
+dotenv.load_dotenv()
 
-def main():
+host = os.getenv("SQL_SERVER_HOST", "DESKTOP-PMRMSPT\\SQLEXPRESS")
+database = os.getenv("SQL_SERVER_DATABASE", "DAFEED")
+user = os.getenv("SQL_SERVER_USER", "usuario_readonly")
+password = os.getenv("SQL_SERVER_PASSWORD", "Logisnext2026!")
+driver = os.getenv("SQL_SERVER_DRIVER", "ODBC Driver 17 for SQL Server")
+
+conn_str = f"DRIVER={{{driver}}};SERVER={host};DATABASE={database};UID={user};PWD={password};TrustServerCertificate=yes;"
+
+try:
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
     
-    print("=== LOG_TABLA COLUMN NAMES AND TYPES ===")
-    cursor.execute("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'LOG_TABLA'")
-    for r in cursor.fetchall():
-        print(r)
-        
-    print("\n=== SAMPLE DATA ===")
-    cursor.execute("SELECT TOP 3 FECHA_MONTAJE, FECHA_HORA_INICIO_SEC, fecha_creacion FROM LOG_TABLA ORDER BY id DESC")
-    for r in cursor.fetchall():
-        print(r)
+    # Query LOG_TABLA
+    cursor.execute("SELECT TOP 20 id, NBASTIDOR, FECHA_MONTAJE, OK_NOK, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC FROM dbo.LOG_TABLA ORDER BY id DESC;")
+    rows = cursor.fetchall()
+    print("--- LOG_TABLA (newest first by id) ---")
+    for r in rows:
+        print(f"ID: {r[0]} | NBASTIDOR: {r[1]} | FECHA_MONTAJE: {r[2]} | OK_NOK: {r[3]} | INICIO: {r[4]} | FIN: {r[5]}")
         
     conn.close()
-
-if __name__ == "__main__":
-    main()
+except Exception as e:
+    print("Error:", e)
