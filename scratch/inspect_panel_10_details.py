@@ -1,22 +1,20 @@
 import json
 import sys
 
-sys.stdout.reconfigure(encoding='utf-8')
-
-filepath = "grafana/provisioning/dashboards/plan_dashboard.json"
-with open(filepath, "r", encoding="utf-8") as f:
+file_path = r"grafana/provisioning/dashboards/plan_dashboard.json"
+with open(file_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-for panel in data.get("panels", []):
-    if panel.get("id") == 10:
-        print("=== TITLE ===")
-        print(panel.get("title"))
-        print("\n=== TYPE ===")
-        print(panel.get("type"))
-        print("\n=== RAW SQL ===")
-        print(panel.get("targets", [{}])[0].get("rawSql"))
-        print("\n=== FIELD CONFIG OVERRIDES ===")
-        print(json.dumps(panel.get("fieldConfig", {}).get("overrides", []), indent=2, ensure_ascii=False))
-        print("\n=== PANEL OPTIONS ===")
-        print(json.dumps(panel.get("options", {}), indent=2, ensure_ascii=False))
+panels = data.get("panels", [])
+for p in panels:
+    if p.get("id") == 10:
+        with open("scratch/panel_10_details.txt", "w", encoding="utf-8") as out:
+            out.write("Panel Title: " + str(p.get("title")) + "\n")
+            out.write("\n--- fieldConfig ---\n")
+            out.write(json.dumps(p.get("fieldConfig", {}), indent=2, ensure_ascii=False))
+            out.write("\n\n--- options ---\n")
+            out.write(json.dumps(p.get("options", {}), indent=2, ensure_ascii=False))
+            out.write("\n\n--- targets ---\n")
+            out.write(json.dumps(p.get("targets", []), indent=2, ensure_ascii=False))
+        print("Written to scratch/panel_10_details.txt")
         break

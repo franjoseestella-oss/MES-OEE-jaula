@@ -15,23 +15,36 @@ conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
 query = """
-DECLARE @ActiveDate VARCHAR(8) = '20260629';
-DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
 DECLARE @PlotDate DATE = '2026-06-29';
-DECLARE @CurrentProgressTime DATETIME = GETUTCDATE();
 DECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());
+DECLARE @ShiftStartHour INT = 7; -- default
+DECLARE @ShiftEndHour INT = 15; -- default
+DECLARE @ShiftStartDT DATETIME = DATEADD(hour, @ShiftStartHour - @UTCOffset, CAST(@PlotDate AS DATETIME));
+DECLARE @ShiftEndDT DATETIME = DATEADD(hour, @ShiftEndHour - @UTCOffset, CAST(@PlotDate AS DATETIME));
+DECLARE @CurrentProgressTime DATETIME = GETUTCDATE();
 
-WITH AlarmIntervals AS (
+WITH AlarmBase AS (
     SELECT 
-        FECHA_Y_HORA,
-        DURACION,
+        id,
+        DESCRIPCION,
         DATEADD(hour, -@UTCOffset, (CASE WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103) ELSE TRY_CAST(CONVERT(VARCHAR(10), @PlotDate, 120) + ' ' + FECHA_Y_HORA AS DATETIME) END)) AS alarm_start,
-        CASE 
-            WHEN DURACION = 'Activa' THEN @CurrentProgressTime
-            ELSE DATEADD(second, COALESCE(parts.hrs * 3600 + parts.mins * 60 + parts.secs, 0), 
-                 DATEADD(hour, -@UTCOffset, (CASE WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103) ELSE TRY_CAST(CONVERT(VARCHAR(10), @PlotDate, 120) + ' ' + FECHA_Y_HORA AS DATETIME) END)))
-        END AS alarm_end
+        DURACION,
+        LEAD(DATEADD(hour, -@UTCOffset, (CASE WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103) ELSE TRY_CAST(CONVERT(VARCHAR(10), @PlotDate, 120) + ' ' + FECHA_Y_HORA AS DATETIME) END))) 
+            OVER (PARTITION BY DESCRIPCION ORDER BY id ASC) AS next_alarm_start
     FROM dbo.LOG_ALARMAS
+    WHERE (FECHA_Y_HORA LIKE '[0-9]%' OR FECHA_Y_HORA LIKE '[0-9][0-9]%')
+      AND DESCRIPCION LIKE '%ALARMA CRÍTICA%'
+),
+AlarmIntervals AS (
+    SELECT 
+        id,
+        DESCRIPCION,
+        alarm_start,
+        CASE 
+            WHEN DURACION = 'Activa' THEN COALESCE(next_alarm_start, @CurrentProgressTime)
+            ELSE DATEADD(second, COALESCE(parts.hrs * 3600 + parts.mins * 60 + parts.secs, 0), alarm_start)
+        END AS alarm_end
+    FROM AlarmBase
     CROSS APPLY (
         SELECT REPLACE(DURACION, ' ', '') AS clean_dur
     ) cd
@@ -69,13 +82,13 @@ WITH AlarmIntervals AS (
                 ELSE 0 
             END AS secs
     ) parts
-    WHERE FECHA_Y_HORA LIKE '[0-9]%' OR FECHA_Y_HORA LIKE '[0-9][0-9]%'
 )
-SELECT FECHA_Y_HORA, DURACION, alarm_start, alarm_end FROM AlarmIntervals;
+SELECT id, DESCRIPCION, alarm_start, alarm_end FROM AlarmIntervals
+ORDER BY alarm_start DESC;
 """
 
 cursor.execute(query)
 for r in cursor.fetchall():
-    print(f"RawTime: {r[0]}, Dur: {r[1]}, StartUTC: {r[2]}, EndUTC: {r[3]}")
+    print(f"ID: {r[0]}, DESC: {r[1]}, Start: {r[2]}, End: {r[3]}")
 
 conn.close()

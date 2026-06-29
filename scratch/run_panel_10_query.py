@@ -33,7 +33,7 @@ if not raw_sql:
     sys.exit(1)
 
 # Add SET NOCOUNT ON; and replace time parameters
-sql_to_run = "SET NOCOUNT ON;\n" + raw_sql.replace("$__timeFrom()", "'2026-06-26 00:00:00'").replace("$__timeTo()", "'2026-06-26 23:59:59'")
+sql_to_run = "SET NOCOUNT ON;\n" + raw_sql.replace("$__timeFrom()", "'2026-06-29 00:00:00'").replace("$__timeTo()", "'2026-06-29 23:59:59'")
 
 print("\n--- RUNNING PANEL 10 QUERY FOR 2026-06-26 ---")
 try:

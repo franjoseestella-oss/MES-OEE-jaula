@@ -2,19 +2,24 @@ import json
 import os
 import sys
 
-if hasattr(sys.stdout, 'reconfigure'):
+try:
     sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
 
-log_path = r"C:\Users\franj\.gemini\antigravity\brain\cbf08d14-19ca-4311-8710-0b0653a29a18\.system_generated\logs\overview.txt"
-
-if not os.path.exists(log_path):
-    print("Log file not found.")
-    sys.exit(0)
-
-with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
-    lines = f.readlines()
-
-print(f"--- Printing last 150 lines of overview.txt ({len(lines)} total lines) ---")
-for line in lines[-150:]:
-    print(line, end="")
-
+d = r"C:\Users\franj\.gemini\antigravity\brain\a010f07c-a801-484a-b8b6-193103479774"
+overview_path = os.path.join(d, ".system_generated", "logs", "overview.txt")
+if os.path.exists(overview_path):
+    with open(overview_path, "r", encoding="utf-8", errors="ignore") as f:
+        for i, line in enumerate(f):
+            if i >= 1000:
+                try:
+                    data = json.loads(line.strip())
+                    if data.get("source") == "USER_EXPLICIT":
+                        content = data.get("content", "").strip()
+                        if content:
+                            print(f"\n[USER MESSAGE - Line {i+1} - {data.get('created_at')}]:")
+                            print(content)
+                            print("-" * 50)
+                except Exception:
+                    pass

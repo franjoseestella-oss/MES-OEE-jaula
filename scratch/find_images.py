@@ -1,19 +1,16 @@
 import os
-import sys
+import glob
 
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8')
+brain_dir = r"C:\Users\franj\.gemini\antigravity\brain"
+image_paths = glob.glob(os.path.join(brain_dir, "**", "*.png"), recursive=True) + glob.glob(os.path.join(brain_dir, "**", "*.jpg"), recursive=True)
 
-app_data = r"C:\Users\franj\.gemini\antigravity"
-prev_conv_id = "94f80dcf-f9fc-46d5-8664-bf671481cae2"
-target_dir = os.path.join(app_data, "brain", prev_conv_id)
+# Also check scratch/
+scratch_images = glob.glob("scratch/*.png") + glob.glob("scratch/*.jpg")
 
-print(f"Scanning recursively in {target_dir}...")
-if os.path.exists(target_dir):
-    for root, dirs, files in os.walk(target_dir):
-        for f in files:
-            full_path = os.path.join(root, f)
-            rel_path = os.path.relpath(full_path, target_dir)
-            print(f" - {rel_path} ({os.path.getsize(full_path) / 1024.0:.2f} KB)")
-else:
-    print("Target directory not found.")
+print("Found brain images:")
+for p in image_paths:
+    print(f" - {p} (size: {os.path.getsize(p)} bytes)")
+
+print("\nFound scratch images:")
+for p in scratch_images:
+    print(f" - {p} (size: {os.path.getsize(p)} bytes)")

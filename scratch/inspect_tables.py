@@ -1,23 +1,29 @@
-import sys
-import os
-from sqlalchemy import text
+import pyodbc
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend')))
-from database.session import get_db
+conn_str = (
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    "SERVER=DESKTOP-PMRMSPT\\SQLEXPRESS;"
+    "DATABASE=DAFEED;"
+    "Trusted_Connection=yes;"
+    "TrustServerCertificate=yes;"
+)
 
-with get_db() as db:
-    print("--- TURNO_TRABAJO ---")
-    try:
-        res = db.execute(text("SELECT * FROM dbo.TURNO_TRABAJO")).mappings().all()
-        for r in res:
-            print(dict(r))
-    except Exception as e:
-        print("Error TURNO_TRABAJO:", e)
+def main():
+    conn = pyodbc.connect(conn_str)
+    cursor = conn.cursor()
+    
+    print("--- TABLES ---")
+    cursor.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'")
+    for r in cursor.fetchall():
+        print(r[0])
+        
+    print("\n--- REFERENCIA_EN_CICLO columns ---")
+    cursor.execute("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'REFERENCIA_EN_CICLO'")
+    for r in cursor.fetchall():
+        print(r)
+        
+    cursor.close()
+    conn.close()
 
-    print("\n--- CALENDARIO_LABORAL (recent) ---")
-    try:
-        res = db.execute(text("SELECT TOP 5 * FROM dbo.CALENDARIO_LABORAL ORDER BY Fecha DESC")).mappings().all()
-        for r in res:
-            print(dict(r))
-    except Exception as e:
-        print("Error CALENDARIO_LABORAL:", e)
+if __name__ == "__main__":
+    main()

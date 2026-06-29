@@ -1,22 +1,15 @@
-import re
+import json
 
-path = r"C:\Users\franj\.gemini\antigravity\brain\a010f07c-a801-484a-b8b6-193103479774\.system_generated\logs\overview.txt"
-# Try reading with different encodings
-for enc in ['utf-8', 'utf-16', 'utf-16-le', 'latin-1']:
-    try:
-        with open(path, 'r', encoding=enc) as f:
-            content = f.read()
-        print(f"Successfully read with {enc}, length = {len(content)}")
-        # Look for "alarma", "restablece", "amarillo", "rojo"
-        for word in ["alarma", "restablece", "amarillo", "rojo", "yellow"]:
-            matches = [m.start() for m in re.finditer(word, content, re.IGNORECASE)]
-            print(f"  Word '{word}': {len(matches)} matches")
-            if matches:
-                # Print a few snippets
-                for idx in matches[:5]:
-                    start = max(0, idx - 50)
-                    end = min(len(content), idx + 50)
-                    print(f"    Snippet: {repr(content[start:end])}")
-        break
-    except Exception as e:
-        print(f"Failed with {enc}: {e}")
+log_path = r"C:\Users\franj\.gemini\antigravity\brain\dd598c2e-2ed4-42b6-930c-47a6d577420e\.system_generated\logs\overview.txt"
+
+with open(log_path, "r", encoding="utf-8") as f:
+    for i, line in enumerate(f):
+        if " n " in line or "notebook" in line or "el n" in line:
+            try:
+                data = json.loads(line)
+                print(f"Line {i+1}: {data.get('source')} - {data.get('type')}")
+                content = data.get("content") or data.get("body") or ""
+                print(content[:500])
+                print("-" * 50)
+            except Exception:
+                pass
