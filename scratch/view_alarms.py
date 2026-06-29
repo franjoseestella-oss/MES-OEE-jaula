@@ -14,8 +14,9 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-cursor.execute("SELECT DISTINCT DESCRIPCION FROM dbo.LOG_ALARMAS")
+print("--- LOG_ALARMAS ---")
+cursor.execute("SELECT TOP 50 * FROM dbo.LOG_ALARMAS ORDER BY FECHA_Y_HORA DESC")
 for r in cursor.fetchall():
-    print(r[0])
+    print(r)
 
 conn.close()

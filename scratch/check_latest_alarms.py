@@ -14,8 +14,10 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-cursor.execute("SELECT DISTINCT DESCRIPCION FROM dbo.LOG_ALARMAS")
-for r in cursor.fetchall():
-    print(r[0])
+cursor.execute("SELECT * FROM dbo.LOG_ALARMAS ORDER BY id DESC")
+columns = [column[0] for column in cursor.description]
+print("Columns:", columns)
+for r in cursor.fetchall()[:20]:
+    print(r)
 
 conn.close()

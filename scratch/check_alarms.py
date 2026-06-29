@@ -1,7 +1,4 @@
 import pyodbc
-import sys
-
-sys.stdout.reconfigure(encoding='utf-8')
 
 conn_str = (
     "Driver={ODBC Driver 17 for SQL Server};"
@@ -14,8 +11,14 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-cursor.execute("SELECT DISTINCT DESCRIPCION FROM dbo.LOG_ALARMAS")
-for r in cursor.fetchall():
-    print(r[0])
+query = """
+SELECT id, FECHA_Y_HORA, DESCRIPCION, DURACION
+FROM dbo.LOG_ALARMAS
+ORDER BY id DESC;
+"""
+cursor.execute(query)
+print("LOG_ALARMAS ROWS:")
+for r in cursor.fetchall()[:30]:
+    print(r)
 
 conn.close()
