@@ -110,11 +110,102 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PLANIFICADAS (TEÓRICO)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#00D3FF",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "COMPLETADAS (REAL)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#00D3FF",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SECUENCIAS OK"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2FD06A",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SECUENCIAS NOK"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E32636",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "DESVIACIÓN"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#E32636",
+                      "value": null
+                    },
+                    {
+                      "color": "#2FD06A",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 24,
         "x": 0,
         "y": 0
       },
@@ -123,7 +214,7 @@
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
-        "orientation": "auto",
+        "orientation": "vertical",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -132,249 +223,21 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "value",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.2",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
-          "format": "table",
-          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nIF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;\nCREATE TABLE #CalendarSlots (\n    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,\n    fecha DATE\n);\n\nWITH CalendarBase AS (\n    SELECT \n        Fecha,\n        Laborable,\n        Cant_A_Fabricar,\n        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185\n    FROM dbo.CALENDARIO_LABORAL\n    WHERE Fecha >= '2026-06-24'\n)\nINSERT INTO #CalendarSlots (fecha)\nSELECT \n    cb.Fecha\nFROM CalendarBase cb\nCROSS APPLY (\n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18\n    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_19\n    WHERE cb.Cant_A_Fabricar = 19.0\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38\n) s\nWHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0\nORDER BY cb.Fecha ASC, s.seq_idx ASC;\n\nIF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;\nCREATE TABLE #MappedSeqs (\n    id INT PRIMARY KEY,\n    planned_date DATE\n);\n\nWITH OrderedERP AS (\n    SELECT \n        id,\n        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx\n    FROM dbo.JAULA_ERP\n    WHERE TRY_CAST(secuencia AS INT) >= 227\n)\nINSERT INTO #MappedSeqs (id, planned_date)\nSELECT \n    o.id,\n    cs.fecha\nFROM OrderedERP o\nINNER JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;\n\nSELECT COUNT(*) AS [Teórico]\nFROM #MappedSeqs\nWHERE planned_date = @SelectedDate;",
-          "refId": "A"
-        }
-      ],
-      "title": "SECUENCIAS PLANIFICADAS (TEÓRICO)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "#00D3FF",
-            "mode": "fixed"
+          "datasource": {
+            "uid": "mes_sqlserver"
           },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 4,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "value",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.2",
-      "targets": [
-        {
           "format": "table",
-          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nSELECT \n    COUNT(DISTINCT log.NBASTIDOR) AS [Total]\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_HORA_FIN_SEC IS NOT NULL\n  AND CAST(CAST(log.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) = @SelectedDate;",
+          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nIF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;\nCREATE TABLE #CalendarSlots (\n    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,\n    fecha DATE\n);\n\nWITH CalendarBase AS (\n    SELECT \n        Fecha,\n        Laborable,\n        Cant_A_Fabricar,\n        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185\n    FROM dbo.CALENDARIO_LABORAL\n    WHERE Fecha >= '2026-06-24'\n)\nINSERT INTO #CalendarSlots (fecha)\nSELECT \n    cb.Fecha\nFROM CalendarBase cb\nCROSS APPLY (\n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18\n    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_19\n    WHERE cb.Cant_A_Fabricar = 19.0\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38\n) s\nWHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0\nORDER BY cb.Fecha ASC, s.seq_idx ASC;\n\nIF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;\nCREATE TABLE #MappedSeqs (\n    id INT PRIMARY KEY,\n    planned_date DATE\n);\n\nWITH OrderedERP AS (\n    SELECT \n        id,\n        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx\n    FROM dbo.JAULA_ERP\n    WHERE TRY_CAST(secuencia AS INT) >= 227\n)\nINSERT INTO #MappedSeqs (id, planned_date)\nSELECT \n    o.id,\n    cs.fecha\nFROM OrderedERP o\nINNER JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;\n\nDECLARE @Teorico INT, @Real INT, @OK INT, @NOK INT;\n\nSELECT @Teorico = COUNT(*)\nFROM #MappedSeqs\nWHERE planned_date = @SelectedDate;\n\nSELECT \n    @Real = COUNT(DISTINCT log.NBASTIDOR),\n    @OK = COUNT(DISTINCT CASE WHEN log.OK_NOK = 'OK' THEN log.NBASTIDOR END),\n    @NOK = COUNT(DISTINCT CASE WHEN log.OK_NOK = 'NOK' THEN log.NBASTIDOR END)\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_HORA_FIN_SEC IS NOT NULL\n  AND CAST(CAST(log.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) = @SelectedDate;\n\nSELECT \n    COALESCE(@Teorico, 0) AS [PLANIFICADAS (TEÓRICO)],\n    COALESCE(@Real, 0) AS [COMPLETADAS (REAL)],\n    COALESCE(@OK, 0) AS [SECUENCIAS OK],\n    COALESCE(@NOK, 0) AS [SECUENCIAS NOK],\n    COALESCE(@Real, 0) - COALESCE(@Teorico, 0) AS [DESVIACIÓN];",
           "refId": "A"
         }
       ],
-      "title": "SECUENCIAS COMPLETADAS (REAL)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "#2FD06A",
-            "mode": "fixed"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 9,
-        "y": 0
-      },
-      "id": 9,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "value",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.2",
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nSELECT \n    COUNT(DISTINCT CASE WHEN log.OK_NOK = 'OK' THEN log.NBASTIDOR END) AS [OK]\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_HORA_FIN_SEC IS NOT NULL\n  AND CAST(CAST(log.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) = @SelectedDate;",
-          "refId": "A"
-        }
-      ],
-      "title": "SECUENCIAS OK",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "#E32636",
-            "mode": "fixed"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 14,
-        "y": 0
-      },
-      "id": 11,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "value",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.2",
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nSELECT \n    COUNT(DISTINCT CASE WHEN log.OK_NOK = 'NOK' THEN log.NBASTIDOR END) AS [NOK]\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_HORA_FIN_SEC IS NOT NULL\n  AND CAST(CAST(log.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) = @SelectedDate;",
-          "refId": "A"
-        }
-      ],
-      "title": "SECUENCIAS NOK",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E32636",
-                "value": null
-              },
-              {
-                "color": "#2FD06A",
-                "value": 0
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 19,
-        "y": 0
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "value",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.2",
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "DECLARE @ActiveDate VARCHAR(8);\nSET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);\n\nDECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);\n\nIF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;\nCREATE TABLE #CalendarSlots (\n    global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,\n    fecha DATE\n);\n\nWITH CalendarBase AS (\n    SELECT \n        Fecha,\n        Laborable,\n        Cant_A_Fabricar,\n        SUM(CASE WHEN Cant_A_Fabricar = 18.5 THEN 1 ELSE 0 END) OVER (ORDER BY Fecha ASC) AS Count185\n    FROM dbo.CALENDARIO_LABORAL\n    WHERE Fecha >= '2026-06-24'\n)\nINSERT INTO #CalendarSlots (fecha)\nSELECT \n    cb.Fecha\nFROM CalendarBase cb\nCROSS APPLY (\n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18\n    WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_19\n    WHERE cb.Cant_A_Fabricar = 19.0\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19\n    \n    UNION ALL\n    \n    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx\n    FROM dbo.HHSS_18_5\n    WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38\n) s\nWHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0\nORDER BY cb.Fecha ASC, s.seq_idx ASC;\n\nIF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;\nCREATE TABLE #MappedSeqs (\n    id INT PRIMARY KEY,\n    planned_date DATE\n);\n\nWITH OrderedERP AS (\n    SELECT \n        id,\n        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx\n    FROM dbo.JAULA_ERP\n    WHERE TRY_CAST(secuencia AS INT) >= 227\n)\nINSERT INTO #MappedSeqs (id, planned_date)\nSELECT \n    o.id,\n    cs.fecha\nFROM OrderedERP o\nINNER JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;\n\nDECLARE @Teorico INT, @Real INT;\n\nSELECT @Teorico = COUNT(*)\nFROM #MappedSeqs\nWHERE planned_date = @SelectedDate;\n\nSELECT @Real = COUNT(DISTINCT log.NBASTIDOR)\nFROM dbo.LOG_TABLA log\nINNER JOIN dbo.JAULA_ERP erp ON erp.bastidor = log.NBASTIDOR\nWHERE log.FECHA_HORA_FIN_SEC IS NOT NULL\n  AND CAST(CAST(log.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) = @SelectedDate;\n\nSELECT COALESCE(@Real, 0) - COALESCE(@Teorico, 0) AS [Desviación];",
-          "refId": "A"
-        }
-      ],
-      "title": "DESVIACIÓN (REAL - TEÓRICO)",
+      "title": "SECUENCIAS DE PRODUCCIÓN (HOY)",
       "type": "stat"
     },
     {
@@ -481,6 +344,7 @@
           "showLegend": true
         },
         "tooltip": {
+          "maxHeight": 600,
           "mode": "multi",
           "sort": "none"
         }
@@ -615,7 +479,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "10.4.2",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
@@ -730,6 +594,7 @@
         "rowHeight": 0.9,
         "showValue": "never",
         "tooltip": {
+          "maxHeight": 600,
           "mode": "single",
           "sort": "none"
         }
@@ -978,6 +843,7 @@
     "from": "now/d+7h",
     "to": "now/d-9h"
   },
+  "timeRangeUpdatedDuringEditOrView": false,
   "timepicker": {
     "refresh_intervals": [
       "5s",
@@ -995,6 +861,6 @@
   "timezone": "browser",
   "title": "PLAN PRODUCCIÓN",
   "uid": "mes-plan-v1",
-  "version": 229,
+  "version": 232,
   "weekStart": ""
 }
