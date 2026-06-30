@@ -58,7 +58,7 @@
       "asDropdown": false,
       "icon": "dashboard",
       "includeVars": true,
-      "keepTime": true,
+      "keepTime": false,
       "tags": [],
       "targetBlank": false,
       "title": "PLAN PRODUCCIÓN",
@@ -845,6 +845,7 @@
   },
   "timeRangeUpdatedDuringEditOrView": false,
   "timepicker": {
+    "hidden": true,
     "refresh_intervals": [
       "5s",
       "10s",

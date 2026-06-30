@@ -58,7 +58,7 @@
       "asDropdown": false,
       "icon": "dashboard",
       "includeVars": true,
-      "keepTime": true,
+      "keepTime": false,
       "tags": [],
       "targetBlank": false,
       "title": "PLAN PRODUCCIÓN",
