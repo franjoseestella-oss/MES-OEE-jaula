@@ -17,8 +17,7 @@ cursor = conn.cursor()
 query = """
 DECLARE @ActiveDate VARCHAR(8) = '20260629';
 DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
-DECLARE @timeFrom DATETIME2 = '2026-06-29T05:00:00Z'; 
-DECLARE @PlotDate DATE = CAST(CAST(@timeFrom AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE);
+DECLARE @PlotDate DATE = TRY_CAST(@ActiveDate AS DATE);
 
 DECLARE @ShiftStartHour INT, @ShiftEndHour INT;
 DECLARE @ShiftStartStr VARCHAR(8);
@@ -34,8 +33,13 @@ DECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());
 DECLARE @ShiftStartDT DATETIME = DATEADD(hour, @ShiftStartHour - @UTCOffset, CAST(@PlotDate AS DATETIME));
 DECLARE @ShiftEndDT DATETIME = DATEADD(hour, @ShiftEndHour - @UTCOffset, CAST(@PlotDate AS DATETIME));
 
--- Current progress time limit (let's use 2026-06-29 12:00:00 UTC as progress time)
-DECLARE @CurrentProgressTime DATETIME = '2026-06-29T12:00:00Z';
+-- Current progress time limit
+DECLARE @CurrentProgressTime DATETIME;
+SELECT @CurrentProgressTime = CASE 
+    WHEN CAST(GETDATE() AS DATE) = @PlotDate THEN GETUTCDATE()
+    WHEN @PlotDate > CAST(GETDATE() AS DATE) THEN @ShiftStartDT
+    ELSE @ShiftEndDT
+END;
 
 -- Get active reference/sequence in cycle
 DECLARE @ActiveBastidor VARCHAR(50);
@@ -233,6 +237,15 @@ BEGIN
     );
 END;
 
+SELECT 
+    @PlotDate AS plot_date,
+    @ShiftStartDT AS shift_start,
+    @ShiftEndDT AS shift_end,
+    @CurrentProgressTime AS cur_progress,
+    @UTCOffset AS utc_offset,
+    @ActiveSlotIdx AS active_slot_idx,
+    @TheoreticalActiveSlotIdx AS theoretical_active_slot_idx;
+
 -- Alarm intervals CTE
 WITH AlarmBase AS (
     SELECT 
@@ -245,23 +258,23 @@ WITH AlarmBase AS (
     FROM dbo.LOG_ALARMAS
     WHERE (FECHA_Y_HORA LIKE '[0-9]%' OR FECHA_Y_HORA LIKE '[0-9][0-9]%')
       AND DESCRIPCION LIKE '%ALARMA CRÍTICA%'
-)
-SELECT 
-    alarm_start,
-    CASE 
-        WHEN DURACION = 'Activa' THEN COALESCE(next_alarm_start, @CurrentProgressTime)
-        ELSE DATEADD(second, COALESCE(parts.hrs * 3600 + parts.mins * 60 + parts.secs, 0), alarm_start)
-    END AS alarm_end
-INTO #AlarmIntervals
-FROM AlarmBase
-CROSS APPLY (
-    SELECT REPLACE(DURACION, ' ', '') AS clean_dur
-) cd
-CROSS APPLY (
+),
+AlarmIntervals AS (
     SELECT 
-        CHARINDEX('h', cd.clean_dur) AS h_pos,
-        CHARINDEX('m', cd.clean_dur) AS m_pos,
-        CHARINDEX('s', cd.clean_dur) AS s_pos
+        alarm_start,
+        CASE 
+            WHEN DURACION = 'Activa' THEN COALESCE(next_alarm_start, @CurrentProgressTime)
+            ELSE DATEADD(second, COALESCE(parts.hrs * 3600 + parts.mins * 60 + parts.secs, 0), alarm_start)
+        END AS alarm_end
+    FROM AlarmBase
+    CROSS APPLY (
+        SELECT REPLACE(DURACION, ' ', '') AS clean_dur
+    ) cd
+    CROSS APPLY (
+        SELECT 
+            CHARINDEX('h', cd.clean_dur) AS h_pos,
+            CHARINDEX('m', cd.clean_dur) AS m_pos,
+            CHARINDEX('s', cd.clean_dur) AS s_pos
     ) pos
     CROSS APPLY (
         SELECT 
@@ -290,9 +303,9 @@ CROSS APPLY (
                     ) AS INT)
                 ELSE 0 
             END AS secs
-    ) parts;
-
-WITH RawTimestamps AS (
+    ) parts
+),
+RawTimestamps AS (
     SELECT id, planned_start AS t FROM #SeqsToSchedule
     UNION
     SELECT id, planned_end AS t FROM #SeqsToSchedule
@@ -305,12 +318,12 @@ WITH RawTimestamps AS (
     UNION
     SELECT s.id, a.alarm_start AS t 
     FROM #SeqsToSchedule s
-    CROSS JOIN #AlarmIntervals a
+    CROSS JOIN AlarmIntervals a
     WHERE a.alarm_start BETWEEN s.planned_start AND @ShiftEndDT
     UNION
     SELECT s.id, a.alarm_end AS t 
     FROM #SeqsToSchedule s
-    CROSS JOIN #AlarmIntervals a
+    CROSS JOIN AlarmIntervals a
     WHERE a.alarm_end BETWEEN s.planned_start AND @ShiftEndDT
 ),
 BoundedTimestamps AS (
@@ -328,8 +341,7 @@ FilteredTimestamps AS (
     FROM BoundedTimestamps bt
     INNER JOIN #SeqsToSchedule s ON s.id = bt.id
     WHERE bt.t >= CASE 
-                      WHEN s.actual_start IS NOT NULL AND s.actual_start < s.planned_start THEN s.actual_start 
-                      ELSE s.planned_start 
+                      WHEN s.actual_start IS NOT NULL AND s.actual_start < s.planned_start THEN s.actual_start ELSE s.planned_start 
                   END
       AND bt.t <= CASE 
                       -- Rule: If a previous sequence is in progress, do not draw this sequence
@@ -353,11 +365,7 @@ FilteredTimestamps AS (
                           END
                   END
 )
-SELECT 
-    time, 
-    metric, 
-    value
-FROM (
+SELECT time, metric, value FROM (
     -- Shift start boundary
     SELECT 
         @ShiftStartDT AS time,
@@ -409,17 +417,18 @@ FROM (
                                 END
                         END THEN NULL
             WHEN s.actual_start IS NOT NULL AND s.actual_start >= s.planned_end AND ft.t >= s.planned_end AND ft.t < s.actual_start THEN NULL
-            WHEN act.is_active_at_t = 1
+            WHEN s.slot_idx = COALESCE(@ActiveSlotIdx, @TheoreticalActiveSlotIdx)
                  AND EXISTS (
-                     SELECT 1 FROM #AlarmIntervals a 
+                     SELECT 1 FROM AlarmIntervals a 
                      WHERE ft.t >= a.alarm_start AND ft.t < a.alarm_end
                  ) THEN 'Alarma'
-            WHEN act.is_active_at_t = 1
+            WHEN s.slot_idx = COALESCE(@ActiveSlotIdx, @TheoreticalActiveSlotIdx)
+                 AND (s.actual_start IS NULL OR ft.t < s.actual_start)
                  AND EXISTS (
-                     SELECT 1 FROM #AlarmIntervals a 
+                     SELECT 1 FROM AlarmIntervals a 
                      WHERE ft.t >= a.alarm_end
                        AND a.alarm_end >= CASE 
-                                            WHEN s.actual_start IS NOT NULL AND (s.actual_start < s.planned_start OR s.actual_start >= s.planned_end) THEN s.actual_start 
+                                            WHEN s.actual_start IS NOT NULL AND s.actual_start < s.planned_start THEN s.actual_start 
                                             ELSE s.planned_start 
                                           END
                  ) THEN 'Esperando máquina'
@@ -435,57 +444,29 @@ FROM (
         2 AS sort_time_order
     FROM FilteredTimestamps ft
     INNER JOIN #SeqsToSchedule s ON s.id = ft.id
-    CROSS APPLY (
-        SELECT CASE WHEN 
-            (s.actual_start IS NOT NULL AND ft.t >= s.actual_start AND (s.actual_end IS NULL OR ft.t < s.actual_end))
-            OR
-            (
-                NOT EXISTS (
-                    SELECT 1 FROM #SeqsToSchedule s2
-                    WHERE s2.actual_start IS NOT NULL
-                      AND ft.t >= s2.actual_start
-                      AND (s2.actual_end IS NULL OR ft.t < s2.actual_end)
-                )
-                AND (
-                    (ft.t >= s.planned_start AND ft.t < s.planned_end)
-                    OR
-                    (s.slot_idx = 1 AND ft.t < s.planned_start)
-                    OR
-                    (s.slot_idx = (SELECT MAX(slot_idx) FROM #SeqsToSchedule) AND ft.t >= s.planned_end)
-                )
-            )
-            THEN 1 ELSE 0
-        END AS is_active_at_t
-    ) act
 ) t
 ORDER BY 
     COALESCE(planned_date, '1900-01-01') ASC, 
-    slot_idx ASC, 
+    slot_idx ASC, \
     metric ASC, 
     time ASC,
     sort_time_order ASC;
 """
 
 cursor.execute(query)
-rows = None
+print("--- RUNNING ORIGINAL TIMELINE QUERY ---")
 while True:
     try:
         if cursor.description is not None:
-            rows = cursor.fetchall()
-            break
+            print("--- RESULTS ---")
+            count = 0
+            for row in cursor.fetchall():
+                if count < 50:
+                    print(row)
+                count += 1
+            print(f"Total rows: {count}")
     except Exception as e:
-        pass
+        print("Error fetching:", e)
     if not cursor.nextset():
         break
-
-print("=== Timeline Values ===")
-if rows:
-    for r in rows:
-        print(f"Time: {r[0]}, Metric: {r[1].replace(chr(10), ' ')}, Value: {r[2]}")
-
-cursor.execute("SELECT slot_idx, secuencia, bastidor, planned_start, planned_end, actual_start, actual_end FROM #SeqsToSchedule ORDER BY slot_idx")
-print("=== Sequences to Schedule ===")
-for r in cursor.fetchall():
-    print(f"Slot: {r[0]}, Seq: {r[1]}, Bastidor: {r[2]}, Planned: {r[3]} to {r[4]}, Actual: {r[5]} to {r[6]}")
-
 conn.close()

@@ -223,15 +223,26 @@ BEGIN
 END;
 
 -- Alarm intervals CTE
-WITH AlarmIntervals AS (
+WITH AlarmBase AS (
     SELECT 
+        id,
+        DESCRIPCION,
         DATEADD(hour, -@UTCOffset, (CASE WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103) ELSE TRY_CAST(CONVERT(VARCHAR(10), @PlotDate, 120) + ' ' + FECHA_Y_HORA AS DATETIME) END)) AS alarm_start,
-        CASE 
-            WHEN DURACION = 'Activa' THEN @CurrentProgressTime
-            ELSE DATEADD(second, COALESCE(parts.hrs * 3600 + parts.mins * 60 + parts.secs, 0), 
-                 DATEADD(hour, -@UTCOffset, (CASE WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103) ELSE TRY_CAST(CONVERT(VARCHAR(10), @PlotDate, 120) + ' ' + FECHA_Y_HORA AS DATETIME) END)))
-        END AS alarm_end
+        DURACION,
+        LEAD(DATEADD(hour, -@UTCOffset, (CASE WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103) ELSE TRY_CAST(CONVERT(VARCHAR(10), @PlotDate, 120) + ' ' + FECHA_Y_HORA AS DATETIME) END))) 
+            OVER (PARTITION BY DESCRIPCION ORDER BY id ASC) AS next_alarm_start
     FROM dbo.LOG_ALARMAS
+    WHERE (FECHA_Y_HORA LIKE '[0-9]%' OR FECHA_Y_HORA LIKE '[0-9][0-9]%')
+      AND DESCRIPCION LIKE '%ALARMA CRÍTICA%'
+),
+AlarmIntervals AS (
+    SELECT 
+        alarm_start,
+        CASE 
+            WHEN DURACION = 'Activa' THEN COALESCE(next_alarm_start, @CurrentProgressTime)
+            ELSE DATEADD(second, COALESCE(parts.hrs * 3600 + parts.mins * 60 + parts.secs, 0), alarm_start)
+        END AS alarm_end
+    FROM AlarmBase
     CROSS APPLY (
         SELECT REPLACE(DURACION, ' ', '') AS clean_dur
     ) cd
@@ -269,7 +280,6 @@ WITH AlarmIntervals AS (
                 ELSE 0 
             END AS secs
     ) parts
-    WHERE FECHA_Y_HORA LIKE '[0-9]%' OR FECHA_Y_HORA LIKE '[0-9][0-9]%'
 ),
 RawTimestamps AS (
     SELECT id, planned_start AS t FROM #SeqsToSchedule
@@ -307,8 +317,7 @@ FilteredTimestamps AS (
     FROM BoundedTimestamps bt
     INNER JOIN #SeqsToSchedule s ON s.id = bt.id
     WHERE bt.t >= CASE 
-                      WHEN s.actual_start IS NOT NULL AND (s.actual_start < s.planned_start OR s.actual_start >= s.planned_end) THEN s.actual_start 
-                      ELSE s.planned_start 
+                      WHEN s.actual_start IS NOT NULL AND s.actual_start < s.planned_start THEN s.actual_start ELSE s.planned_start 
                   END
       AND bt.t <= CASE 
                       -- Rule: If a previous sequence is in progress, do not draw this sequence
@@ -383,11 +392,32 @@ SELECT time, metric, value FROM (
                                         END
                                 END
                         END THEN NULL
-            WHEN (s.actual_end IS NULL OR ft.t < s.actual_end)
+            WHEN s.actual_start IS NOT NULL AND s.actual_start >= s.planned_end AND ft.t >= s.planned_end AND ft.t < s.actual_start THEN NULL
+            WHEN s.slot_idx = COALESCE(
+                     (SELECT MIN(slot_idx) FROM #SeqsToSchedule WHERE actual_start IS NOT NULL AND actual_start <= ft.t AND (actual_end IS NULL OR actual_end > ft.t)),
+                     (SELECT TOP 1 slot_idx FROM #SeqsToSchedule WHERE planned_start <= ft.t AND planned_end >= ft.t),
+                     (SELECT MAX(slot_idx) FROM #SeqsToSchedule WHERE planned_start <= ft.t),
+                     1
+                 )
                  AND EXISTS (
                      SELECT 1 FROM AlarmIntervals a 
                      WHERE ft.t >= a.alarm_start AND ft.t < a.alarm_end
                  ) THEN 'Alarma'
+            WHEN s.slot_idx = COALESCE(
+                     (SELECT MIN(slot_idx) FROM #SeqsToSchedule WHERE actual_start IS NOT NULL AND actual_start <= ft.t AND (actual_end IS NULL OR actual_end > ft.t)),
+                     (SELECT TOP 1 slot_idx FROM #SeqsToSchedule WHERE planned_start <= ft.t AND planned_end >= ft.t),
+                     (SELECT MAX(slot_idx) FROM #SeqsToSchedule WHERE planned_start <= ft.t),
+                     1
+                 )
+                 AND (s.actual_start IS NULL OR ft.t < s.actual_start)
+                 AND EXISTS (
+                     SELECT 1 FROM AlarmIntervals a 
+                     WHERE ft.t >= a.alarm_end
+                       AND a.alarm_end >= CASE 
+                                            WHEN s.actual_start IS NOT NULL AND s.actual_start < s.planned_start THEN s.actual_start 
+                                            ELSE s.planned_start 
+                                          END
+                 ) THEN 'Esperando máquina'
             WHEN s.actual_start IS NOT NULL AND ft.t >= s.actual_start AND (s.actual_end IS NULL OR ft.t < s.actual_end) THEN
                 CASE 
                     WHEN ft.t < s.planned_start OR ft.t >= s.planned_end THEN 'Exceso de tiempo'

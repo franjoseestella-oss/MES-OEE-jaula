@@ -1,31 +1,21 @@
 import pyodbc
-import dotenv
-import os
 import sys
 
 sys.stdout.reconfigure(encoding='utf-8')
-dotenv.load_dotenv()
 
-host = os.getenv("SQL_SERVER_HOST", "DESKTOP-PMRMSPT\\SQLEXPRESS")
-database = os.getenv("SQL_SERVER_DATABASE", "DAFEED")
-user = os.getenv("SQL_SERVER_USER", "usuario_readonly")
-password = os.getenv("SQL_SERVER_PASSWORD", "Logisnext2026!")
-driver = os.getenv("SQL_SERVER_DRIVER", "ODBC Driver 17 for SQL Server")
+conn_str = (
+    "Driver={ODBC Driver 17 for SQL Server};"
+    "Server=DESKTOP-PMRMSPT\\SQLEXPRESS;"
+    "Database=DAFEED;"
+    "Trusted_Connection=yes;"
+    "TrustServerCertificate=yes;"
+)
 
-conn_str = f"DRIVER={{{driver}}};SERVER={host};DATABASE={database};UID={user};PWD={password};TrustServerCertificate=yes;"
+conn = pyodbc.connect(conn_str)
+cursor = conn.cursor()
 
-try:
-    conn = pyodbc.connect(conn_str)
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT TOP 10 
-            id, secuencia, bastidor, modelo, fecha_montaje
-        FROM dbo.JAULA_ERP
-        WHERE TRY_CAST(secuencia AS INT) >= 227
-        ORDER BY TRY_CAST(secuencia AS INT) ASC
-    """)
-    for row in cursor.fetchall():
-        print(row)
-    conn.close()
-except Exception as e:
-    print("Error:", e)
+cursor.execute("SELECT DISTINCT fecha_montaje FROM dbo.JAULA_ERP ORDER BY fecha_montaje DESC")
+for r in cursor.fetchall():
+    print(r[0])
+
+conn.close()

@@ -1,17 +1,23 @@
-import os
-import sys
+import json
 
-# Set standard output encoding to UTF-8
-sys.stdout.reconfigure(encoding='utf-8')
+log_path = r"C:\Users\franj\.gemini\antigravity\brain\89948a07-0b4c-4cea-9b1e-2a96be661f8a\.system_generated\logs\overview.txt"
 
-overview_file = r"C:\Users\franj\.gemini\antigravity\brain\e568e209-e1ec-4288-a6ca-6cc1d24b942c\.system_generated\logs\overview.txt"
-if os.path.exists(overview_file):
-    print("overview.txt exists, size:", os.path.getsize(overview_file))
-    with open(overview_file, "r", encoding="utf-8", errors="ignore") as f:
+# Read JSON lines
+try:
+    with open(log_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
-    print("Total lines:", len(lines))
-    for i, line in enumerate(lines):
-        if any(kw in line.lower() for kw in ["active", "theoretical", "slot", "out_of_order", "anterior", "teorica"]):
-            print(f"{i}: {line.strip()}")
-else:
-    print("overview.txt does not exist")
+except Exception:
+    with open(log_path, 'r', encoding='utf-16') as f:
+        lines = f.readlines()
+
+print("Details around step 142:")
+for line in lines:
+    try:
+        data = json.loads(line.strip())
+        step = data.get('step_index')
+        if 135 <= step <= 150:
+            print(f"Step {step}: {data.get('source')} - {data.get('type')}: {data.get('content', '')}")
+            if data.get("tool_calls"):
+                print(f"  Tool Calls: {data.get('tool_calls')}")
+    except Exception as e:
+        pass

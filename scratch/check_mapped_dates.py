@@ -1,26 +1,20 @@
 import pyodbc
-import dotenv
-import os
 import sys
 
 sys.stdout.reconfigure(encoding='utf-8')
-dotenv.load_dotenv()
 
-host = os.getenv("SQL_SERVER_HOST", "DESKTOP-PMRMSPT\\SQLEXPRESS")
-database = os.getenv("SQL_SERVER_DATABASE", "DAFEED")
-user = os.getenv("SQL_SERVER_USER", "usuario_readonly")
-password = os.getenv("SQL_SERVER_PASSWORD", "Logisnext2026!")
-driver = os.getenv("SQL_SERVER_DRIVER", "ODBC Driver 17 for SQL Server")
+conn_str = (
+    "Driver={ODBC Driver 17 for SQL Server};"
+    "Server=DESKTOP-PMRMSPT\\SQLEXPRESS;"
+    "Database=DAFEED;"
+    "Trusted_Connection=yes;"
+    "TrustServerCertificate=yes;"
+)
 
-conn_str = f"DRIVER={{{driver}}};SERVER={host};DATABASE={database};UID={user};PWD={password};TrustServerCertificate=yes;"
+conn = pyodbc.connect(conn_str)
+cursor = conn.cursor()
 
-try:
-    conn = pyodbc.connect(conn_str)
-    cursor = conn.cursor()
-    
-    # We will run the query up to MappedSeqs
-    cursor.execute("""
-SET NOCOUNT ON;
+query = """
 -- Create schedule slots table
 IF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;
 CREATE TABLE #CalendarSlots (
@@ -71,21 +65,39 @@ CROSS APPLY (
 WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
 ORDER BY cb.Fecha ASC, s.seq_idx ASC;
 
-SELECT TOP 30 
-    o.secuencia, o.bastidor, cs.fecha, cs.slot_idx_in_day, cs.horario
-FROM (
+WITH OrderedERP AS (
     SELECT 
-        id, secuencia, bastidor, modelo,
+        id,
+        secuencia,
+        bastidor,
+        modelo,
+        TRY_CAST(fecha_montaje AS DATE) AS original_date,
         ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
     FROM dbo.JAULA_ERP
     WHERE TRY_CAST(secuencia AS INT) >= 227
-) o
+)
+SELECT cs.fecha, MIN(o.secuencia) AS min_seq, MAX(o.secuencia) AS max_seq, COUNT(*) AS count_seq
+FROM OrderedERP o
 LEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx
-ORDER BY TRY_CAST(o.secuencia AS INT) ASC;
-    """)
-    for row in cursor.fetchall():
-        print(row)
-        
-    conn.close()
-except Exception as e:
-    print("Error:", e)
+GROUP BY cs.fecha
+ORDER BY cs.fecha;
+"""
+cursor.execute(query)
+rows = None
+while True:
+    try:
+        if cursor.description is not None:
+            rows = cursor.fetchall()
+            break
+    except Exception as e:
+        pass
+    if not cursor.nextset():
+        break
+
+if rows:
+    for r in rows:
+        print(r)
+else:
+    print("No rows returned")
+
+conn.close()

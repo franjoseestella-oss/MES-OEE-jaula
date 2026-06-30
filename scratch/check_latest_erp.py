@@ -14,8 +14,10 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-cursor.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'")
+cursor.execute("SELECT TOP 20 * FROM dbo.JAULA_ERP ORDER BY id DESC")
+columns = [column[0] for column in cursor.description]
+print("Columns:", columns)
 for r in cursor.fetchall():
-    print(r[0])
+    print(dict(zip(columns, r)))
 
 conn.close()

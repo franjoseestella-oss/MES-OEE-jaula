@@ -14,8 +14,8 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-cursor.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'")
+cursor.execute("SELECT OK_NOK, COUNT(*) FROM dbo.LOG_TABLA GROUP BY OK_NOK")
 for r in cursor.fetchall():
-    print(r[0])
+    print(r)
 
 conn.close()

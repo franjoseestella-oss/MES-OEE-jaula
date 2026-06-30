@@ -14,8 +14,8 @@ conn_str = (
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
-cursor.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'")
+cursor.execute("SELECT id, NBASTIDOR, FECHA_MONTAJE, FECHA_HORA_INICIO_SEC, FECHA_HORA_FIN_SEC, OK_NOK FROM dbo.LOG_TABLA WHERE FECHA_MONTAJE >= '2026-06-01' ORDER BY id ASC")
 for r in cursor.fetchall():
-    print(r[0])
+    print(r)
 
 conn.close()

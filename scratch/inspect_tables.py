@@ -1,29 +1,32 @@
 import pyodbc
 
 conn_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-PMRMSPT\\SQLEXPRESS;"
-    "DATABASE=DAFEED;"
+    "Driver={ODBC Driver 17 for SQL Server};"
+    "Server=DESKTOP-PMRMSPT\\SQLEXPRESS;"
+    "Database=DAFEED;"
     "Trusted_Connection=yes;"
     "TrustServerCertificate=yes;"
 )
 
-def main():
-    conn = pyodbc.connect(conn_str)
-    cursor = conn.cursor()
-    
-    print("--- TABLES ---")
-    cursor.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'")
-    for r in cursor.fetchall():
-        print(r[0])
-        
-    print("\n--- REFERENCIA_EN_CICLO columns ---")
-    cursor.execute("SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'REFERENCIA_EN_CICLO'")
-    for r in cursor.fetchall():
-        print(r)
-        
-    cursor.close()
-    conn.close()
+conn = pyodbc.connect(conn_str)
+cursor = conn.cursor()
 
-if __name__ == "__main__":
-    main()
+# Get column names and types for dbo.LOG_TABLA
+cursor.execute("SELECT TOP 0 * FROM dbo.LOG_TABLA")
+print("LOG_TABLA columns:", [col[0] for col in cursor.description])
+
+# Fetch top 10 rows from LOG_TABLA
+cursor.execute("SELECT TOP 10 * FROM dbo.LOG_TABLA ORDER BY id DESC")
+print("LOG_TABLA recent rows:")
+for r in cursor.fetchall():
+    print(r)
+
+# Check REFERENCIA_EN_CICLO columns and contents
+cursor.execute("SELECT TOP 0 * FROM dbo.REFERENCIA_EN_CICLO")
+print("REFERENCIA_EN_CICLO columns:", [col[0] for col in cursor.description])
+cursor.execute("SELECT * FROM dbo.REFERENCIA_EN_CICLO")
+print("REFERENCIA_EN_CICLO rows:")
+for r in cursor.fetchall():
+    print(r)
+
+conn.close()
