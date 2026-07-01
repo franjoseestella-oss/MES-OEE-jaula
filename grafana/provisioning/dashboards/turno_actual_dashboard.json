@@ -1,356 +1,388 @@
-{
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": "-- Grafana --",
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
-  "editable": true,
-  "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
-  "id": 11,
-  "links": [
-    {
-      "asDropdown": false,
-      "icon": "home",
-      "includeVars": false,
-      "keepTime": false,
-      "tags": [],
-      "targetBlank": false,
-      "title": "Inicio",
-      "type": "link",
-      "url": "/d/mes-home-v1"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "OEE/MES",
-      "type": "link",
-      "url": "/d/panel-oee-mes-fabrica"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": false,
-      "keepTime": false,
-      "tags": [],
-      "targetBlank": false,
-      "title": "DISTRIBUIDOR",
-      "type": "link",
-      "url": "/d/mes-oee-v2"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": false,
-      "tags": [],
-      "targetBlank": false,
-      "title": "PLAN PRODUCCIÓN",
-      "type": "link",
-      "url": "/d/mes-plan-v1"
-    },
-    {
-      "asDropdown": false,
-      "icon": "dashboard",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "LOG_SECUENCIAS",
-      "type": "link",
-      "url": "/d/mes-reg-v1"
-    },
-    {
-      "asDropdown": false,
-      "icon": "alert",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "ALARMAS",
-      "type": "link",
-      "url": "/d/mes-alarms-v1"
-    }
-  ],
-  "liveNow": false,
-  "panels": [
-    {
-      "gridPos": {
-        "h": 12,
-        "w": 14,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "options": {
-        "code": {
-          "language": "plaintext",
-          "showLineNumbers": false,
-          "showMiniMap": false
-        },
-        "content": "<style>\n  .kpi-container {\n    display: flex;\n    align-items: center;\n    justify-content: space-around;\n    height: 100%;\n    width: 100%;\n    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;\n    color: #f3f4f6;\n    padding: 16px;\n    box-sizing: border-box;\n    background: transparent;\n  }\n  .kpi-left {\n    flex: 1;\n    display: flex;\n    justify-content: center;\n    align-items: center;\n  }\n  .gauge-wrapper {\n    position: relative;\n    width: 220px;\n    height: 220px;\n  }\n  .progress-ring {\n    transform: rotate(-90deg);\n  }\n  .progress-ring__circle {\n    transition: stroke-dashoffset 0.8s ease-in-out;\n  }\n  .gauge-text {\n    position: absolute;\n    top: 50%;\n    left: 50%;\n    transform: translate(-50%, -50%);\n    text-align: center;\n    display: flex;\n    flex-direction: column;\n  }\n  #oee-val {\n    font-size: 38px;\n    font-weight: 800;\n    letter-spacing: -1px;\n    color: #ffffff;\n    text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);\n  }\n  .gauge-label {\n    font-size: 11px;\n    font-weight: 600;\n    color: #9ca3af;\n    letter-spacing: 1px;\n    margin-top: 4px;\n  }\n  .kpi-right {\n    flex: 1.2;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n    gap: 20px;\n    padding-right: 20px;\n  }\n  .bar-group {\n    display: flex;\n    flex-direction: column;\n    gap: 8px;\n  }\n  .bar-header {\n    display: flex;\n    justify-content: space-between;\n    font-size: 13px;\n    font-weight: 700;\n    letter-spacing: 0.5px;\n    color: #d1d5db;\n  }\n  .bar-bg {\n    height: 10px;\n    background: rgba(255, 255, 255, 0.05);\n    border-radius: 5px;\n    overflow: hidden;\n    position: relative;\n  }\n  .bar-fill {\n    height: 100%;\n    border-radius: 5px;\n    width: 0%;\n    transition: width 0.8s ease-in-out;\n    box-shadow: 0 0 8px rgba(255,255,255,0.1);\n  }\n</style>\n\n<div class=\"kpi-container\">\n  <div class=\"kpi-left\">\n    <div class=\"gauge-wrapper\">\n      <svg class=\"progress-ring\" width=\"220\" height=\"220\">\n        <circle class=\"progress-ring__background\" stroke=\"rgba(255,255,255,0.05)\" stroke-width=\"16\" fill=\"transparent\" r=\"90\" cx=\"110\" cy=\"110\"/>\n        <circle class=\"progress-ring__circle\" id=\"oee-ring\" stroke=\"url(#oee-gradient-high)\" stroke-width=\"16\" stroke-linecap=\"round\" fill=\"transparent\" r=\"90\" cx=\"110\" cy=\"110\" stroke-dasharray=\"565.49\" stroke-dashoffset=\"565.49\"/>\n        <defs>\n          <linearGradient id=\"oee-gradient-low\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n            <stop offset=\"0%\" stop-color=\"#f857a6\" />\n            <stop offset=\"100%\" stop-color=\"#ff5858\" />\n          </linearGradient>\n          <linearGradient id=\"oee-gradient-med\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n            <stop offset=\"0%\" stop-color=\"#f2994a\" />\n            <stop offset=\"100%\" stop-color=\"#f2c94c\" />\n          </linearGradient>\n          <linearGradient id=\"oee-gradient-high\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n            <stop offset=\"0%\" stop-color=\"#11998e\" />\n            <stop offset=\"100%\" stop-color=\"#38ef7d\" />\n          </linearGradient>\n        </defs>\n      </svg>\n      <div class=\"gauge-text\">\n        <span id=\"oee-val\">--%</span>\n        <span class=\"gauge-label\">OEE GLOBAL</span>\n      </div>\n    </div>\n  </div>\n  <div class=\"kpi-right\">\n    <div class=\"bar-group\">\n      <div class=\"bar-header\">\n        <span>DISPONIBILIDAD</span>\n        <span id=\"avail-val\">--%</span>\n      </div>\n      <div class=\"bar-bg\">\n        <div class=\"bar-fill\" id=\"avail-bar\" style=\"width: 0%; background: linear-gradient(90deg, #11998e, #38ef7d);\"></div>\n      </div>\n    </div>\n    <div class=\"bar-group\">\n      <div class=\"bar-header\">\n        <span>RENDIMIENTO</span>\n        <span id=\"perf-val\">--%</span>\n      </div>\n      <div class=\"bar-bg\">\n        <div class=\"bar-fill\" id=\"perf-bar\" style=\"width: 0%; background: linear-gradient(90deg, #f2994a, #f2c94c);\"></div>\n      </div>\n    </div>\n    <div class=\"bar-group\">\n      <div class=\"bar-header\">\n        <span>CALIDAD</span>\n        <span id=\"qual-val\">--%</span>\n      </div>\n      <div class=\"bar-bg\">\n        <div class=\"bar-fill\" id=\"qual-bar\" style=\"width: 0%; background: linear-gradient(90deg, #f857a6, #ff5858);\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n\n<script>\n(function() {\n  var API_BASE = window.location.origin + '/api';\n  var oeeRing = document.getElementById('oee-ring');\n  var oeeVal = document.getElementById('oee-val');\n  var availVal = document.getElementById('avail-val');\n  var availBar = document.getElementById('avail-bar');\n  var perfVal = document.getElementById('perf-val');\n  var perfBar = document.getElementById('perf-bar');\n  var qualVal = document.getElementById('qual-val');\n  var qualBar = document.getElementById('qual-bar');\n  \n  var circumference = 565.49;\n\n  function setProgress(percent) {\n    if (!oeeRing) return;\n    var offset = circumference - (percent / 100 * circumference);\n    oeeRing.style.strokeDashoffset = offset;\n  }\n\n  function updateKPIs() {\n    var xhr = new XMLHttpRequest();\n    var sqlPayload = JSON.stringify({\n      queries: [{\n        datasource: {type: 'mssql', uid: 'mes_sqlserver'},\n        rawSql: \"SELECT TOP 1 oee, availability, performance, quality FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND oee IS NOT NULL ORDER BY ts DESC\",\n        refId: 'A', format: 'table'\n      }]\n    });\n    xhr.open('POST', API_BASE + '/ds/query', true);\n    xhr.setRequestHeader('Content-Type', 'application/json');\n    xhr.onload = function() {\n      if (xhr.status !== 200) return;\n      try {\n        var data = JSON.parse(xhr.responseText);\n        var frames = data.results && data.results.A && data.results.A.frames;\n        if (frames && frames.length > 0) {\n          var fields = frames[0].schema.fields;\n          var vals = frames[0].data.values;\n          var row = {};\n          for (var fi = 0; fi < fields.length; fi++) {\n            row[fields[fi].name] = vals[fi][0];\n          }\n          \n          var oee = Math.round((row.oee || 0) * 10) / 10;\n          var avail = Math.round((row.availability || 0) * 10) / 10;\n          var perf = Math.round((row.performance || 0) * 10) / 10;\n          var qual = Math.round((row.quality || 0) * 10) / 10;\n\n          if (oeeVal) oeeVal.textContent = oee + '%';\n          setProgress(oee);\n\n          if (oeeRing && oeeVal) {\n            if (oee < 65) {\n              oeeRing.setAttribute('stroke', 'url(#oee-gradient-low)');\n              oeeVal.style.textShadow = '0 0 10px rgba(255, 88, 88, 0.4)';\n            } else if (oee < 85) {\n              oeeRing.setAttribute('stroke', 'url(#oee-gradient-med)');\n              oeeVal.style.textShadow = '0 0 10px rgba(242, 201, 76, 0.4)';\n            } else {\n              oeeRing.setAttribute('stroke', 'url(#oee-gradient-high)');\n              oeeVal.style.textShadow = '0 0 10px rgba(56, 239, 125, 0.4)';\n            }\n          }\n\n          if (availVal && availBar) {\n            availVal.textContent = avail + '%';\n            availBar.style.width = avail + '%';\n          }\n          if (perfVal && perfBar) {\n            perfVal.textContent = perf + '%';\n            perfBar.style.width = perf + '%';\n          }\n          if (qualVal && qualBar) {\n            qualVal.textContent = qual + '%';\n            qualBar.style.width = qual + '%';\n          }\n        }\n      } catch(e) { console.error('Error parsing OEE response:', e); }\n    };\n    xhr.send(sqlPayload);\n  }\n\n  updateKPIs();\n  setInterval(updateKPIs, 5000);\n})();\n</script>",
-        "mode": "html"
-      },
-      "pluginVersion": "10.4.2",
-      "title": "OEE y KPIs",
-      "transparent": true,
-      "type": "text"
-    },
-    {
-      "gridPos": {
-        "h": 12,
-        "w": 10,
-        "x": 14,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "code": {
-          "language": "plaintext",
-          "showLineNumbers": false,
-          "showMiniMap": false
-        },
-        "content": "<style>\n  .turno-container {\n    display: flex;\n    flex-direction: column;\n    height: 100%;\n    width: 100%;\n    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;\n    color: #f3f4f6;\n    padding: 16px;\n    box-sizing: border-box;\n    background: transparent;\n    justify-content: space-between;\n  }\n  .turno-header {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    border-bottom: 1px solid rgba(255, 255, 255, 0.08);\n    padding-bottom: 8px;\n    margin-bottom: 12px;\n  }\n  .turno-title {\n    font-size: 18px;\n    font-weight: 800;\n    color: #ffffff;\n    letter-spacing: 0.5px;\n  }\n  .turno-times {\n    font-size: 13px;\n    font-weight: 600;\n    color: #9ca3af;\n    background: rgba(255, 255, 255, 0.05);\n    padding: 4px 10px;\n    border-radius: 4px;\n  }\n  .turno-content {\n    display: flex;\n    flex-direction: column;\n    flex-grow: 1;\n    justify-content: space-between;\n    gap: 12px;\n  }\n  .pieces-row {\n    display: flex;\n    gap: 12px;\n  }\n  .piece-card {\n    flex: 1;\n    background: rgba(255, 255, 255, 0.02);\n    border: 1px solid rgba(255, 255, 255, 0.04);\n    border-radius: 8px;\n    padding: 10px 12px;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n  }\n  .card-target {\n    border-left: 3px solid #00f2fe;\n  }\n  .card-ok {\n    border-left: 3px solid #2fd06a;\n  }\n  .card-nok {\n    border-left: 3px solid #e32636;\n  }\n  .piece-label {\n    font-size: 10px;\n    font-weight: 700;\n    color: #9ca3af;\n    letter-spacing: 0.5px;\n    margin-bottom: 4px;\n  }\n  .piece-value {\n    font-size: 22px;\n    font-weight: 800;\n    color: #ffffff;\n  }\n  .card-target .piece-value {\n    color: #00f2fe;\n    text-shadow: 0 0 10px rgba(0, 242, 254, 0.2);\n  }\n  .card-ok .piece-value {\n    color: #2fd06a;\n    text-shadow: 0 0 10px rgba(47, 208, 106, 0.2);\n  }\n  .card-nok .piece-value {\n    color: #e32636;\n    text-shadow: 0 0 10px rgba(227, 38, 54, 0.2);\n  }\n  .durations-section {\n    display: flex;\n    flex-direction: column;\n    gap: 12px;\n  }\n  .dur-group {\n    display: flex;\n    flex-direction: column;\n    gap: 4px;\n  }\n  .dur-header {\n    display: flex;\n    justify-content: space-between;\n    font-size: 11px;\n    font-weight: 700;\n    letter-spacing: 0.5px;\n    color: #d1d5db;\n  }\n  .dur-value {\n    color: #9ca3af;\n    font-weight: 600;\n  }\n  .dur-bg {\n    height: 8px;\n    background: rgba(255, 255, 255, 0.05);\n    border-radius: 4px;\n    overflow: hidden;\n  }\n  .dur-bar {\n    height: 100%;\n    border-radius: 4px;\n    width: 0%;\n    transition: width 0.8s ease-in-out;\n  }\n  .bar-marcha {\n    background: linear-gradient(90deg, #11998e, #38ef7d);\n  }\n  .bar-parada {\n    background: linear-gradient(90deg, #2b5876, #4e4376);\n  }\n  .bar-error {\n    background: linear-gradient(90deg, #f857a6, #ff5858);\n  }\n</style>\n\n<div class=\"turno-container\">\n  <div class=\"turno-header\">\n    <span class=\"turno-title\">Turno <span id=\"shift-label\">--</span></span>\n    <span class=\"turno-times\" id=\"shift-times\">Inicio: --:-- | Fin: --:--</span>\n  </div>\n\n  <div class=\"turno-content\">\n    <div class=\"pieces-row\">\n      <div class=\"piece-card card-target\">\n        <span class=\"piece-label\">OBJETIVO TEÓRICO</span>\n        <span class=\"piece-value\" id=\"target-val\">800</span>\n      </div>\n      <div class=\"piece-card card-ok\">\n        <span class=\"piece-label\">PIEZAS OK</span>\n        <span class=\"piece-value\" id=\"ok-val\">0</span>\n      </div>\n      <div class=\"piece-card card-nok\">\n        <span class=\"piece-label\">PIEZAS NOK</span>\n        <span class=\"piece-value\" id=\"nok-val\">0</span>\n      </div>\n    </div>\n\n    <div class=\"durations-section\">\n      <div class=\"dur-group\">\n        <div class=\"dur-header\">\n          <span>TIEMPO EN MARCHA</span>\n          <span class=\"dur-value\" id=\"marcha-val\">0h 00m (0%)</span>\n        </div>\n        <div class=\"dur-bg\">\n          <div class=\"dur-bar bar-marcha\" id=\"marcha-bar\" style=\"width: 0%\"></div>\n        </div>\n      </div>\n\n      <div class=\"dur-group\">\n        <div class=\"dur-header\">\n          <span>TIEMPO PARADA</span>\n          <span class=\"dur-value\" id=\"parada-val\">0h 00m (0%)</span>\n        </div>\n        <div class=\"dur-bg\">\n          <div class=\"dur-bar bar-parada\" id=\"parada-bar\" style=\"width: 0%\"></div>\n        </div>\n      </div>\n\n      <div class=\"dur-group\">\n        <div class=\"dur-header\">\n          <span>TIEMPO ERROR</span>\n          <span class=\"dur-value\" id=\"error-val\">0h 00m (0%)</span>\n        </div>\n        <div class=\"dur-bg\">\n          <div class=\"dur-bar bar-error\" id=\"error-bar\" style=\"width: 0%\"></div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n\n<script>\n(function() {\n  var API_BASE = window.location.origin + '/api';\n  \n  var shiftLabel = document.getElementById('shift-label');\n  var shiftTimes = document.getElementById('shift-times');\n  var okVal = document.getElementById('ok-val');\n  var nokVal = document.getElementById('nok-val');\n  \n  var marchaVal = document.getElementById('marcha-val');\n  var marchaBar = document.getElementById('marcha-bar');\n  var paradaVal = document.getElementById('parada-val');\n  var paradaBar = document.getElementById('parada-bar');\n  var errorVal = document.getElementById('error-val');\n  var errorBar = document.getElementById('error-bar');\n\n  function formatDuration(seconds) {\n    var h = Math.floor(seconds / 3600);\n    var m = Math.floor((seconds % 3600) / 60);\n    return h + 'h ' + (m < 10 ? '0' : '') + m + 'm';\n  }\n\n  function updateTurno() {\n    var xhr = new XMLHttpRequest();\n    var sqlPayload = JSON.stringify({\n      queries: [{\n        datasource: {type: 'mssql', uid: 'mes_sqlserver'},\n        rawSql: \"DECLARE @latest_ts DATETIME; DECLARE @shift_label VARCHAR(10); DECLARE @shift_start DATETIME; DECLARE @shift_end DATETIME; DECLARE @total_pieces INT; DECLARE @good_pieces INT; SELECT TOP 1 @latest_ts = ts, @shift_label = shift_label, @total_pieces = total_pieces, @good_pieces = good_pieces FROM mes_oee_snapshots WHERE machine_id = 'MAQ-01' AND oee IS NOT NULL ORDER BY ts DESC; IF @shift_label = 'T1' BEGIN SET @shift_start = DATEADD(hour, 7, CAST(CAST(@latest_ts AS DATE) AS DATETIME)); SET @shift_end = DATEADD(hour, 15, CAST(CAST(@latest_ts AS DATE) AS DATETIME)); END ELSE IF @shift_label = 'T2' BEGIN SET @shift_start = DATEADD(hour, 15, CAST(CAST(@latest_ts AS DATE) AS DATETIME)); SET @shift_end = DATEADD(hour, 23, CAST(CAST(@latest_ts AS DATE) AS DATETIME)); END ELSE IF @shift_label = 'T3' BEGIN IF DATEPART(hour, @latest_ts) < 7 BEGIN SET @shift_start = DATEADD(hour, 23, CAST(CAST(DATEADD(day, -1, @latest_ts) AS DATE) AS DATETIME)); SET @shift_end = DATEADD(hour, 7, CAST(CAST(@latest_ts AS DATE) AS DATETIME)); END ELSE BEGIN SET @shift_start = DATEADD(hour, 23, CAST(CAST(@latest_ts AS DATE) AS DATETIME)); SET @shift_end = DATEADD(hour, 7, CAST(CAST(DATEADD(day, 1, @latest_ts) AS DATE) AS DATETIME)); END END; WITH EventDurations AS ( SELECT state, timestamp, LEAD(timestamp) OVER (ORDER BY timestamp) AS next_timestamp FROM dbo.mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= @shift_start AND timestamp <= @shift_end ), AggregatedDurations AS ( SELECT SUM(CASE WHEN state = 'Running' THEN DATEDIFF(second, timestamp, CASE WHEN next_timestamp IS NULL OR next_timestamp > @shift_end THEN @shift_end ELSE next_timestamp END) ELSE 0 END) AS duration_running, SUM(CASE WHEN state IN ('Stopped', 'Setup', 'Break') THEN DATEDIFF(second, timestamp, CASE WHEN next_timestamp IS NULL OR next_timestamp > @shift_end THEN @shift_end ELSE next_timestamp END) ELSE 0 END) AS duration_stopped, SUM(CASE WHEN state IN ('Micro-stop', 'Disconnected') THEN DATEDIFF(second, timestamp, CASE WHEN next_timestamp IS NULL OR next_timestamp > @shift_end THEN @shift_end ELSE next_timestamp END) ELSE 0 END) AS duration_error FROM EventDurations ) SELECT @shift_label AS shift_label, CONVERT(VARCHAR(5), @shift_start, 108) AS shift_start, CONVERT(VARCHAR(5), @shift_end, 108) AS shift_end, @total_pieces AS total_pieces, @good_pieces AS good_pieces, (@total_pieces - @good_pieces) AS bad_pieces, COALESCE(duration_running, 0) AS duration_running, COALESCE(duration_stopped, 0) AS duration_stopped, COALESCE(duration_error, 0) AS duration_error FROM AggregatedDurations;\",\n        refId: 'A', format: 'table'\n      }]\n    });\n    xhr.open('POST', API_BASE + '/ds/query', true);\n    xhr.setRequestHeader('Content-Type', 'application/json');\n    xhr.onload = function() {\n      if (xhr.status !== 200) return;\n      try {\n        var data = JSON.parse(xhr.responseText);\n        var frames = data.results && data.results.A && data.results.A.frames;\n        if (frames && frames.length > 0) {\n          var fields = frames[0].schema.fields;\n          var vals = frames[0].data.values;\n          var row = {};\n          for (var fi = 0; fi < fields.length; fi++) {\n            row[fields[fi].name] = vals[fi][0];\n          }\n          \n          if (shiftLabel) shiftLabel.textContent = row.shift_label || '--';\n          if (shiftTimes) shiftTimes.textContent = 'Inicio: ' + (row.shift_start || '--:--') + ' | Fin: ' + (row.shift_end || '--:--');\n          \n          var ok = row.good_pieces || 0;\n          var nok = row.bad_pieces || 0;\n\n          if (okVal) okVal.textContent = ok;\n          if (nokVal) nokVal.textContent = nok;\n\n          var running = row.duration_running || 0;\n          var stopped = row.duration_stopped || 0;\n          var error = row.duration_error || 0;\n          var totalDur = running + stopped + error;\n\n          if (totalDur === 0) totalDur = 28800;\n\n          var runPct = Math.round((running / totalDur) * 100);\n          var stopPct = Math.round((stopped / totalDur) * 100);\n          var errPct = Math.round((error / totalDur) * 100);\n\n          if (marchaVal && marchaBar) {\n            marchaVal.textContent = formatDuration(running) + ' (' + runPct + '%)';\n            marchaBar.style.width = runPct + '%';\n          }\n          if (paradaVal && paradaBar) {\n            paradaVal.textContent = formatDuration(stopped) + ' (' + stopPct + '%)';\n            paradaBar.style.width = stopPct + '%';\n          }\n          if (errorVal && errorBar) {\n            errorVal.textContent = formatDuration(error) + ' (' + errPct + '%)';\n            errorBar.style.width = errPct + '%';\n          }\n        }\n      } catch(e) { console.error('Error parsing Turno response:', e); }\n    };\n    xhr.send(sqlPayload);\n  }\n\n  updateTurno();\n  setInterval(updateTurno, 5000);\n})();\n</script>",
-        "mode": "html"
-      },
-      "pluginVersion": "10.4.2",
-      "title": "TURNO",
-      "transparent": true,
-      "type": "text"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "fillOpacity": 80,
-            "lineWidth": 0
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "index": 0,
-                  "text": "Parada No Planificada"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 1,
-                  "text": "Marcha"
-                },
-                "2": {
-                  "color": "blue",
-                  "index": 2,
-                  "text": "Setup / Cambio"
-                },
-                "3": {
-                  "color": "orange",
-                  "index": 3,
-                  "text": "Microparadas"
-                }
-              },
-              "type": "value"
-            }
-          ]
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 12
-      },
-      "id": 5,
-      "options": {
-        "alignValue": "left",
-        "mergeValues": true,
-        "showValue": "never"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "mssql",
-            "uid": "mes_sqlserver"
-          },
-          "format": "table",
-          "rawSql": "SELECT timestamp AS time, CASE state WHEN 'Running' THEN 1 WHEN 'Stopped' THEN 0 WHEN 'Setup' THEN 2 WHEN 'Micro-stop' THEN 3 WHEN 'Break' THEN 4 ELSE -1 END AS [Estado] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= $__timeFrom() AND timestamp <= $__timeTo() ORDER BY timestamp",
-          "refId": "A"
-        }
-      ],
-      "title": "Línea de Tiempo de Estados",
-      "type": "state-timeline"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 20
-      },
-      "id": 10,
-      "options": {
-        "orientation": "horizontal",
-        "showValue": "auto"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "mssql",
-            "uid": "mes_sqlserver"
-          },
-          "format": "table",
-          "rawSql": "SELECT TOP 5 reason AS [Motivo], SUM(duration_s) AS [Duración (s)] FROM mes_stop_reasons WHERE machine_id = 'MAQ-01' AND start_time >= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(duration_s) DESC",
-          "refId": "A"
-        }
-      ],
-      "title": "Top 5 Motivos de Parada (Diagrama de Pareto)",
-      "type": "barchart"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "dark-green",
-            "mode": "fixed"
-          },
-          "unit": "dtdurations"
-        }
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 20
-      },
-      "id": 11,
-      "targets": [
-        {
-          "datasource": {
-            "type": "mssql",
-            "uid": "mes_sqlserver"
-          },
-          "format": "table",
-          "rawSql": "SELECT CAST(SUM(CASE WHEN state = 'Running' THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 15, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state = 'Stopped' THEN 1 ELSE 0 END), 0) AS [MTBF] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME)",
-          "refId": "A"
-        }
-      ],
-      "title": "MTBF (Tiempo Medio Entre Fallos)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mes_sqlserver"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "dark-orange",
-            "mode": "fixed"
-          },
-          "unit": "dtdurations"
-        }
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 24
-      },
-      "id": 12,
-      "targets": [
-        {
-          "datasource": {
-            "type": "mssql",
-            "uid": "mes_sqlserver"
-          },
-          "format": "table",
-          "rawSql": "SELECT CAST(SUM(CASE WHEN state = 'Stopped' THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 10, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state = 'Stopped' THEN 1 ELSE 0 END), 0) AS [MTTR] FROM mes_machine_events WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME)",
-          "refId": "A"
-        }
-      ],
-      "title": "MTTR (Tiempo Medio de Reparación)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mes_sqlserver"
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 8,
-        "x": 16,
-        "y": 20
-      },
-      "id": 13,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "right"
-        },
-        "pieType": "donut"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "mssql",
-            "uid": "mes_sqlserver"
-          },
-          "format": "table",
-          "rawSql": "SELECT reason AS [Motivo], SUM(quantity) AS [Cantidad] FROM mes_reject_reasons WHERE machine_id = 'MAQ-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(quantity) DESC",
-          "refId": "A"
-        }
-      ],
-      "title": "Top 5 Motivos de Rechazo",
-      "type": "piechart"
-    }
-  ],
-  "refresh": "5s",
-  "schemaVersion": 38,
-  "style": "dark",
-  "tags": [
-    "oee",
-    "mes",
-    "fabrica"
-  ],
-  "templating": {
-    "list": []
-  },
-  "time": {
-    "from": "now-8h",
-    "to": "now"
-  },
-  "timepicker": {},
-  "timezone": "browser",
-  "title": "Panel de Control OEE Fábrica - Turno Actual (ES)",
-  "uid": "panel-oee-mes-fabrica",
-  "version": 55
+﻿{
+    "annotations":  {
+                        "list":  [
+                                     {
+                                         "builtIn":  1,
+                                         "datasource":  "-- Grafana --",
+                                         "enable":  true,
+                                         "hide":  true,
+                                         "iconColor":  "rgba(0, 211, 255, 1)",
+                                         "name":  "Annotations \u0026 Alerts",
+                                         "type":  "dashboard"
+                                     }
+                                 ]
+                    },
+    "editable":  true,
+    "fiscalYearStartMonth":  0,
+    "graphTooltip":  0,
+    "links":  [
+                  {
+                      "asDropdown":  false,
+                      "icon":  "home",
+                      "includeVars":  false,
+                      "keepTime":  false,
+                      "tags":  [
+
+                               ],
+                      "targetBlank":  false,
+                      "title":  "Inicio",
+                      "type":  "link",
+                      "url":  "/d/mes-home-v1"
+                  },
+                  {
+                      "asDropdown":  false,
+                      "icon":  "dashboard",
+                      "includeVars":  true,
+                      "keepTime":  true,
+                      "tags":  [
+
+                               ],
+                      "targetBlank":  false,
+                      "title":  "OEE/MES",
+                      "type":  "link",
+                      "url":  "/d/panel-oee-mes-fabrica"
+                  },
+                  {
+                      "asDropdown":  false,
+                      "icon":  "dashboard",
+                      "includeVars":  false,
+                      "keepTime":  false,
+                      "tags":  [
+
+                               ],
+                      "targetBlank":  false,
+                      "title":  "DISTRIBUIDOR",
+                      "type":  "link",
+                      "url":  "/d/mes-oee-v2"
+                  },
+                  {
+                      "asDropdown":  false,
+                      "icon":  "dashboard",
+                      "includeVars":  true,
+                      "keepTime":  false,
+                      "tags":  [
+
+                               ],
+                      "targetBlank":  false,
+                      "title":  "PLAN PRODUCCIÓN",
+                      "type":  "link",
+                      "url":  "/d/mes-plan-v1"
+                  },
+                  {
+                      "asDropdown":  false,
+                      "icon":  "dashboard",
+                      "includeVars":  true,
+                      "keepTime":  true,
+                      "tags":  [
+
+                               ],
+                      "targetBlank":  false,
+                      "title":  "LOG_SECUENCIAS",
+                      "type":  "link",
+                      "url":  "/d/mes-reg-v1"
+                  },
+                  {
+                      "asDropdown":  false,
+                      "icon":  "alert",
+                      "includeVars":  true,
+                      "keepTime":  true,
+                      "tags":  [
+
+                               ],
+                      "targetBlank":  false,
+                      "title":  "ALARMAS",
+                      "type":  "link",
+                      "url":  "/d/mes-alarms-v1"
+                  }
+              ],
+    "liveNow":  false,
+    "panels":  [
+                   {
+                       "gridPos":  {
+                                       "h":  12,
+                                       "w":  14,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "id":  1,
+                       "options":  {
+                                       "code":  {
+                                                    "language":  "plaintext",
+                                                    "showLineNumbers":  false,
+                                                    "showMiniMap":  false
+                                                },
+                                       "content":  "\u003cstyle\u003e\n  .kpi-container { display:flex; align-items:center; justify-content:space-around; height:100%; width:100%; font-family:\u0027Outfit\u0027,\u0027Inter\u0027,-apple-system,sans-serif; color:#f3f4f6; padding:16px; box-sizing:border-box; background:transparent; }\n  .kpi-left { flex:1; display:flex; justify-content:center; align-items:center; }\n  .gauge-wrapper { position:relative; width:220px; height:220px; }\n  .progress-ring { transform:rotate(-90deg); }\n  .progress-ring__circle { transition:stroke-dashoffset 0.8s ease-in-out; }\n  .gauge-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; display:flex; flex-direction:column; }\n  #oee-val { font-size:38px; font-weight:800; letter-spacing:-1px; color:#fff; text-shadow:0 0 10px rgba(0,242,254,0.4); }\n  .gauge-label { font-size:11px; font-weight:600; color:#9ca3af; letter-spacing:1px; margin-top:4px; }\n  .kpi-right { flex:1.2; display:flex; flex-direction:column; justify-content:center; gap:20px; padding-right:20px; }\n  .bar-group { display:flex; flex-direction:column; gap:8px; }\n  .bar-header { display:flex; justify-content:space-between; font-size:13px; font-weight:700; letter-spacing:0.5px; color:#d1d5db; }\n  .bar-bg { height:10px; background:rgba(255,255,255,0.05); border-radius:5px; overflow:hidden; position:relative; }\n  .bar-fill { height:100%; border-radius:5px; width:0%; transition:width 0.8s ease-in-out; box-shadow:0 0 8px rgba(255,255,255,0.1); }\n\u003c/style\u003e\n\u003cdiv class=\"kpi-container\"\u003e\n  \u003cdiv class=\"kpi-left\"\u003e\u003cdiv class=\"gauge-wrapper\"\u003e\n    \u003csvg class=\"progress-ring\" width=\"220\" height=\"220\"\u003e\n      \u003ccircle class=\"progress-ring__background\" stroke=\"rgba(255,255,255,0.05)\" stroke-width=\"16\" fill=\"transparent\" r=\"90\" cx=\"110\" cy=\"110\"/\u003e\n      \u003ccircle class=\"progress-ring__circle\" id=\"oee-ring\" stroke=\"url(#oee-gradient-high)\" stroke-width=\"16\" stroke-linecap=\"round\" fill=\"transparent\" r=\"90\" cx=\"110\" cy=\"110\" stroke-dasharray=\"565.49\" stroke-dashoffset=\"565.49\"/\u003e\n      \u003cdefs\u003e\n        \u003clinearGradient id=\"oee-gradient-low\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"\u003e\u003cstop offset=\"0%\" stop-color=\"#f857a6\"/\u003e\u003cstop offset=\"100%\" stop-color=\"#ff5858\"/\u003e\u003c/linearGradient\u003e\n        \u003clinearGradient id=\"oee-gradient-med\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"\u003e\u003cstop offset=\"0%\" stop-color=\"#f2994a\"/\u003e\u003cstop offset=\"100%\" stop-color=\"#f2c94c\"/\u003e\u003c/linearGradient\u003e\n        \u003clinearGradient id=\"oee-gradient-high\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"\u003e\u003cstop offset=\"0%\" stop-color=\"#11998e\"/\u003e\u003cstop offset=\"100%\" stop-color=\"#38ef7d\"/\u003e\u003c/linearGradient\u003e\n      \u003c/defs\u003e\n    \u003c/svg\u003e\n    \u003cdiv class=\"gauge-text\"\u003e\u003cspan id=\"oee-val\"\u003e--%\u003c/span\u003e\u003cspan class=\"gauge-label\"\u003eOEE GLOBAL\u003c/span\u003e\u003c/div\u003e\n  \u003c/div\u003e\u003c/div\u003e\n  \u003cdiv class=\"kpi-right\"\u003e\n    \u003cdiv class=\"bar-group\"\u003e\u003cdiv class=\"bar-header\"\u003e\u003cspan\u003eDISPONIBILIDAD\u003c/span\u003e\u003cspan id=\"avail-val\"\u003e--%\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"bar-bg\"\u003e\u003cdiv class=\"bar-fill\" id=\"avail-bar\" style=\"width:0%;background:linear-gradient(90deg,#11998e,#38ef7d);\"\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\n    \u003cdiv class=\"bar-group\"\u003e\u003cdiv class=\"bar-header\"\u003e\u003cspan\u003eRENDIMIENTO\u003c/span\u003e\u003cspan id=\"perf-val\"\u003e--%\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"bar-bg\"\u003e\u003cdiv class=\"bar-fill\" id=\"perf-bar\" style=\"width:0%;background:linear-gradient(90deg,#f2994a,#f2c94c);\"\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\n    \u003cdiv class=\"bar-group\"\u003e\u003cdiv class=\"bar-header\"\u003e\u003cspan\u003eCALIDAD\u003c/span\u003e\u003cspan id=\"qual-val\"\u003e--%\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"bar-bg\"\u003e\u003cdiv class=\"bar-fill\" id=\"qual-bar\" style=\"width:0%;background:linear-gradient(90deg,#f857a6,#ff5858);\"\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n(function(){var API_BASE=window.location.origin+\u0027/api\u0027;var oeeRing=document.getElementById(\u0027oee-ring\u0027);var oeeVal=document.getElementById(\u0027oee-val\u0027);var availVal=document.getElementById(\u0027avail-val\u0027);var availBar=document.getElementById(\u0027avail-bar\u0027);var perfVal=document.getElementById(\u0027perf-val\u0027);var perfBar=document.getElementById(\u0027perf-bar\u0027);var qualVal=document.getElementById(\u0027qual-val\u0027);var qualBar=document.getElementById(\u0027qual-bar\u0027);var circumference=565.49;function setProgress(p){if(!oeeRing)return;oeeRing.style.strokeDashoffset=circumference-(p/100*circumference);}function updateKPIs(){var xhr=new XMLHttpRequest();var sql=JSON.stringify({queries:[{datasource:{type:\u0027mssql\u0027,uid:\u0027mes_sqlserver\u0027},rawSql:\"SELECT TOP 1 oee,availability,performance,quality FROM mes_oee_snapshots WHERE machine_id=\u0027MAQ-01\u0027 AND oee IS NOT NULL ORDER BY ts DESC\",refId:\u0027A\u0027,format:\u0027table\u0027}]});xhr.open(\u0027POST\u0027,API_BASE+\u0027/ds/query\u0027,true);xhr.setRequestHeader(\u0027Content-Type\u0027,\u0027application/json\u0027);xhr.onload=function(){if(xhr.status!==200)return;try{var d=JSON.parse(xhr.responseText);var f=d.results\u0026\u0026d.results.A\u0026\u0026d.results.A.frames;if(f\u0026\u0026f.length\u003e0){var fld=f[0].schema.fields;var v=f[0].data.values;var r={};for(var i=0;i\u003cfld.length;i++)r[fld[i].name]=v[i][0];var oee=Math.round((r.oee||0)*10)/10;var av=Math.round((r.availability||0)*10)/10;var pf=Math.round((r.performance||0)*10)/10;var ql=Math.round((r.quality||0)*10)/10;if(oeeVal)oeeVal.textContent=oee+\u0027%\u0027;setProgress(oee);if(oeeRing\u0026\u0026oeeVal){if(oee\u003c65){oeeRing.setAttribute(\u0027stroke\u0027,\u0027url(#oee-gradient-low)\u0027);oeeVal.style.textShadow=\u00270 0 10px rgba(255,88,88,0.4)\u0027;}else if(oee\u003c85){oeeRing.setAttribute(\u0027stroke\u0027,\u0027url(#oee-gradient-med)\u0027);oeeVal.style.textShadow=\u00270 0 10px rgba(242,201,76,0.4)\u0027;}else{oeeRing.setAttribute(\u0027stroke\u0027,\u0027url(#oee-gradient-high)\u0027);oeeVal.style.textShadow=\u00270 0 10px rgba(56,239,125,0.4)\u0027;}}if(availVal\u0026\u0026availBar){availVal.textContent=av+\u0027%\u0027;availBar.style.width=av+\u0027%\u0027;}if(perfVal\u0026\u0026perfBar){perfVal.textContent=pf+\u0027%\u0027;perfBar.style.width=pf+\u0027%\u0027;}if(qualVal\u0026\u0026qualBar){qualVal.textContent=ql+\u0027%\u0027;qualBar.style.width=ql+\u0027%\u0027;}}}catch(e){console.error(e);}};xhr.send(sql);}updateKPIs();setInterval(updateKPIs,5000);})();\n\u003c/script\u003e",
+                                       "mode":  "html"
+                                   },
+                       "pluginVersion":  "10.4.2",
+                       "title":  "OEE y KPIs",
+                       "transparent":  true,
+                       "type":  "text"
+                   },
+                   {
+                       "gridPos":  {
+                                       "h":  12,
+                                       "w":  10,
+                                       "x":  14,
+                                       "y":  0
+                                   },
+                       "id":  2,
+                       "options":  {
+                                       "code":  {
+                                                    "language":  "plaintext",
+                                                    "showLineNumbers":  false,
+                                                    "showMiniMap":  false
+                                                },
+                                       "content":  "\u003cstyle\u003e\n.turno-container{display:flex;flex-direction:column;height:100%;width:100%;font-family:\u0027Outfit\u0027,\u0027Inter\u0027,-apple-system,sans-serif;color:#f3f4f6;padding:16px;box-sizing:border-box;background:transparent;justify-content:space-between}.turno-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:8px;margin-bottom:12px}.turno-title{font-size:18px;font-weight:800;color:#fff;letter-spacing:0.5px}.turno-times{font-size:13px;font-weight:600;color:#9ca3af;background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:4px}.turno-content{display:flex;flex-direction:column;flex-grow:1;justify-content:space-between;gap:12px}.pieces-row{display:flex;gap:12px}.piece-card{flex:1;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;justify-content:center}.card-target{border-left:3px solid #00f2fe}.card-ok{border-left:3px solid #2fd06a}.card-nok{border-left:3px solid #e32636}.piece-label{font-size:10px;font-weight:700;color:#9ca3af;letter-spacing:0.5px;margin-bottom:4px}.piece-value{font-size:22px;font-weight:800;color:#fff}.card-target .piece-value{color:#00f2fe;text-shadow:0 0 10px rgba(0,242,254,0.2)}.card-ok .piece-value{color:#2fd06a;text-shadow:0 0 10px rgba(47,208,106,0.2)}.card-nok .piece-value{color:#e32636;text-shadow:0 0 10px rgba(227,38,54,0.2)}.durations-section{display:flex;flex-direction:column;gap:12px}.dur-group{display:flex;flex-direction:column;gap:4px}.dur-header{display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:0.5px;color:#d1d5db}.dur-value{color:#9ca3af;font-weight:600}.dur-bg{height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden}.dur-bar{height:100%;border-radius:4px;width:0%;transition:width 0.8s ease-in-out}.bar-marcha{background:linear-gradient(90deg,#11998e,#38ef7d)}.bar-parada{background:linear-gradient(90deg,#2b5876,#4e4376)}.bar-error{background:linear-gradient(90deg,#f857a6,#ff5858)}\n\u003c/style\u003e\n\u003cdiv class=\"turno-container\"\u003e\u003cdiv class=\"turno-header\"\u003e\u003cspan class=\"turno-title\"\u003eTurno \u003cspan id=\"shift-label\"\u003eT1\u003c/span\u003e\u003c/span\u003e\u003cspan class=\"turno-times\" id=\"shift-times\"\u003eInicio: 07:00 | Fin: 15:00\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"turno-content\"\u003e\u003cdiv class=\"pieces-row\"\u003e\u003cdiv class=\"piece-card card-target\"\u003e\u003cspan class=\"piece-label\"\u003ePLANIFICADAS (TEÓRICO)\u003c/span\u003e\u003cspan class=\"piece-value\" id=\"target-val\"\u003e0\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"piece-card card-ok\"\u003e\u003cspan class=\"piece-label\"\u003eSECUENCIAS OK\u003c/span\u003e\u003cspan class=\"piece-value\" id=\"ok-val\"\u003e0\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"piece-card card-nok\"\u003e\u003cspan class=\"piece-label\"\u003eSECUENCIAS NOK\u003c/span\u003e\u003cspan class=\"piece-value\" id=\"nok-val\"\u003e0\u003c/span\u003e\u003c/div\u003e\u003c/div\u003e\u003cdiv class=\"durations-section\"\u003e\u003cdiv class=\"dur-group\"\u003e\u003cdiv class=\"dur-header\"\u003e\u003cspan\u003eTIEMPO EN MARCHA\u003c/span\u003e\u003cspan class=\"dur-value\" id=\"marcha-val\"\u003e0h 00m (0%)\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"dur-bg\"\u003e\u003cdiv class=\"dur-bar bar-marcha\" id=\"marcha-bar\" style=\"width:0%\"\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003cdiv class=\"dur-group\"\u003e\u003cdiv class=\"dur-header\"\u003e\u003cspan\u003eTIEMPO PARADA\u003c/span\u003e\u003cspan class=\"dur-value\" id=\"parada-val\"\u003e0h 00m (0%)\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"dur-bg\"\u003e\u003cdiv class=\"dur-bar bar-parada\" id=\"parada-bar\" style=\"width:0%\"\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003cdiv class=\"dur-group\"\u003e\u003cdiv class=\"dur-header\"\u003e\u003cspan\u003eTIEMPO ERROR\u003c/span\u003e\u003cspan class=\"dur-value\" id=\"error-val\"\u003e0h 00m (0%)\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"dur-bg\"\u003e\u003cdiv class=\"dur-bar bar-error\" id=\"error-bar\" style=\"width:0%\"\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\n\u003cscript\u003e\n(function(){var API=window.location.origin+\u0027/api\u0027;var tV=document.getElementById(\u0027target-val\u0027);var oV=document.getElementById(\u0027ok-val\u0027);var nV=document.getElementById(\u0027nok-val\u0027);var mV=document.getElementById(\u0027marcha-val\u0027);var mB=document.getElementById(\u0027marcha-bar\u0027);var pV=document.getElementById(\u0027parada-val\u0027);var pB=document.getElementById(\u0027parada-bar\u0027);var eV=document.getElementById(\u0027error-val\u0027);var eB=document.getElementById(\u0027error-bar\u0027);function fmt(s){var h=Math.floor(s/3600);var m=Math.floor((s%3600)/60);return h+\u0027h \u0027+(m\u003c10?\u00270\u0027:\u0027\u0027)+m+\u0027m\u0027;}function upd(){var x=new XMLHttpRequest();x.open(\u0027POST\u0027,API+\u0027/ds/query\u0027,true);x.setRequestHeader(\u0027Content-Type\u0027,\u0027application/json\u0027);x.onload=function(){if(x.status!==200)return;try{var d=JSON.parse(x.responseText);var f=d.results\u0026\u0026d.results.A\u0026\u0026d.results.A.frames;if(f\u0026\u0026f.length\u003e0){var fld=f[0].schema.fields;var v=f[0].data.values;var r={};for(var i=0;i\u003cfld.length;i++)r[fld[i].name]=v[i][0];if(tV)tV.textContent=r.planificadas||0;if(oV)oV.textContent=r.good_pieces||0;if(nV)nV.textContent=r.bad_pieces||0;var run=r.duration_running||0;var stp=r.duration_stopped||0;var err=r.duration_error||0;var tot=run+stp+err;if(tot===0)tot=28800;var rP=Math.round(run/tot*100);var sP=Math.round(stp/tot*100);var eP=Math.round(err/tot*100);if(mV\u0026\u0026mB){mV.textContent=fmt(run)+\u0027 (\u0027+rP+\u0027%)\u0027;mB.style.width=rP+\u0027%\u0027;}if(pV\u0026\u0026pB){pV.textContent=fmt(stp)+\u0027 (\u0027+sP+\u0027%)\u0027;pB.style.width=sP+\u0027%\u0027;}if(eV\u0026\u0026eB){eV.textContent=fmt(err)+\u0027 (\u0027+eP+\u0027%)\u0027;eB.style.width=eP+\u0027%\u0027;}}}catch(e){console.error(e);}};x.send(JSON.stringify({queries:[{datasource:{type:\u0027mssql\u0027,uid:\u0027mes_sqlserver\u0027},rawSql:\"DECLARE @SD DATE=CAST(CAST(GETDATE() AS datetime2) AT TIME ZONE \u0027UTC\u0027 AT TIME ZONE \u0027Romance Standard Time\u0027 AS DATE);DECLARE @UO INT=DATEDIFF(hour,GETUTCDATE(),GETDATE());DECLARE @SS DATETIME=DATEADD(hour,7-@UO,CAST(@SD AS DATETIME));DECLARE @SE DATETIME=DATEADD(hour,15-@UO,CAST(@SD AS DATETIME));IF OBJECT_ID(\u0027tempdb..#CS\u0027) IS NOT NULL DROP TABLE #CS;CREATE TABLE #CS(gi INT IDENTITY(1,1) PRIMARY KEY,f DATE);WITH CB AS(SELECT Fecha,Laborable,Cant_A_Fabricar,SUM(CASE WHEN Cant_A_Fabricar=18.5 THEN 1 ELSE 0 END) OVER(ORDER BY Fecha ASC) AS C185 FROM dbo.CALENDARIO_LABORAL WHERE Fecha\u003e=\u00272026-06-24\u0027) INSERT INTO #CS(f) SELECT cb.Fecha FROM CB cb CROSS APPLY(SELECT ROW_NUMBER() OVER(ORDER BY id) AS si FROM dbo.HHSS_18 WHERE cb.Cant_A_Fabricar=18.0 OR cb.Cant_A_Fabricar IS NULL OR(cb.Cant_A_Fabricar NOT IN(19.0,18.5) AND cb.Cant_A_Fabricar\u003e0) UNION ALL SELECT ROW_NUMBER() OVER(ORDER BY id) FROM dbo.HHSS_19 WHERE cb.Cant_A_Fabricar=19.0 UNION ALL SELECT ROW_NUMBER() OVER(ORDER BY id) FROM dbo.HHSS_18_5 WHERE cb.Cant_A_Fabricar=18.5 AND cb.C185%2=1 AND id BETWEEN 1 AND 19 UNION ALL SELECT ROW_NUMBER() OVER(ORDER BY id) FROM dbo.HHSS_18_5 WHERE cb.Cant_A_Fabricar=18.5 AND cb.C185%2=0 AND id BETWEEN 20 AND 38) s WHERE cb.Laborable=1 AND cb.Cant_A_Fabricar\u003e0 ORDER BY cb.Fecha ASC,s.si ASC;IF OBJECT_ID(\u0027tempdb..#MS\u0027) IS NOT NULL DROP TABLE #MS;CREATE TABLE #MS(id INT PRIMARY KEY,pd DATE);WITH OE AS(SELECT id,ROW_NUMBER() OVER(ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC,TRY_CAST(secuencia AS INT) ASC) as gi FROM dbo.JAULA_ERP WHERE TRY_CAST(secuencia AS INT)\u003e=227) INSERT INTO #MS(id,pd) SELECT o.id,cs.f FROM OE o INNER JOIN #CS cs ON cs.gi=o.gi;DECLARE @T INT,@OK INT,@NK INT;SELECT @T=COUNT(*) FROM #MS WHERE pd=@SD;SELECT @OK=COUNT(DISTINCT CASE WHEN l.OK_NOK=\u0027OK\u0027 THEN l.NBASTIDOR END),@NK=COUNT(DISTINCT CASE WHEN l.OK_NOK=\u0027NOK\u0027 THEN l.NBASTIDOR END) FROM dbo.LOG_TABLA l INNER JOIN dbo.JAULA_ERP e ON e.bastidor=l.NBASTIDOR WHERE l.FECHA_HORA_FIN_SEC IS NOT NULL AND CAST(CAST(l.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE \u0027UTC\u0027 AT TIME ZONE \u0027Romance Standard Time\u0027 AS DATE)=@SD;WITH ED AS(SELECT state,timestamp,LEAD(timestamp) OVER(ORDER BY timestamp) AS nt FROM dbo.mes_machine_events WHERE machine_id=\u0027JAULA-01\u0027 AND timestamp\u003e=@SS AND timestamp\u003c=@SE),AD AS(SELECT SUM(CASE WHEN state IN(\u0027EN_PROCESO\u0027,\u0027SECUENCIA_INICIADA\u0027) THEN DATEDIFF(second,timestamp,CASE WHEN nt IS NULL OR nt\u003e@SE THEN @SE ELSE nt END) ELSE 0 END) AS dr,SUM(CASE WHEN state IN(\u0027EN_ESPERA\u0027,\u0027Idle\u0027,\u0027FINALIZADA\u0027) THEN DATEDIFF(second,timestamp,CASE WHEN nt IS NULL OR nt\u003e@SE THEN @SE ELSE nt END) ELSE 0 END) AS ds,SUM(CASE WHEN state IN(\u0027Aborting\u0027,\u0027Disconnected\u0027) THEN DATEDIFF(second,timestamp,CASE WHEN nt IS NULL OR nt\u003e@SE THEN @SE ELSE nt END) ELSE 0 END) AS de FROM ED) SELECT COALESCE(@T,0) AS planificadas,COALESCE(@OK,0) AS good_pieces,COALESCE(@NK,0) AS bad_pieces,COALESCE(dr,0) AS duration_running,COALESCE(ds,0) AS duration_stopped,COALESCE(de,0) AS duration_error FROM AD;\",refId:\u0027A\u0027,format:\u0027table\u0027}]}));}upd();setInterval(upd,5000);})();\n\u003c/script\u003e",
+                                       "mode":  "html"
+                                   },
+                       "pluginVersion":  "10.4.2",
+                       "title":  "TURNO",
+                       "transparent":  true,
+                       "type":  "text"
+                   },
+                   {
+                       "datasource":  {
+                                          "type":  "mssql",
+                                          "uid":  "mes_sqlserver"
+                                      },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "mode":  "fixed"
+                                                                      },
+                                                            "custom":  {
+                                                                           "fillOpacity":  80,
+                                                                           "lineWidth":  0
+                                                                       },
+                                                            "mappings":  [
+                                                                             {
+                                                                                 "options":  {
+                                                                                                 "Alarma":  {
+                                                                                                                "color":  "#E32636",
+                                                                                                                "index":  3,
+                                                                                                                "text":  "Alarma"
+                                                                                                            },
+                                                                                                 "Esperando máquina":  {
+                                                                                                                           "color":  "#FADE2A",
+                                                                                                                           "index":  0,
+                                                                                                                           "text":  "Esperando máquina"
+                                                                                                                       },
+                                                                                                 "Running":  {
+                                                                                                                 "color":  "#2FD06A",
+                                                                                                                 "index":  1,
+                                                                                                                 "text":  "Running"
+                                                                                                             },
+                                                                                                 "Tiempo excedido":  {
+                                                                                                                         "color":  "#5F6B7C",
+                                                                                                                         "index":  2,
+                                                                                                                         "text":  "Tiempo excedido"
+                                                                                                                     }
+                                                                                             },
+                                                                                 "type":  "value"
+                                                                             }
+                                                                         ]
+                                                        }
+                                       },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  12
+                                   },
+                       "id":  5,
+                       "options":  {
+                                       "alignValue":  "left",
+                                       "legend":  {
+                                                      "displayMode":  "list",
+                                                      "placement":  "bottom",
+                                                      "showLegend":  true
+                                                  },
+                                       "mergeValues":  true,
+                                       "showValue":  "never"
+                                   },
+                       "targets":  [
+                                       {
+                                           "datasource":  {
+                                                              "type":  "mssql",
+                                                              "uid":  "mes_sqlserver"
+                                                          },
+                                           "format":  "table",
+                                           "rawSql":  "DECLARE @PlotDate DATE = CAST(CAST(GETDATE() AS datetime2) AT TIME ZONE \u0027UTC\u0027 AT TIME ZONE \u0027Romance Standard Time\u0027 AS DATE);\nDECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());\nDECLARE @ShiftStartDT DATETIME = DATEADD(hour, 7 - @UTCOffset, CAST(@PlotDate AS DATETIME));\nDECLARE @ShiftEndDT DATETIME = DATEADD(hour, 15 - @UTCOffset, CAST(@PlotDate AS DATETIME));\n\nSELECT \n  timestamp AS time,\n  CASE state\n    WHEN \u0027EN_ESPERA\u0027 THEN \u0027Esperando máquina\u0027\n    WHEN \u0027EN_PROCESO\u0027 THEN \u0027Running\u0027\n    WHEN \u0027SECUENCIA_INICIADA\u0027 THEN \u0027Running\u0027\n    WHEN \u0027FINALIZADA\u0027 THEN \u0027Tiempo excedido\u0027\n    WHEN \u0027Idle\u0027 THEN \u0027Tiempo excedido\u0027\n    WHEN \u0027Aborting\u0027 THEN \u0027Alarma\u0027\n    WHEN \u0027Disconnected\u0027 THEN \u0027Alarma\u0027\n    ELSE state\n  END AS [Estado]\nFROM mes_machine_events\nWHERE machine_id = \u0027JAULA-01\u0027\n  AND timestamp \u003e= @ShiftStartDT\n  AND timestamp \u003c= @ShiftEndDT\nORDER BY timestamp",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "title":  "Línea de Tiempo de Estados",
+                       "type":  "state-timeline"
+                   },
+                   {
+                       "datasource":  {
+                                          "type":  "mssql",
+                                          "uid":  "mes_sqlserver"
+                                      },
+                       "gridPos":  {
+                                       "h":  9,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  20
+                                   },
+                       "id":  10,
+                       "options":  {
+                                       "orientation":  "horizontal",
+                                       "showValue":  "auto"
+                                   },
+                       "targets":  [
+                                       {
+                                           "datasource":  {
+                                                              "type":  "mssql",
+                                                              "uid":  "mes_sqlserver"
+                                                          },
+                                           "format":  "table",
+                                           "rawSql":  "SELECT TOP 5 reason AS [Motivo], SUM(duration_s) AS [Duración (s)] FROM mes_stop_reasons WHERE machine_id = \u0027MAQ-01\u0027 AND start_time \u003e= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(duration_s) DESC",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "title":  "Top 5 Motivos de Parada (Diagrama de Pareto)",
+                       "type":  "barchart"
+                   },
+                   {
+                       "datasource":  {
+                                          "type":  "mssql",
+                                          "uid":  "mes_sqlserver"
+                                      },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "fixedColor":  "dark-green",
+                                                                          "mode":  "fixed"
+                                                                      },
+                                                            "unit":  "dtdurations"
+                                                        }
+                                       },
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  4,
+                                       "x":  12,
+                                       "y":  20
+                                   },
+                       "id":  11,
+                       "targets":  [
+                                       {
+                                           "datasource":  {
+                                                              "type":  "mssql",
+                                                              "uid":  "mes_sqlserver"
+                                                          },
+                                           "format":  "table",
+                                           "rawSql":  "SELECT CAST(SUM(CASE WHEN state = \u0027Running\u0027 THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 15, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state = \u0027Stopped\u0027 THEN 1 ELSE 0 END), 0) AS [MTBF] FROM mes_machine_events WHERE machine_id = \u0027MAQ-01\u0027 AND timestamp \u003e= CAST(CAST(GETDATE() AS DATE) AS DATETIME)",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "title":  "MTBF (Tiempo Medio Entre Fallos)",
+                       "type":  "stat"
+                   },
+                   {
+                       "datasource":  {
+                                          "type":  "mssql",
+                                          "uid":  "mes_sqlserver"
+                                      },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "color":  {
+                                                                          "fixedColor":  "dark-orange",
+                                                                          "mode":  "fixed"
+                                                                      },
+                                                            "unit":  "dtdurations"
+                                                        }
+                                       },
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  4,
+                                       "x":  12,
+                                       "y":  24
+                                   },
+                       "id":  12,
+                       "targets":  [
+                                       {
+                                           "datasource":  {
+                                                              "type":  "mssql",
+                                                              "uid":  "mes_sqlserver"
+                                                          },
+                                           "format":  "table",
+                                           "rawSql":  "SELECT CAST(SUM(CASE WHEN state = \u0027Stopped\u0027 THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 10, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state = \u0027Stopped\u0027 THEN 1 ELSE 0 END), 0) AS [MTTR] FROM mes_machine_events WHERE machine_id = \u0027MAQ-01\u0027 AND timestamp \u003e= CAST(CAST(GETDATE() AS DATE) AS DATETIME)",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "title":  "MTTR (Tiempo Medio de Reparación)",
+                       "type":  "stat"
+                   },
+                   {
+                       "datasource":  {
+                                          "type":  "mssql",
+                                          "uid":  "mes_sqlserver"
+                                      },
+                       "gridPos":  {
+                                       "h":  9,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  20
+                                   },
+                       "id":  13,
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "list",
+                                                      "placement":  "right"
+                                                  },
+                                       "pieType":  "donut"
+                                   },
+                       "targets":  [
+                                       {
+                                           "datasource":  {
+                                                              "type":  "mssql",
+                                                              "uid":  "mes_sqlserver"
+                                                          },
+                                           "format":  "table",
+                                           "rawSql":  "SELECT reason AS [Motivo], SUM(quantity) AS [Cantidad] FROM mes_reject_reasons WHERE machine_id = \u0027MAQ-01\u0027 AND timestamp \u003e= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(quantity) DESC",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "title":  "Top 5 Motivos de Rechazo",
+                       "type":  "piechart"
+                   }
+               ],
+    "refresh":  "5s",
+    "schemaVersion":  38,
+    "style":  "dark",
+    "tags":  [
+                 "oee",
+                 "mes",
+                 "fabrica"
+             ],
+    "templating":  {
+                       "list":  [
+
+                                ]
+                   },
+    "time":  {
+                 "from":  "now/d+7h",
+                 "to":  "now/d+15h"
+             },
+    "timepicker":  {
+                       "refresh_intervals":  [
+                                                 "5s",
+                                                 "10s",
+                                                 "30s",
+                                                 "1m"
+                                             ],
+                       "time_options":  [
+                                            "5m",
+                                            "15m",
+                                            "1h",
+                                            "6h",
+                                            "12h",
+                                            "24h"
+                                        ]
+                   },
+    "timezone":  "Europe/Madrid",
+    "title":  "Panel de Control OEE Fábrica - Turno Actual (ES)",
+    "uid":  "panel-oee-mes-fabrica"
 }
