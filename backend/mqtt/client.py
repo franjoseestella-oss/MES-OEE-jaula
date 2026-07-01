@@ -109,50 +109,57 @@ class MQTTClient:
 
     def _on_message(self, client, userdata, msg):
         try:
-            raw = json.loads(msg.payload.decode())
-        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-            logger.warning("MQTT: payload inválido en %s: %s", msg.topic, exc)
-            return
-
-        # Extraer información de los tópicos de la jaula
-        topic_parts = msg.topic.split("/")
-        if len(topic_parts) >= 3 and topic_parts[0] == "planta" and topic_parts[1] == "jaula":
-            jaula_id = topic_parts[2]
-            raw["jaula_id"] = jaula_id
-            if "ts" in raw and "timestamp" not in raw:
-                raw["timestamp"] = raw["ts"]
-            if topic_parts[-1] == "conexion":
-                raw["state"] = "Idle" if raw.get("online") else "Disconnected"
-            elif topic_parts[-1] == "estado":
-                if "estado" in raw and "state" not in raw:
-                    raw["state"] = raw["estado"]
-
-        # Normalizar estado al vocabulario PackML
-        if "state" in raw:
-            raw["state"] = normalize_state(raw["state"])
-
-        # Asegurar timestamp UTC
-        if "timestamp" not in raw:
-            raw["timestamp"] = datetime.now(timezone.utc).isoformat()
-        else:
             try:
-                dt = datetime.fromisoformat(raw["timestamp"])
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                raw["timestamp"] = dt.isoformat()
-            except ValueError:
+                raw = json.loads(msg.payload.decode())
+            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                logger.warning("MQTT: payload inválido en %s: %s", msg.topic, exc)
+                return
+
+            if not isinstance(raw, dict):
+                logger.warning("MQTT: payload no es un diccionario en %s: %s", msg.topic, raw)
+                return
+
+            # Extraer información de los tópicos de la jaula
+            topic_parts = msg.topic.split("/")
+            if len(topic_parts) >= 3 and topic_parts[0] == "planta" and topic_parts[1] == "jaula":
+                jaula_id = topic_parts[2]
+                raw["jaula_id"] = jaula_id
+                if "ts" in raw and "timestamp" not in raw:
+                    raw["timestamp"] = raw["ts"]
+                if topic_parts[-1] == "conexion":
+                    raw["state"] = "Idle" if raw.get("online") else "Disconnected"
+                elif topic_parts[-1] == "estado":
+                    if "estado" in raw and "state" not in raw:
+                        raw["state"] = raw["estado"]
+
+            # Normalizar estado al vocabulario PackML
+            if "state" in raw:
+                raw["state"] = normalize_state(raw["state"])
+
+            # Asegurar timestamp UTC
+            if "timestamp" not in raw:
                 raw["timestamp"] = datetime.now(timezone.utc).isoformat()
+            else:
+                try:
+                    dt = datetime.fromisoformat(raw["timestamp"])
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    raw["timestamp"] = dt.isoformat()
+                except ValueError:
+                    raw["timestamp"] = datetime.now(timezone.utc).isoformat()
 
-        # Garantizar campos de contadores
-        raw.setdefault("piece_count", 0)
-        raw.setdefault("good_count", 0)
-        raw.setdefault("bad_count", 0)
+            # Garantizar campos de contadores
+            raw.setdefault("piece_count", 0)
+            raw.setdefault("good_count", 0)
+            raw.setdefault("bad_count", 0)
 
-        logger.debug("MQTT evento: %s", raw)
-        try:
-            self._on_event(raw)
+            logger.info("MQTT evento: %s", raw)
+            try:
+                self._on_event(raw)
+            except Exception as exc:
+                logger.error("Error procesando evento MQTT: %s", exc, exc_info=True)
         except Exception as exc:
-            logger.error("Error procesando evento MQTT: %s", exc, exc_info=True)
+            logger.error("Error general en _on_message: %s", exc, exc_info=True)
 
     @property
     def is_connected(self) -> bool:

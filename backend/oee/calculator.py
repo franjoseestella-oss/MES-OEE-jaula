@@ -17,6 +17,8 @@ from typing import Optional, Sequence
 logger = logging.getLogger(__name__)
 
 EXECUTE_STATE = "Execute"
+RUNNING_STATES = {"Execute", "Running", "EN_PROCESO", "SECUENCIA_INICIADA"}
+
 
 SHIFT_SCHEDULE = {
     "T1": (7, 15),
@@ -111,10 +113,20 @@ def calculate_oee(
             shift_label=shift_label,
         )
 
+    # Encontrar el último evento antes del inicio de la ventana para determinar el estado inicial
+    pre_window = None
+    for e in reversed(events):
+        if e.timestamp < window_start:
+            pre_window = e
+            break
+
     # Recortar eventos al rango [window_start, window_end]
     clipped = [e for e in events if window_start <= e.timestamp <= window_end]
-    if not clipped:
-        clipped = events  # fallback: usar todos y recortar lógicamente
+    if pre_window:
+        # Insertar el evento previo al principio para que sirva de punto de partida
+        clipped.insert(0, pre_window)
+    elif not clipped and events:
+        clipped = list(events)
 
     # Calcular tiempo en Execute sumando duración de cada intervalo
     for i, ev in enumerate(clipped):
@@ -122,7 +134,7 @@ def calculate_oee(
         t_end = clipped[i + 1].timestamp if i + 1 < len(clipped) else window_end
         t_end = min(t_end, window_end)
         duration = (t_end - t_start).total_seconds()
-        if ev.state == EXECUTE_STATE and duration > 0:
+        if ev.state in RUNNING_STATES and duration > 0:
             run_time_s += duration
 
     # Contadores de piezas — diferencia entre primer y último evento del rango

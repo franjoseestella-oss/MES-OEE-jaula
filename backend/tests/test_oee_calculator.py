@@ -150,3 +150,28 @@ def test_oee_completo():
     assert result.oee == pytest.approx(
         result.availability * result.performance * result.quality, rel=1e-6
     )
+
+
+# ── Caso 7: Evento previo al inicio de la ventana (Límites de ventana) ─────────
+
+def test_boundary_preceding_event():
+    # El evento en Execute ocurre 1 hora antes de la ventana.
+    # El único cambio en la ventana es a Held a mitad de la misma.
+    events = [
+        EventRow(MACHINE, "Execute", _ts(-3600), piece_count=0, good_count=0, bad_count=0),
+        EventRow(MACHINE, "Held",    _ts(1800),  piece_count=10, good_count=10, bad_count=0),
+    ]
+    result = calculate_oee(
+        events=events,
+        window_start=_ts(0),
+        window_end=_ts(3600),
+        ideal_cycle_time_s=IDEAL_CYCLE,
+        machine_id=MACHINE,
+        window_minutes=60,
+    )
+    # Debería considerarse en Execute desde el inicio de la ventana (0) hasta 1800 (1800s)
+    # Y en Held de 1800 a 3600.
+    # Total de tiempo en marcha = 1800s de 3600s de ventana -> disponibilidad = 0.50
+    assert result.availability == pytest.approx(0.50)
+    assert result.run_time_s == pytest.approx(1800.0)
+

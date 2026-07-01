@@ -50,11 +50,25 @@ def handle_mqtt_event(payload: dict) -> None:
         error_val = payload.get("error")
         
         error_str = None
+        severidad = None
         if error_val is not None:
             if isinstance(error_val, dict):
                 error_str = json.dumps(error_val)
+                severidad = error_val.get("severidad")
             else:
                 error_str = str(error_val)
+                try:
+                    err_data = json.loads(error_str)
+                    if isinstance(err_data, dict):
+                        severidad = err_data.get("severidad")
+                except Exception:
+                    pass
+
+        # Si el estado es Aborting, pero la severidad es aviso, no queremos cambiar el estado de la máquina
+        # ya que según el protocolo sólo las alarmas "critico" cuentan como parada para la disponibilidad.
+        if state == "Aborting" and severidad == "aviso":
+            logger.info("Ignorando evento de estado Aborting para %s porque la severidad del error es 'aviso' (no crítico)", machine_id)
+            return
 
         with get_db() as db:
             repo.save_event(
@@ -73,7 +87,7 @@ def handle_mqtt_event(payload: dict) -> None:
                 dentro_de_tiempo=dentro_de_tiempo,
                 error=error_str,
             )
-        logger.debug("Evento guardado: %s → %s (Secuencia: %s) @ %s", machine_id, state, secuencia_id, ts)
+        logger.info("Evento guardado: %s → %s (Secuencia: %s) @ %s", machine_id, state, secuencia_id, ts)
     except Exception as exc:
         logger.error("Error al guardar evento MQTT: %s", exc, exc_info=True)
 

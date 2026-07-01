@@ -1,67 +1,20 @@
 
-=================== grafana/provisioning/dashboards/turno_actual_dashboard.json ===================
-Panel ID: 1 | Title: 'OEE y KPIs' | Type: 'text'
-Panel ID: 2 | Title: 'TURNO' | Type: 'text'
-Panel ID: 5 | Title: 'Línea de Tiempo de Estados' | Type: 'state-timeline'
-  Target 0 (Ref: A):
-    SQL:
-DECLARE @PlotDate DATE = CAST(CAST(GETDATE() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE);
-DECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());
-DECLARE @ShiftStartDT DATETIME = DATEADD(hour, 7 - @UTCOffset, CAST(@PlotDate AS DATETIME));
-DECLARE @ShiftEndDT DATETIME = DATEADD(hour, 15 - @UTCOffset, CAST(@PlotDate AS DATETIME));
-
-SELECT 
-  timestamp AS time,
-  CASE state
-    WHEN 'EN_ESPERA' THEN 'Esperando máquina'
-    WHEN 'EN_PROCESO' THEN 'Running'
-    WHEN 'SECUENCIA_INICIADA' THEN 'Running'
-    WHEN 'FINALIZADA' THEN 'Tiempo excedido'
-    WHEN 'Idle' THEN 'Tiempo excedido'
-    WHEN 'Aborting' THEN 'Alarma'
-    WHEN 'Disconnected' THEN 'Alarma'
-    ELSE state
-  END AS [Estado]
-FROM mes_machine_events
-WHERE machine_id = 'JAULA-01'
-  AND timestamp >= @ShiftStartDT
-  AND timestamp <= @ShiftEndDT
-ORDER BY timestamp
-----------------------------------------
-Panel ID: 10 | Title: 'Top 5 Motivos de Parada (Diagrama de Pareto)' | Type: 'barchart'
-  Target 0 (Ref: A):
-    SQL:
-SELECT TOP 5 reason AS [Motivo], SUM(duration_s) AS [Duración (s)] FROM mes_stop_reasons WHERE machine_id = 'JAULA-01' AND start_time >= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(duration_s) DESC
-----------------------------------------
-Panel ID: 11 | Title: 'MTBF (Tiempo Medio Entre Fallos)' | Type: 'stat'
-  Target 0 (Ref: A):
-    SQL:
-SELECT CAST(SUM(CASE WHEN state IN ('EN_PROCESO', 'SECUENCIA_INICIADA') THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 15, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state IN ('Aborting', 'Disconnected') THEN 1 ELSE 0 END), 0) AS [MTBF] FROM mes_machine_events WHERE machine_id = 'JAULA-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME)
-----------------------------------------
-Panel ID: 12 | Title: 'MTTR (Tiempo Medio de Reparación)' | Type: 'stat'
-  Target 0 (Ref: A):
-    SQL:
-SELECT CAST(SUM(CASE WHEN state IN ('Aborting', 'Disconnected') THEN DATEDIFF(SECOND, timestamp, DATEADD(MINUTE, 10, timestamp)) ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN state IN ('Aborting', 'Disconnected') THEN 1 ELSE 0 END), 0) AS [MTTR] FROM mes_machine_events WHERE machine_id = 'JAULA-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME)
-----------------------------------------
-Panel ID: 13 | Title: 'Top 5 Motivos de Rechazo' | Type: 'piechart'
-  Target 0 (Ref: A):
-    SQL:
-SELECT reason AS [Motivo], SUM(quantity) AS [Cantidad] FROM mes_reject_reasons WHERE machine_id = 'JAULA-01' AND timestamp >= CAST(CAST(GETDATE() AS DATE) AS DATETIME) GROUP BY reason ORDER BY SUM(quantity) DESC
-----------------------------------------
-
-=================== grafana/provisioning/dashboards/plan_dashboard.json ===================
-Panel ID: 1 | Title: 'SECUENCIAS DE PRODUCCIÓN (HOY)' | Type: 'stat'
-  Target 0 (Ref: A):
-    SQL:
+==================================================
+Panel ID 1: SECUENCIAS DE PRODUCCIÓN (HOY) (stat)
+==================================================
+--- Target 0 (Ref A): ---
 DECLARE @ActiveDate VARCHAR(8);
 SET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);
 
 DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
 
+-- Create schedule slots table
 IF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;
 CREATE TABLE #CalendarSlots (
     global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,
-    fecha DATE
+    fecha DATE,
+    slot_idx_in_day INT,
+    horario TIME
 );
 
 WITH CalendarBase AS (
@@ -73,55 +26,151 @@ WITH CalendarBase AS (
     FROM dbo.CALENDARIO_LABORAL
     WHERE Fecha >= '2026-06-24'
 )
-INSERT INTO #CalendarSlots (fecha)
+INSERT INTO #CalendarSlots (fecha, slot_idx_in_day, horario)
 SELECT 
-    cb.Fecha
+    cb.Fecha,
+    s.seq_idx,
+    s.horario
 FROM CalendarBase cb
 CROSS APPLY (
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
     FROM dbo.HHSS_18
     WHERE cb.Cant_A_Fabricar = 18.0 OR cb.Cant_A_Fabricar IS NULL OR (cb.Cant_A_Fabricar NOT IN (19.0, 18.5) AND cb.Cant_A_Fabricar > 0)
     
     UNION ALL
     
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
     FROM dbo.HHSS_19
     WHERE cb.Cant_A_Fabricar = 19.0
     
     UNION ALL
     
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
     FROM dbo.HHSS_18_5
     WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 1 AND id BETWEEN 1 AND 19
     
     UNION ALL
     
-    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx
+    SELECT ROW_NUMBER() OVER (ORDER BY id) AS seq_idx, horario
     FROM dbo.HHSS_18_5
     WHERE cb.Cant_A_Fabricar = 18.5 AND cb.Count185 % 2 = 0 AND id BETWEEN 20 AND 38
 ) s
 WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
 ORDER BY cb.Fecha ASC, s.seq_idx ASC;
 
+-- Get completed sequences
+IF OBJECT_ID('tempdb..#CompletedSeqs') IS NOT NULL DROP TABLE #CompletedSeqs;
+CREATE TABLE #CompletedSeqs (
+    id INT PRIMARY KEY,
+    secuencia VARCHAR(50),
+    bastidor VARCHAR(50),
+    modelo VARCHAR(50),
+    original_date DATE,
+    actual_completion_date DATE,
+    actual_start DATETIME,
+    actual_end DATETIME,
+    status VARCHAR(50),
+    slot_idx_in_day INT
+);
+
+INSERT INTO #CompletedSeqs (id, secuencia, bastidor, modelo, original_date, actual_completion_date, actual_start, actual_end, status, slot_idx_in_day)
+SELECT 
+    id, secuencia, bastidor, modelo, original_date, actual_completion_date, actual_start, actual_end, status,
+    ROW_NUMBER() OVER (PARTITION BY actual_completion_date ORDER BY actual_end ASC) AS slot_idx_in_day
+FROM (
+    SELECT 
+        e.id,
+        e.secuencia,
+        e.bastidor,
+        e.modelo,
+        TRY_CAST(e.fecha_montaje AS DATE) AS original_date,
+        CAST(CAST(l.FECHA_HORA_FIN_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) AS actual_completion_date,
+        CAST(CAST(l.FECHA_HORA_INICIO_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) AS actual_start,
+        CAST(CAST(l.FECHA_HORA_FIN_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) AS actual_end,
+        COALESCE(l.OK_NOK, 'Pendiente') AS status
+    FROM dbo.JAULA_ERP e
+    INNER JOIN (
+        SELECT 
+            NBASTIDOR,
+            OK_NOK,
+            FECHA_HORA_INICIO_SEC,
+            FECHA_HORA_FIN_SEC,
+            ROW_NUMBER() OVER (PARTITION BY NBASTIDOR ORDER BY id DESC) as rn
+        FROM dbo.LOG_TABLA
+        WHERE FECHA_HORA_FIN_SEC IS NOT NULL
+    ) l ON l.NBASTIDOR = e.bastidor AND l.rn = 1
+    WHERE TRY_CAST(e.secuencia AS INT) >= 227
+) tmp;
+
+DECLARE @MaxCompletionDate DATE;
+SELECT @MaxCompletionDate = MAX(actual_completion_date) FROM #CompletedSeqs;
+IF @MaxCompletionDate IS NULL SET @MaxCompletionDate = '2026-06-24';
+
+DECLARE @CompletionsOnMaxDate INT;
+SELECT @CompletionsOnMaxDate = COALESCE(MAX(slot_idx_in_day), 0) FROM #CompletedSeqs WHERE actual_completion_date = @MaxCompletionDate;
+
+-- Map sequences starting from 227
 IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
 CREATE TABLE #MappedSeqs (
     id INT PRIMARY KEY,
-    planned_date DATE
+    secuencia VARCHAR(50),
+    bastidor VARCHAR(50),
+    modelo VARCHAR(50),
+    original_date DATE,
+    planned_date DATE,
+    slot_idx INT,
+    horario TIME
 );
 
-WITH OrderedERP AS (
+-- First insert completed sequences
+INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
+SELECT 
+    id,
+    secuencia,
+    bastidor,
+    modelo,
+    original_date,
+    actual_completion_date AS planned_date,
+    slot_idx_in_day AS slot_idx,
+    CAST(actual_end AS TIME) AS horario
+FROM #CompletedSeqs;
+
+-- Then insert pending sequences mapped to available slots
+WITH AvailableSlots AS (
+    SELECT 
+        global_slot_idx,
+        fecha,
+        slot_idx_in_day,
+        horario,
+        ROW_NUMBER() OVER (ORDER BY fecha ASC, slot_idx_in_day ASC) AS available_slot_idx
+    FROM #CalendarSlots
+    WHERE fecha > @MaxCompletionDate
+       OR (fecha = @MaxCompletionDate AND slot_idx_in_day > @CompletionsOnMaxDate)
+),
+OrderedPending AS (
     SELECT 
         id,
-        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
+        secuencia,
+        bastidor,
+        modelo,
+        TRY_CAST(fecha_montaje AS DATE) AS original_date,
+        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as pending_seq_idx
     FROM dbo.JAULA_ERP
     WHERE TRY_CAST(secuencia AS INT) >= 227
+      AND bastidor NOT IN (SELECT bastidor FROM #CompletedSeqs)
 )
-INSERT INTO #MappedSeqs (id, planned_date)
+INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
 SELECT 
-    o.id,
-    cs.fecha
-FROM OrderedERP o
-INNER JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
+    p.id,
+    p.secuencia,
+    p.bastidor,
+    p.modelo,
+    p.original_date,
+    s.fecha AS planned_date,
+    s.slot_idx_in_day AS slot_idx,
+    s.horario
+FROM OrderedPending p
+LEFT JOIN AvailableSlots s ON s.available_slot_idx = p.pending_seq_idx;
 
 DECLARE @Teorico INT, @Real INT, @OK INT, @NOK INT;
 
@@ -144,10 +193,11 @@ SELECT
     COALESCE(@OK, 0) AS [SECUENCIAS OK],
     COALESCE(@NOK, 0) AS [SECUENCIAS NOK],
     COALESCE(@Real, 0) - COALESCE(@Teorico, 0) AS [DESVIACIÓN];
-----------------------------------------
-Panel ID: 4 | Title: 'EVOLUCIÓN PLAN DE PRODUCCIÓN (PLAN vs REAL)' | Type: 'timeseries'
-  Target 0 (Ref: A):
-    SQL:
+
+==================================================
+Panel ID 4: EVOLUCIÓN PLAN DE PRODUCCIÓN (PLAN vs REAL) (timeseries)
+==================================================
+--- Target 0 (Ref A): ---
 DECLARE @ActiveDate VARCHAR(8);
 SET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);
 
@@ -245,9 +295,7 @@ SELECT time, [Teórico] FROM (
     WHERE [Fin Planificado] <= DATEADD(hour, @ShiftEndHour - @UTCOffset, CAST(@PlotDate AS DATETIME))
 ) t
 ORDER BY time;
-----------------------------------------
-  Target 1 (Ref: B):
-    SQL:
+--- Target 1 (Ref B): ---
 DECLARE @ActiveDate VARCHAR(8);
 SET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);
 
@@ -279,10 +327,11 @@ SELECT time, [Real] FROM (
       AND CAST(CAST(l.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) <= DATEADD(hour, @ShiftEndHour, CAST(@DashboardDate AS DATETIME))
 ) t
 ORDER BY time;
-----------------------------------------
-Panel ID: 5 | Title: 'LISTADO DE SECUENCIAS (PLAN vs REAL)' | Type: 'table'
-  Target 0 (Ref: A):
-    SQL:
+
+==================================================
+Panel ID 5: LISTADO DE SECUENCIAS (PLAN vs REAL) (table)
+==================================================
+--- Target 0 (Ref A): ---
 DECLARE @ActiveDate VARCHAR(8);
 SET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);
 
@@ -296,7 +345,7 @@ SELECT
     @ShiftStartHour = DATEPART(hour, hora_inicio_jornada)
 FROM dbo.TURNO_TRABAJO;
 
--- Create weekly schedule slots table
+-- Create schedule slots table
 IF OBJECT_ID('tempdb..#CalendarSlots') IS NOT NULL DROP TABLE #CalendarSlots;
 CREATE TABLE #CalendarSlots (
     global_slot_idx INT IDENTITY(1,1) PRIMARY KEY,
@@ -346,6 +395,57 @@ CROSS APPLY (
 WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
 ORDER BY cb.Fecha ASC, s.seq_idx ASC;
 
+-- Get completed sequences
+IF OBJECT_ID('tempdb..#CompletedSeqs') IS NOT NULL DROP TABLE #CompletedSeqs;
+CREATE TABLE #CompletedSeqs (
+    id INT PRIMARY KEY,
+    secuencia VARCHAR(50),
+    bastidor VARCHAR(50),
+    modelo VARCHAR(50),
+    original_date DATE,
+    actual_completion_date DATE,
+    actual_start DATETIME,
+    actual_end DATETIME,
+    status VARCHAR(50),
+    slot_idx_in_day INT
+);
+
+INSERT INTO #CompletedSeqs (id, secuencia, bastidor, modelo, original_date, actual_completion_date, actual_start, actual_end, status, slot_idx_in_day)
+SELECT 
+    id, secuencia, bastidor, modelo, original_date, actual_completion_date, actual_start, actual_end, status,
+    ROW_NUMBER() OVER (PARTITION BY actual_completion_date ORDER BY actual_end ASC) AS slot_idx_in_day
+FROM (
+    SELECT 
+        e.id,
+        e.secuencia,
+        e.bastidor,
+        e.modelo,
+        TRY_CAST(e.fecha_montaje AS DATE) AS original_date,
+        CAST(CAST(l.FECHA_HORA_FIN_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) AS actual_completion_date,
+        CAST(CAST(l.FECHA_HORA_INICIO_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) AS actual_start,
+        CAST(CAST(l.FECHA_HORA_FIN_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) AS actual_end,
+        COALESCE(l.OK_NOK, 'Pendiente') AS status
+    FROM dbo.JAULA_ERP e
+    INNER JOIN (
+        SELECT 
+            NBASTIDOR,
+            OK_NOK,
+            FECHA_HORA_INICIO_SEC,
+            FECHA_HORA_FIN_SEC,
+            ROW_NUMBER() OVER (PARTITION BY NBASTIDOR ORDER BY id DESC) as rn
+        FROM dbo.LOG_TABLA
+        WHERE FECHA_HORA_FIN_SEC IS NOT NULL
+    ) l ON l.NBASTIDOR = e.bastidor AND l.rn = 1
+    WHERE TRY_CAST(e.secuencia AS INT) >= 227
+) tmp;
+
+DECLARE @MaxCompletionDate DATE;
+SELECT @MaxCompletionDate = MAX(actual_completion_date) FROM #CompletedSeqs;
+IF @MaxCompletionDate IS NULL SET @MaxCompletionDate = '2026-06-24';
+
+DECLARE @CompletionsOnMaxDate INT;
+SELECT @CompletionsOnMaxDate = COALESCE(MAX(slot_idx_in_day), 0) FROM #CompletedSeqs WHERE actual_completion_date = @MaxCompletionDate;
+
 -- Map sequences starting from 227
 IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
 CREATE TABLE #MappedSeqs (
@@ -359,29 +459,55 @@ CREATE TABLE #MappedSeqs (
     horario TIME
 );
 
-WITH OrderedERP AS (
+-- First insert completed sequences
+INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
+SELECT 
+    id,
+    secuencia,
+    bastidor,
+    modelo,
+    original_date,
+    actual_completion_date AS planned_date,
+    slot_idx_in_day AS slot_idx,
+    CAST(actual_end AS TIME) AS horario
+FROM #CompletedSeqs;
+
+-- Then insert pending sequences mapped to available slots
+WITH AvailableSlots AS (
+    SELECT 
+        global_slot_idx,
+        fecha,
+        slot_idx_in_day,
+        horario,
+        ROW_NUMBER() OVER (ORDER BY fecha ASC, slot_idx_in_day ASC) AS available_slot_idx
+    FROM #CalendarSlots
+    WHERE fecha > @MaxCompletionDate
+       OR (fecha = @MaxCompletionDate AND slot_idx_in_day > @CompletionsOnMaxDate)
+),
+OrderedPending AS (
     SELECT 
         id,
         secuencia,
         bastidor,
         modelo,
         TRY_CAST(fecha_montaje AS DATE) AS original_date,
-        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
+        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as pending_seq_idx
     FROM dbo.JAULA_ERP
     WHERE TRY_CAST(secuencia AS INT) >= 227
+      AND bastidor NOT IN (SELECT bastidor FROM #CompletedSeqs)
 )
 INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
 SELECT 
-    o.id,
-    o.secuencia,
-    o.bastidor,
-    o.modelo,
-    o.original_date,
-    cs.fecha,
-    cs.slot_idx_in_day,
-    cs.horario
-FROM OrderedERP o
-LEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
+    p.id,
+    p.secuencia,
+    p.bastidor,
+    p.modelo,
+    p.original_date,
+    s.fecha AS planned_date,
+    s.slot_idx_in_day AS slot_idx,
+    s.horario
+FROM OrderedPending p
+LEFT JOIN AvailableSlots s ON s.available_slot_idx = p.pending_seq_idx;
 
 -- Get completion status from log
 IF OBJECT_ID('tempdb..#SeqsWithLog') IS NOT NULL DROP TABLE #SeqsWithLog;
@@ -396,8 +522,8 @@ SELECT
     m.horario,
     l.OK_NOK AS log_status,
     l.FECHA_MONTAJE AS log_fecha_montaje,
-    l.FECHA_HORA_INICIO_SEC,
-    l.FECHA_HORA_FIN_SEC
+    CAST(CAST(l.FECHA_HORA_INICIO_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) AS FECHA_HORA_INICIO_SEC,
+    CAST(CAST(l.FECHA_HORA_FIN_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) AS FECHA_HORA_FIN_SEC
 INTO #SeqsWithLog
 FROM #MappedSeqs m
 LEFT JOIN (
@@ -412,7 +538,6 @@ LEFT JOIN (
     FROM dbo.LOG_TABLA
 ) l ON l.NBASTIDOR = m.bastidor AND l.rn = 1;
 
--- Now assign planned times
 SELECT 
     ROW_NUMBER() OVER (ORDER BY s.slot_idx ASC, s.secuencia ASC) AS [ID],
     s.secuencia AS [Secuencia],
@@ -436,8 +561,8 @@ SELECT
         ), 
         108
     ) AS [Fin Planificado],
-    CONVERT(varchar(8), CAST(s.FECHA_HORA_INICIO_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Inicio Real],
-    CONVERT(varchar(8), CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time', 108) AS [Fin Real],
+    CONVERT(varchar(8), s.FECHA_HORA_INICIO_SEC, 108) AS [Inicio Real],
+    CONVERT(varchar(8), s.FECHA_HORA_FIN_SEC, 108) AS [Fin Real],
     CASE 
         WHEN s.FECHA_HORA_FIN_SEC IS NULL THEN '-'
         ELSE 
@@ -447,14 +572,14 @@ SELECT
                         DATEDIFF(second, @ShiftStartStr, COALESCE(s.horario, @ShiftStartStr)),
                         DATEADD(hour, @ShiftStartHour, CAST(s.planned_date AS DATETIME))
                     ), 
-                    CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
+                    s.FECHA_HORA_FIN_SEC
                 ) > 0 
                     THEN '+' + CAST(DATEDIFF(minute, 
                         DATEADD(second, 
                             DATEDIFF(second, @ShiftStartStr, COALESCE(s.horario, @ShiftStartStr)),
                             DATEADD(hour, @ShiftStartHour, CAST(s.planned_date AS DATETIME))
                         ), 
-                        CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
+                        s.FECHA_HORA_FIN_SEC
                     ) AS VARCHAR) + ' min'
                 ELSE 
                     CAST(DATEDIFF(minute, 
@@ -462,7 +587,7 @@ SELECT
                             DATEDIFF(second, @ShiftStartStr, COALESCE(s.horario, @ShiftStartStr)),
                             DATEADD(hour, @ShiftStartHour, CAST(s.planned_date AS DATETIME))
                         ), 
-                        CAST(CAST(s.FECHA_HORA_FIN_SEC AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME)
+                        s.FECHA_HORA_FIN_SEC
                     ) AS VARCHAR) + ' min'
             END
     END AS [Desviación],
@@ -477,39 +602,18 @@ LEFT JOIN dbo.REFERENCIA_EN_CICLO active ON active.NBASTIDOR = s.bastidor
 WHERE 
     s.planned_date = @SelectedDate
 ORDER BY s.slot_idx ASC, s.secuencia ASC;
-----------------------------------------
-Panel ID: 10 | Title: 'Plan de Producción por Secuencias (Teórico vs Real)' | Type: 'state-timeline'
-  Target 0 (Ref: A):
-    SQL:
-DECLARE @ActiveDate VARCHAR(8);
-SET @ActiveDate = CONVERT(varchar(8), CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE), 112);
 
-DECLARE @SelectedDate DATE = TRY_CAST(@ActiveDate AS DATE);
-DECLARE @PlotDate DATE = CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE);
-
-DECLARE @ShiftStartHour INT, @ShiftEndHour INT;
-DECLARE @ShiftStartStr VARCHAR(8);
-
-SELECT 
-    @ShiftStartHour = DATEPART(hour, hora_inicio_jornada),
-    @ShiftEndHour = DATEPART(hour, hora_fin_jornada),
-    @ShiftStartStr = CAST(hora_inicio_jornada AS VARCHAR(8))
-FROM dbo.TURNO_TRABAJO;
-
--- Get timezone offset
+==================================================
+Panel ID 10: Plan de Producción por Secuencias (Teórico vs Real) (state-timeline)
+==================================================
+--- Target 0 (Ref A): ---
 DECLARE @UTCOffset INT = DATEDIFF(hour, GETUTCDATE(), GETDATE());
-DECLARE @ShiftStartDT DATETIME = DATEADD(hour, @ShiftStartHour - @UTCOffset, CAST(@PlotDate AS DATETIME));
-DECLARE @ShiftEndDT DATETIME = DATEADD(hour, @ShiftEndHour - @UTCOffset, CAST(@PlotDate AS DATETIME));
 
--- Current progress time limit
-DECLARE @CurrentProgressTime DATETIME;
-SELECT @CurrentProgressTime = CASE 
-    WHEN CAST(GETDATE() AS DATE) = @PlotDate THEN GETUTCDATE()
-    WHEN @PlotDate > CAST(GETDATE() AS DATE) THEN @ShiftStartDT
-    ELSE @ShiftEndDT
-END;
+-- Get timezone-adjusted range from Grafana time limits
+DECLARE @SelectedDateStart DATE = CAST(CAST($__timeFrom() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE);
+DECLARE @SelectedDateEnd DATE = CAST(CAST($__timeTo() AS datetime2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE);
 
--- Get active reference/sequence in cycle
+-- Active reference/sequence currently in cycles (from HMI/PLC)
 DECLARE @ActiveBastidor VARCHAR(50);
 DECLARE @ActiveStartDT DATETIME;
 
@@ -574,6 +678,57 @@ CROSS APPLY (
 WHERE cb.Laborable = 1 AND cb.Cant_A_Fabricar > 0
 ORDER BY cb.Fecha ASC, s.seq_idx ASC;
 
+-- Get completed sequences
+IF OBJECT_ID('tempdb..#CompletedSeqs') IS NOT NULL DROP TABLE #CompletedSeqs;
+CREATE TABLE #CompletedSeqs (
+    id INT PRIMARY KEY,
+    secuencia VARCHAR(50),
+    bastidor VARCHAR(50),
+    modelo VARCHAR(50),
+    original_date DATE,
+    actual_completion_date DATE,
+    actual_start DATETIME,
+    actual_end DATETIME,
+    status VARCHAR(50),
+    slot_idx_in_day INT
+);
+
+INSERT INTO #CompletedSeqs (id, secuencia, bastidor, modelo, original_date, actual_completion_date, actual_start, actual_end, status, slot_idx_in_day)
+SELECT 
+    id, secuencia, bastidor, modelo, original_date, actual_completion_date, actual_start, actual_end, status,
+    ROW_NUMBER() OVER (PARTITION BY actual_completion_date ORDER BY actual_end ASC) AS slot_idx_in_day
+FROM (
+    SELECT 
+        e.id,
+        e.secuencia,
+        e.bastidor,
+        e.modelo,
+        TRY_CAST(e.fecha_montaje AS DATE) AS original_date,
+        CAST(CAST(l.FECHA_HORA_FIN_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATE) AS actual_completion_date,
+        CAST(CAST(l.FECHA_HORA_INICIO_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) AS actual_start,
+        CAST(CAST(l.FECHA_HORA_FIN_SEC AS DATETIME2) AT TIME ZONE 'UTC' AT TIME ZONE 'Romance Standard Time' AS DATETIME) AS actual_end,
+        COALESCE(l.OK_NOK, 'Pendiente') AS status
+    FROM dbo.JAULA_ERP e
+    INNER JOIN (
+        SELECT 
+            NBASTIDOR,
+            OK_NOK,
+            FECHA_HORA_INICIO_SEC,
+            FECHA_HORA_FIN_SEC,
+            ROW_NUMBER() OVER (PARTITION BY NBASTIDOR ORDER BY id DESC) as rn
+        FROM dbo.LOG_TABLA
+        WHERE FECHA_HORA_FIN_SEC IS NOT NULL
+    ) l ON l.NBASTIDOR = e.bastidor AND l.rn = 1
+    WHERE TRY_CAST(e.secuencia AS INT) >= 227
+) tmp;
+
+DECLARE @MaxCompletionDate DATE;
+SELECT @MaxCompletionDate = MAX(actual_completion_date) FROM #CompletedSeqs;
+IF @MaxCompletionDate IS NULL SET @MaxCompletionDate = '2026-06-24';
+
+DECLARE @CompletionsOnMaxDate INT;
+SELECT @CompletionsOnMaxDate = COALESCE(MAX(slot_idx_in_day), 0) FROM #CompletedSeqs WHERE actual_completion_date = @MaxCompletionDate;
+
 -- Map sequences starting from 227
 IF OBJECT_ID('tempdb..#MappedSeqs') IS NOT NULL DROP TABLE #MappedSeqs;
 CREATE TABLE #MappedSeqs (
@@ -587,29 +742,55 @@ CREATE TABLE #MappedSeqs (
     horario TIME
 );
 
-WITH OrderedERP AS (
+-- First insert completed sequences
+INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
+SELECT 
+    id,
+    secuencia,
+    bastidor,
+    modelo,
+    original_date,
+    actual_completion_date AS planned_date,
+    slot_idx_in_day AS slot_idx,
+    CAST(actual_end AS TIME) AS horario
+FROM #CompletedSeqs;
+
+-- Then insert pending sequences mapped to available slots
+WITH AvailableSlots AS (
+    SELECT 
+        global_slot_idx,
+        fecha,
+        slot_idx_in_day,
+        horario,
+        ROW_NUMBER() OVER (ORDER BY fecha ASC, slot_idx_in_day ASC) AS available_slot_idx
+    FROM #CalendarSlots
+    WHERE fecha > @MaxCompletionDate
+       OR (fecha = @MaxCompletionDate AND slot_idx_in_day > @CompletionsOnMaxDate)
+),
+OrderedPending AS (
     SELECT 
         id,
         secuencia,
         bastidor,
         modelo,
         TRY_CAST(fecha_montaje AS DATE) AS original_date,
-        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as global_seq_idx
+        ROW_NUMBER() OVER (ORDER BY TRY_CAST(fecha_montaje AS DATE) ASC, TRY_CAST(secuencia AS INT) ASC) as pending_seq_idx
     FROM dbo.JAULA_ERP
     WHERE TRY_CAST(secuencia AS INT) >= 227
+      AND bastidor NOT IN (SELECT bastidor FROM #CompletedSeqs)
 )
 INSERT INTO #MappedSeqs (id, secuencia, bastidor, modelo, original_date, planned_date, slot_idx, horario)
 SELECT 
-    o.id,
-    o.secuencia,
-    o.bastidor,
-    o.modelo,
-    o.original_date,
-    cs.fecha,
-    cs.slot_idx_in_day,
-    cs.horario
-FROM OrderedERP o
-LEFT JOIN #CalendarSlots cs ON cs.global_slot_idx = o.global_seq_idx;
+    p.id,
+    p.secuencia,
+    p.bastidor,
+    p.modelo,
+    p.original_date,
+    s.fecha AS planned_date,
+    s.slot_idx_in_day AS slot_idx,
+    s.horario
+FROM OrderedPending p
+LEFT JOIN AvailableSlots s ON s.available_slot_idx = p.pending_seq_idx;
 
 IF OBJECT_ID('tempdb..#SeqsToSchedule') IS NOT NULL DROP TABLE #SeqsToSchedule;
 CREATE TABLE #SeqsToSchedule (
@@ -625,7 +806,10 @@ CREATE TABLE #SeqsToSchedule (
     planned_date DATE,
     slot_idx INT,
     actual_start DATETIME,
-    actual_end DATETIME
+    actual_end DATETIME,
+    shift_start DATETIME,
+    shift_end DATETIME,
+    progress_time DATETIME
 );
 
 INSERT INTO #SeqsToSchedule (id, secuencia, bastidor, modelo, completed, status, completion_time, planned_date, slot_idx, actual_start, actual_end)
@@ -653,31 +837,39 @@ LEFT JOIN (
         ROW_NUMBER() OVER (PARTITION BY NBASTIDOR ORDER BY id DESC) as rn
     FROM dbo.LOG_TABLA
 ) log ON log.NBASTIDOR = m.bastidor AND log.rn = 1
-WHERE m.planned_date = @SelectedDate;
+WHERE m.planned_date BETWEEN @SelectedDateStart AND @SelectedDateEnd;
 
+-- Calculate shift start/end, progress time, and planned start/end for each sequence
 UPDATE s
 SET 
+    s.shift_start = DATEADD(hour, 7 - @UTCOffset, CAST(s.planned_date AS DATETIME)),
+    s.shift_end = DATEADD(hour, 15 - @UTCOffset, CAST(s.planned_date AS DATETIME)),
+    s.progress_time = CASE 
+        WHEN CAST(GETDATE() AS DATE) = s.planned_date THEN GETUTCDATE()
+        WHEN s.planned_date > CAST(GETDATE() AS DATE) THEN DATEADD(hour, 7 - @UTCOffset, CAST(s.planned_date AS DATETIME))
+        ELSE DATEADD(hour, 15 - @UTCOffset, CAST(s.planned_date AS DATETIME))
+    END,
     s.planned_start = DATEADD(hour, -@UTCOffset, DATEADD(second, 
         CASE 
             WHEN m.slot_idx = 1 THEN 0
-            ELSE DATEDIFF(second, @ShiftStartStr, COALESCE(t_prev.horario, @ShiftStartStr))
+            ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))
         END,
-        DATEADD(hour, @ShiftStartHour, CAST(@PlotDate AS DATETIME))
+        DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
     )),
     s.planned_end = DATEADD(hour, -@UTCOffset, CASE 
         WHEN m.horario IS NOT NULL THEN 
             DATEADD(second, 
-                DATEDIFF(second, @ShiftStartStr, m.horario),
-                DATEADD(hour, @ShiftStartHour, CAST(@PlotDate AS DATETIME))
+                DATEDIFF(second, '07:00:00', m.horario),
+                DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
             )
         ELSE
             DATEADD(minute, 25, 
                 DATEADD(second, 
                     CASE 
                         WHEN m.slot_idx = 1 THEN 0
-                        ELSE DATEDIFF(second, @ShiftStartStr, COALESCE(t_prev.horario, @ShiftStartStr))
+                        ELSE DATEDIFF(second, '07:00:00', COALESCE(t_prev.horario, '07:00:00'))
                     END,
-                    DATEADD(hour, @ShiftStartHour, CAST(@PlotDate AS DATETIME))
+                    DATEADD(hour, 7, CAST(s.planned_date AS DATETIME))
                 )
             )
     END)
@@ -685,47 +877,51 @@ FROM #SeqsToSchedule s
 INNER JOIN #MappedSeqs m ON m.id = s.id
 LEFT JOIN #CalendarSlots t_prev ON t_prev.fecha = m.planned_date AND t_prev.slot_idx_in_day = m.slot_idx - 1;
 
--- Find active slot index in progress
-DECLARE @ActiveSlotIdx INT;
-SELECT @ActiveSlotIdx = MIN(slot_idx)
+-- Find active slot ID in progress globally
+DECLARE @ActiveSeqId INT;
+SELECT @ActiveSeqId = MIN(id)
 FROM #SeqsToSchedule
 WHERE actual_start IS NOT NULL AND actual_end IS NULL;
 
--- Find theoretical active slot index
-DECLARE @TheoreticalActiveSlotIdx INT;
-SELECT TOP 1 @TheoreticalActiveSlotIdx = slot_idx
+-- Find theoretical active sequence ID
+DECLARE @TheoreticalActiveSeqId INT;
+SELECT TOP 1 @TheoreticalActiveSeqId = id
 FROM #SeqsToSchedule
-WHERE planned_start <= @CurrentProgressTime AND planned_end >= @CurrentProgressTime;
+WHERE planned_start <= progress_time AND planned_end >= progress_time;
 
-IF @TheoreticalActiveSlotIdx IS NULL
+IF @TheoreticalActiveSeqId IS NULL
 BEGIN
-    SELECT @TheoreticalActiveSlotIdx = COALESCE(
-        (SELECT MAX(slot_idx) FROM #SeqsToSchedule WHERE planned_start <= @CurrentProgressTime),
+    SELECT @TheoreticalActiveSeqId = COALESCE(
+        (SELECT MAX(id) FROM #SeqsToSchedule WHERE planned_start <= progress_time),
+        (SELECT MIN(id) FROM #SeqsToSchedule),
         1
     );
 END;
 
--- Alarm intervals CTE
-WITH AlarmBase AS (
+-- Alarm intervals CTE: we support multiple days by converting alarms to their actual dates
+WITH AlarmIntervals AS (
     SELECT 
-        id,
-        DESCRIPCION,
-        DATEADD(hour, -@UTCOffset, (CASE WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103) ELSE TRY_CAST(CONVERT(VARCHAR(10), @PlotDate, 120) + ' ' + FECHA_Y_HORA AS DATETIME) END)) AS alarm_start,
-        DURACION,
-        LEAD(DATEADD(hour, -@UTCOffset, (CASE WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103) ELSE TRY_CAST(CONVERT(VARCHAR(10), @PlotDate, 120) + ' ' + FECHA_Y_HORA AS DATETIME) END))) 
-            OVER (PARTITION BY DESCRIPCION ORDER BY id ASC) AS next_alarm_start
-    FROM dbo.LOG_ALARMAS
-    WHERE (FECHA_Y_HORA LIKE '[0-9]%' OR FECHA_Y_HORA LIKE '[0-9][0-9]%')
-      AND DESCRIPCION LIKE '%ALARMA CRÍTICA%'
-),
-AlarmIntervals AS (
-    SELECT 
-        alarm_start,
+        DATEADD(hour, -@UTCOffset, 
+            CASE 
+                WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103)
+                ELSE TRY_CAST(CONVERT(VARCHAR(10), GETDATE(), 120) + ' ' + FECHA_Y_HORA AS DATETIME)
+            END
+        ) AS alarm_start,
         CASE 
-            WHEN DURACION = 'Activa' THEN COALESCE(next_alarm_start, @CurrentProgressTime)
-            ELSE DATEADD(second, COALESCE(parts.hrs * 3600 + parts.mins * 60 + parts.secs, 0), alarm_start)
+            WHEN DURACION = 'Activa' THEN 
+                CASE 
+                    WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN GETUTCDATE()
+                    ELSE DATEADD(hour, -@UTCOffset, GETDATE())
+                END
+            ELSE DATEADD(second, COALESCE(parts.hrs * 3600 + parts.mins * 60 + parts.secs, 0), 
+                 DATEADD(hour, -@UTCOffset, 
+                     CASE 
+                         WHEN CHARINDEX(',', FECHA_Y_HORA) > 0 THEN TRY_CONVERT(DATETIME, REPLACE(FECHA_Y_HORA, ',', ''), 103)
+                         ELSE TRY_CAST(CONVERT(VARCHAR(10), GETDATE(), 120) + ' ' + FECHA_Y_HORA AS DATETIME)
+                     END
+                 ))
         END AS alarm_end
-    FROM AlarmBase
+    FROM dbo.LOG_ALARMAS
     CROSS APPLY (
         SELECT REPLACE(DURACION, ' ', '') AS clean_dur
     ) cd
@@ -763,6 +959,7 @@ AlarmIntervals AS (
                 ELSE 0 
             END AS secs
     ) parts
+    WHERE FECHA_Y_HORA LIKE '[0-9]%' OR FECHA_Y_HORA LIKE '[0-9][0-9]%'
 ),
 RawTimestamps AS (
     SELECT id, planned_start AS t FROM #SeqsToSchedule
@@ -773,27 +970,28 @@ RawTimestamps AS (
     UNION
     SELECT id, actual_end AS t FROM #SeqsToSchedule WHERE actual_end IS NOT NULL
     UNION
-    SELECT id, @CurrentProgressTime AS t FROM #SeqsToSchedule
+    SELECT id, progress_time AS t FROM #SeqsToSchedule
     UNION
     SELECT s.id, a.alarm_start AS t 
     FROM #SeqsToSchedule s
     CROSS JOIN AlarmIntervals a
-    WHERE a.alarm_start BETWEEN s.planned_start AND @ShiftEndDT
+    WHERE a.alarm_start BETWEEN s.planned_start AND s.shift_end
     UNION
     SELECT s.id, a.alarm_end AS t 
     FROM #SeqsToSchedule s
     CROSS JOIN AlarmIntervals a
-    WHERE a.alarm_end BETWEEN s.planned_start AND @ShiftEndDT
+    WHERE a.alarm_end BETWEEN s.planned_start AND s.shift_end
 ),
 BoundedTimestamps AS (
     SELECT DISTINCT
-        id,
+        bt.id,
         CASE 
-            WHEN t < @ShiftStartDT THEN @ShiftStartDT
-            WHEN t > @ShiftEndDT THEN @ShiftEndDT
-            ELSE t
+            WHEN bt.t < s.shift_start THEN s.shift_start
+            WHEN bt.t > s.shift_end THEN s.shift_end
+            ELSE bt.t
         END AS t
-    FROM RawTimestamps
+    FROM RawTimestamps bt
+    INNER JOIN #SeqsToSchedule s ON s.id = bt.id
 ),
 FilteredTimestamps AS (
     SELECT bt.id, bt.t
@@ -804,21 +1002,21 @@ FilteredTimestamps AS (
                   END
       AND bt.t <= CASE 
                       -- Rule: If a previous sequence is in progress, do not draw this sequence
-                      WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL AND @ActiveSlotIdx >= @TheoreticalActiveSlotIdx THEN
+                      WHEN @ActiveSeqId IS NOT NULL AND s.id > @ActiveSeqId AND s.actual_start IS NULL AND @ActiveSeqId >= @TheoreticalActiveSeqId THEN
                           s.planned_start
                       
                       WHEN s.actual_start IS NOT NULL THEN
                           CASE 
-                              WHEN s.actual_end IS NOT NULL THEN 
-                                  CASE WHEN s.actual_end > s.planned_end THEN s.actual_end ELSE s.planned_end END
-                              ELSE @CurrentProgressTime
+                               WHEN s.actual_end IS NOT NULL THEN 
+                                   CASE WHEN s.actual_end > s.planned_end THEN s.actual_end ELSE s.planned_end END
+                               ELSE s.progress_time
                           END
                       ELSE
                           CASE 
-                              WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
+                              WHEN s.planned_start >= s.progress_time THEN s.planned_start
                               ELSE
                                   CASE 
-                                      WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
+                                      WHEN s.planned_end > s.progress_time THEN s.progress_time
                                       ELSE s.planned_end
                                   END
                           END
@@ -827,25 +1025,25 @@ FilteredTimestamps AS (
 SELECT time, metric, value FROM (
     -- Shift start boundary
     SELECT 
-        @ShiftStartDT AS time,
-        CONCAT(secuencia, CHAR(10), bastidor) AS metric,
+        s.shift_start AS time,
+        CONCAT(s.secuencia, CHAR(10), s.bastidor) AS metric,
         NULL AS value,
-        planned_date,
-        slot_idx,
+        s.planned_date,
+        s.slot_idx,
         1 AS sort_time_order
-    FROM #SeqsToSchedule
+    FROM #SeqsToSchedule s
     
     UNION ALL
     
     -- Shift end boundary
     SELECT 
-        @ShiftEndDT AS time,
-        CONCAT(secuencia, CHAR(10), bastidor) AS metric,
+        s.shift_end AS time,
+        CONCAT(s.secuencia, CHAR(10), s.bastidor) AS metric,
         NULL AS value,
-        planned_date,
-        slot_idx,
+        s.planned_date,
+        s.slot_idx,
         4 AS sort_time_order
-    FROM #SeqsToSchedule
+    FROM #SeqsToSchedule s
     
     UNION ALL
     
@@ -856,41 +1054,43 @@ SELECT time, metric, value FROM (
         CASE 
             WHEN ft.t >= CASE 
                             -- Rule: If a previous sequence is in progress, do not draw this sequence
-                            WHEN @ActiveSlotIdx IS NOT NULL AND s.slot_idx > @ActiveSlotIdx AND s.actual_start IS NULL AND @ActiveSlotIdx >= @TheoreticalActiveSlotIdx THEN
+                            WHEN @ActiveSeqId IS NOT NULL AND s.id > @ActiveSeqId AND s.actual_start IS NULL AND @ActiveSeqId >= @TheoreticalActiveSeqId THEN
                                 s.planned_start
                             
                             WHEN s.actual_start IS NOT NULL THEN
                                 CASE 
                                     WHEN s.actual_end IS NOT NULL THEN 
                                         CASE WHEN s.actual_end > s.planned_end THEN s.actual_end ELSE s.planned_end END
-                                    ELSE @CurrentProgressTime
+                                    ELSE s.progress_time
                                 END
                             ELSE
                                 CASE 
-                                    WHEN s.planned_start >= @CurrentProgressTime THEN s.planned_start
+                                    WHEN s.planned_start >= s.progress_time THEN s.planned_start
                                     ELSE
                                         CASE 
-                                            WHEN s.planned_end > @CurrentProgressTime THEN @CurrentProgressTime
+                                            WHEN s.planned_end > s.progress_time THEN s.progress_time
                                             ELSE s.planned_end
                                         END
                                 END
                         END THEN NULL
             WHEN s.actual_start IS NOT NULL AND s.actual_start >= s.planned_end AND ft.t >= s.planned_end AND ft.t < s.actual_start THEN NULL
-            WHEN s.slot_idx = COALESCE(
-                     (SELECT MIN(slot_idx) FROM #SeqsToSchedule WHERE actual_start IS NOT NULL AND actual_start <= ft.t AND (actual_end IS NULL OR actual_end > ft.t)),
-                     (SELECT TOP 1 slot_idx FROM #SeqsToSchedule WHERE planned_start <= ft.t AND planned_end >= ft.t),
-                     (SELECT MAX(slot_idx) FROM #SeqsToSchedule WHERE planned_start <= ft.t),
-                     1
+            WHEN s.id = COALESCE(
+                     (SELECT MIN(id) FROM #SeqsToSchedule WHERE planned_date = s.planned_date AND actual_start IS NOT NULL AND actual_start <= ft.t AND (actual_end IS NULL OR actual_end > ft.t)),
+                     (SELECT TOP 1 id FROM #SeqsToSchedule WHERE planned_date = s.planned_date AND planned_start <= ft.t AND planned_end >= ft.t),
+                     (SELECT MAX(id) FROM #SeqsToSchedule WHERE planned_date = s.planned_date AND planned_start <= ft.t),
+                     (SELECT MIN(id) FROM #SeqsToSchedule WHERE planned_date = s.planned_date),
+                     s.id
                  )
                  AND EXISTS (
                      SELECT 1 FROM AlarmIntervals a 
                      WHERE ft.t >= a.alarm_start AND ft.t < a.alarm_end
                  ) THEN 'Alarma'
-            WHEN s.slot_idx = COALESCE(
-                     (SELECT MIN(slot_idx) FROM #SeqsToSchedule WHERE actual_start IS NOT NULL AND actual_start <= ft.t AND (actual_end IS NULL OR actual_end > ft.t)),
-                     (SELECT TOP 1 slot_idx FROM #SeqsToSchedule WHERE planned_start <= ft.t AND planned_end >= ft.t),
-                     (SELECT MAX(slot_idx) FROM #SeqsToSchedule WHERE planned_start <= ft.t),
-                     1
+            WHEN s.id = COALESCE(
+                     (SELECT MIN(id) FROM #SeqsToSchedule WHERE planned_date = s.planned_date AND actual_start IS NOT NULL AND actual_start <= ft.t AND (actual_end IS NULL OR actual_end > ft.t)),
+                     (SELECT TOP 1 id FROM #SeqsToSchedule WHERE planned_date = s.planned_date AND planned_start <= ft.t AND planned_end >= ft.t),
+                     (SELECT MAX(id) FROM #SeqsToSchedule WHERE planned_date = s.planned_date AND planned_start <= ft.t),
+                     (SELECT MIN(id) FROM #SeqsToSchedule WHERE planned_date = s.planned_date),
+                     s.id
                  )
                  AND (s.actual_start IS NULL OR ft.t < s.actual_start)
                  AND EXISTS (
@@ -920,10 +1120,11 @@ ORDER BY
     metric ASC, 
     time ASC,
     sort_time_order ASC;
-----------------------------------------
-Panel ID: 7 | Title: '📅 CALENDARIO LABORAL Y PLANIFICACIÓN DE UNIDADES' | Type: 'table'
-  Target 0 (Ref: A):
-    SQL:
+
+==================================================
+Panel ID 7: 📅 CALENDARIO LABORAL Y PLANIFICACIÓN DE UNIDADES (table)
+==================================================
+--- Target 0 (Ref A): ---
 SELECT
   COALESCE(CONVERT(varchar(10), TRY_CAST(Fecha AS DATE), 103), '') AS [Fecha],
   CASE 
@@ -955,10 +1156,11 @@ SELECT
   END AS [Unidades a Fabricar]
 FROM dbo.CALENDARIO_LABORAL cl
 ORDER BY cl.Fecha ASC
-----------------------------------------
-Panel ID: 8 | Title: '📅 DISTRIBUCIÓN DE LA JORNADA LABORAL (TURNO)' | Type: 'table'
-  Target 0 (Ref: A):
-    SQL:
+
+==================================================
+Panel ID 8: 📅 DISTRIBUCIÓN DE LA JORNADA LABORAL (TURNO) (table)
+==================================================
+--- Target 0 (Ref A): ---
 SELECT
   fichero AS [Fichero Excel],
   regularizacion AS [Regularización],
@@ -967,5 +1169,7 @@ SELECT
   CONVERT(varchar(5), duracion_parada, 108) AS [Duración Parada],
   CONVERT(varchar(5), hora_fin_jornada, 108) AS [Fin Jornada]
 FROM dbo.TURNO_TRABAJO
-----------------------------------------
-Panel ID: 6 | Title: 'None' | Type: 'text'
+
+==================================================
+Panel ID 6:  (text)
+==================================================

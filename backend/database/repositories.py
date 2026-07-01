@@ -35,6 +35,22 @@ def save_event(db: Session, machine_id: str, state: str, ts: datetime,
                secuencia_id: Optional[str] = None, tiempo_teorico_s: Optional[int] = None,
                duracion_real_s: Optional[int] = None, dentro_de_tiempo: Optional[bool] = None,
                error: Optional[str] = None) -> MachineEvent:
+    # Evitar duplicados de reconexión MQTT para la misma máquina con timestamp idéntico o muy cercano (±1 segundo)
+    time_tolerance = timedelta(seconds=1)
+    existing = (
+        db.query(MachineEvent)
+        .filter(
+            MachineEvent.machine_id == machine_id,
+            MachineEvent.state == state,
+            MachineEvent.timestamp >= ts - time_tolerance,
+            MachineEvent.timestamp <= ts + time_tolerance
+        )
+        .first()
+    )
+    if existing:
+        logger.info("Evento duplicado omitido para %s @ %s (Existente: %s)", machine_id, ts, existing.timestamp)
+        return existing
+
     ev = MachineEvent(
         machine_id=machine_id,
         state=state,
@@ -74,7 +90,17 @@ def get_all_machine_statuses(db: Session) -> list[MachineStatus]:
 
 def get_events_in_range(db: Session, machine_id: str,
                         since: datetime, until: datetime) -> list[MachineEvent]:
-    return (
+    prev_event = (
+        db.query(MachineEvent)
+        .filter(
+            MachineEvent.machine_id == machine_id,
+            MachineEvent.timestamp < since,
+        )
+        .order_by(MachineEvent.timestamp.desc())
+        .first()
+    )
+    
+    events = (
         db.query(MachineEvent)
         .filter(
             MachineEvent.machine_id == machine_id,
@@ -84,6 +110,10 @@ def get_events_in_range(db: Session, machine_id: str,
         .order_by(MachineEvent.timestamp)
         .all()
     )
+    
+    if prev_event:
+        return [prev_event] + events
+    return events
 
 
 def get_latest_n_events(db: Session, machine_id: str, n: int = 100) -> list[MachineEvent]:
