@@ -30,3 +30,9 @@ desktop.ini
 
 # ── Claude / AI ────────────────────────────────────────
 .claude/
+
+# ── Diagnostics / Scratch ──────────────────────────────
+scratch/archive/
+archive_screenshots/
+
+
